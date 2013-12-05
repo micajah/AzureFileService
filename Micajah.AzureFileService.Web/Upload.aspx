@@ -8,8 +8,6 @@
 </head>
 <body>
     <form id="form1" runat="server">
-        <iframe id="fileUploader" src="<%= UploadUrl %>" style="width: 100%; height: 600px; border: none 0; overflow: hidden;" scrolling="no"></iframe>
-        <br />
         <asp:PlaceHolder ID="FilesList" runat="server"></asp:PlaceHolder>
     </form>
 </body>

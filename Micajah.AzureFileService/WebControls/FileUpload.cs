@@ -28,6 +28,9 @@ namespace Micajah.AzureFileService.WebControls
         protected HtmlIframe IFrame;
         protected System.Web.UI.WebControls.FileUpload FileFromMyComputer;
 
+        private CloudBlobClient m_CloudClient;
+        private CloudBlobContainer m_Container;
+
         #endregion
 
         #region Public Properties
@@ -161,23 +164,43 @@ namespace Micajah.AzureFileService.WebControls
 
         #region Private Properties
 
+        private CloudBlobClient Client
+        {
+            get
+            {
+                if (m_CloudClient == null)
+                {
+                    CloudStorageAccount storageAccount = CloudStorageAccount.Parse(this.StorageConnectionString);
+                    m_CloudClient = storageAccount.CreateCloudBlobClient();
+                }
+                return m_CloudClient;
+            }
+        }
+
+        private CloudBlobContainer Container
+        {
+            get
+            {
+                if (m_Container == null)
+                {
+                    m_Container = this.Client.GetContainerReference(this.InstanceId.ToString("N"));
+                    m_Container.CreateIfNotExists();
+                }
+                return m_Container;
+            }
+        }
+
         private string IFrameUri
         {
             get
             {
-                CloudStorageAccount storageAccount = CloudStorageAccount.Parse(this.StorageConnectionString);
-                CloudBlobClient client = storageAccount.CreateCloudBlobClient();
-
-                CloudBlobContainer container = client.GetContainerReference(this.InstanceId.ToString("N"));
-                container.CreateIfNotExists();
-
-                string sas = container.GetSharedAccessSignature(new SharedAccessBlobPolicy
+                string sas = this.Container.GetSharedAccessSignature(new SharedAccessBlobPolicy
                 {
                     Permissions = SharedAccessBlobPermissions.Write,
                     SharedAccessExpiryTime = DateTime.UtcNow.AddMinutes(Settings.Default.SharedAccessExpiryTime)
                 });
 
-                string uploadUri = string.Format(CultureInfo.InvariantCulture, "{0}/{1}/{2}/{{0}}{3}", container.Uri.AbsoluteUri, this.LocalObjectType, this.LocalObjectId, sas);
+                string uploadUri = string.Format(CultureInfo.InvariantCulture, "{0}/{1}/{2}/{{0}}{3}", this.Container.Uri.AbsoluteUri, this.LocalObjectType, this.LocalObjectId, sas);
 
                 StringBuilder sb = new StringBuilder("method:\"PUT\",createImageThumbnails:false");
                 sb.AppendFormat(CultureInfo.InvariantCulture, ",url:\"{0}\"", uploadUri);
@@ -199,10 +222,18 @@ namespace Micajah.AzureFileService.WebControls
                 string settingsBase64String = Convert.ToBase64String(settingsBytes);
                 settingsBase64String = HttpUtility.UrlEncode(settingsBase64String);
 
-                container = client.GetContainerReference(FileServiceContanerName);
+                return this.UploadPageUri + "?d=" + settingsBase64String;
+            }
+        }
+
+        private string UploadPageUri
+        {
+            get
+            {
+                CloudBlobContainer container = this.Client.GetContainerReference(FileServiceContanerName);
                 CloudBlockBlob blob = container.GetBlockBlobReference(UploadPageName);
 
-                return blob.Uri.AbsoluteUri + "?d=" + settingsBase64String;
+                return blob.Uri.AbsoluteUri;
             }
         }
 
@@ -222,16 +253,10 @@ namespace Micajah.AzureFileService.WebControls
                         long fileSize = file.InputStream.Length;
                         if ((this.MaxFileSize == 0) || (fileSize <= this.MaxFileSize))
                         {
-                            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(this.StorageConnectionString);
-                            CloudBlobClient client = storageAccount.CreateCloudBlobClient();
-
-                            CloudBlobContainer container = client.GetContainerReference(this.InstanceId.ToString("N"));
-                            container.CreateIfNotExists();
-
                             string blobName = string.Format(CultureInfo.InvariantCulture, "{0}/{1}/{2}", this.LocalObjectType, this.LocalObjectId, Path.GetFileName(file.FileName));
 
-                            CloudBlockBlob blockBlob = container.GetBlockBlobReference(blobName);
-                            blockBlob.UploadFromStream(file.InputStream);
+                            CloudBlockBlob blob = this.Container.GetBlockBlobReference(blobName);
+                            blob.UploadFromStream(file.InputStream);
                         }
                         // TODO: Error handling on server and client side.
                         //else
@@ -302,6 +327,26 @@ namespace Micajah.AzureFileService.WebControls
                 , string.Format(CultureInfo.InvariantCulture, "var {0} = new FileUpload(\"{1}\",{{url:\"{2}\"}});\r\n"
                     , char.ToLowerInvariant(this.ClientID[0]) + this.ClientID.Substring(1), this.ClientID, this.IFrameUri)
                 , true);
+        }
+
+        #endregion
+
+        #region Public Methods
+
+        /// <summary>
+        /// Commits all the changes since the last time AcceptChanges was called.
+        /// </summary>
+        public void AcceptChanges()
+        {
+            // TODO: Move the files from temporary folder.
+        }
+
+        /// <summary>
+        /// Rolls back all changes that have been made to the control since it was loaded, or the last time AcceptChanges was called.
+        /// </summary>
+        public void RejectChanges()
+        {
+            // TODO: Delete the files?
         }
 
         #endregion
