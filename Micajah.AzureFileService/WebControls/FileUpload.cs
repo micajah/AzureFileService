@@ -1,8 +1,12 @@
 ﻿using Micajah.AzureFileService.Handlers;
 using Micajah.AzureFileService.Properties;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
 using System;
 using System.ComponentModel;
 using System.Globalization;
+using System.IO;
+using System.Text;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.HtmlControls;
@@ -14,8 +18,18 @@ namespace Micajah.AzureFileService.WebControls
     /// The control for single- and multi-file uploads.
     /// </summary>
     [ToolboxData("<{0}:FileUpload runat=server></{0}:FileUpload>")]
-    public class FileUpload : WebControl, IUploadControl
+    public class FileUpload : WebControl, IUploadControl, INamingContainer
     {
+        #region Members
+
+        private const string FileServiceContanerName = "fileservice";
+        private const string UploadPageName = "upload.html";
+
+        protected HtmlIframe IFrame;
+        protected System.Web.UI.WebControls.FileUpload FileFromMyComputer;
+
+        #endregion
+
         #region Public Properties
 
         /// <summary>
@@ -23,7 +37,44 @@ namespace Micajah.AzureFileService.WebControls
         /// </summary>
         [Category("Behavior")]
         [DefaultValue("")]
-        public string Accept { get; set; }
+        public string Accept
+        {
+            get { return (string)this.ViewState["Accept"]; }
+            set { this.ViewState["Accept"] = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the maximum files count that can be selected by user in the control.
+        /// The default value is 0 that indicates the maximum files count is not set.
+        /// </summary>
+        [Description("The maximum files count that can be selected by user in the control.")]
+        [Category("Behavior")]
+        [DefaultValue(0)]
+        public int MaxFilesCount
+        {
+            get
+            {
+                object obj = this.ViewState["MaxFilesCount"];
+                return ((obj == null) ? 0 : (int)obj);
+            }
+            set { this.ViewState["MaxFilesCount"] = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the maximum file size allowed for uploading in bytes. Set to 0 for unlimited size.
+        /// </summary>
+        [Description("Gets or sets the maximum file size allowed for uploading in bytes. Set to 0 for unlimited size.")]
+        [Category("Behavior")]
+        [DefaultValue(0)]
+        public int MaxFileSize
+        {
+            get
+            {
+                object obj = this.ViewState["MaxFileSize"];
+                return ((obj == null) ? 0 : (int)obj);
+            }
+            set { this.ViewState["MaxFileSize"] = value; }
+        }
 
         /// <summary>
         /// Gets or sets the unique identifier of the organization.
@@ -108,40 +159,134 @@ namespace Micajah.AzureFileService.WebControls
 
         #endregion
 
-        #region Internal Methods
+        #region Private Properties
 
-        /// <summary>
-        /// Registers the specified style sheet for the specified control.
-        /// </summary>
-        /// <param name="ctl">The control to register style sheet for.</param>
-        /// <param name="styleSheetWebResourceName">The name of the server-side resource of the style sheet to register.</param>
-        internal static void RegisterControlStyleSheet(Page page, string styleSheetWebResourceName)
+        private string IFrameUri
         {
-            Type pageType = page.GetType();
-            string webResourceUrl = ResourceHandler.GetWebResourceUrl(styleSheetWebResourceName, true);
-
-            if (!page.ClientScript.IsClientScriptBlockRegistered(pageType, webResourceUrl))
+            get
             {
-                string script = string.Empty;
+                CloudStorageAccount storageAccount = CloudStorageAccount.Parse(this.StorageConnectionString);
+                CloudBlobClient client = storageAccount.CreateCloudBlobClient();
 
-                if (page.Header == null)
-                    script = string.Format(CultureInfo.InvariantCulture, "<link type=\"text/css\" rel=\"stylesheet\" href=\"{0}\"></link>", webResourceUrl);
-                else
+                CloudBlobContainer container = client.GetContainerReference(this.InstanceId.ToString("N"));
+                container.CreateIfNotExists();
+
+                string sas = container.GetSharedAccessSignature(new SharedAccessBlobPolicy
                 {
-                    HtmlLink link = new HtmlLink();
-                    link.Href = webResourceUrl;
-                    link.Attributes.Add("type", "text/css");
-                    link.Attributes.Add("rel", "stylesheet");
-                    page.Header.Controls.Add(link);
-                }
+                    Permissions = SharedAccessBlobPermissions.Write,
+                    SharedAccessExpiryTime = DateTime.UtcNow.AddMinutes(Settings.Default.SharedAccessExpiryTime)
+                });
 
-                page.ClientScript.RegisterClientScriptBlock(pageType, webResourceUrl, script, false);
+                string uploadUri = string.Format(CultureInfo.InvariantCulture, "{0}/{1}/{2}/{{0}}{3}", container.Uri.AbsoluteUri, this.LocalObjectType, this.LocalObjectId, sas);
+
+                StringBuilder sb = new StringBuilder("method:\"PUT\",createImageThumbnails:false");
+                sb.AppendFormat(CultureInfo.InvariantCulture, ",url:\"{0}\"", uploadUri);
+                if (!string.IsNullOrWhiteSpace(this.Accept))
+                {
+                    sb.AppendFormat(CultureInfo.InvariantCulture, ",acceptedFiles:\"{0}\"", this.Accept);
+                }
+                if (this.MaxFilesCount > 0)
+                {
+                    sb.AppendFormat(CultureInfo.InvariantCulture, ",maxFiles:{0}", this.MaxFilesCount);
+                }
+                if (this.MaxFileSize > 0)
+                {
+                    sb.AppendFormat(CultureInfo.InvariantCulture, ",maxFilesize:{0}", this.MaxFileSize / 1024 / 1024);
+                }
+                sb.AppendFormat(CultureInfo.InvariantCulture, ",dictDefaultMessage:\"{0}\"", Resources.FileUpload_DefaultMessage);
+
+                byte[] settingsBytes = Encoding.UTF8.GetBytes(sb.ToString());
+                string settingsBase64String = Convert.ToBase64String(settingsBytes);
+                settingsBase64String = HttpUtility.UrlEncode(settingsBase64String);
+
+                container = client.GetContainerReference(FileServiceContanerName);
+                CloudBlockBlob blob = container.GetBlockBlobReference(UploadPageName);
+
+                return blob.Uri.AbsoluteUri + "?d=" + settingsBase64String;
             }
         }
 
         #endregion
 
+        #region Private Methods
+
+        private void UploadFile()
+        {
+            if (!string.IsNullOrEmpty(FileFromMyComputer.FileName))
+            {
+                if (FileFromMyComputer.HasFile)
+                {
+                    HttpPostedFile file = FileFromMyComputer.PostedFile;
+                    if (this.ValidateMimeType(file.ContentType))
+                    {
+                        long fileSize = file.InputStream.Length;
+                        if ((this.MaxFileSize == 0) || (fileSize <= this.MaxFileSize))
+                        {
+                            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(this.StorageConnectionString);
+                            CloudBlobClient client = storageAccount.CreateCloudBlobClient();
+
+                            CloudBlobContainer container = client.GetContainerReference(this.InstanceId.ToString("N"));
+                            container.CreateIfNotExists();
+
+                            string blobName = string.Format(CultureInfo.InvariantCulture, "{0}/{1}/{2}", this.LocalObjectType, this.LocalObjectId, Path.GetFileName(file.FileName));
+
+                            CloudBlockBlob blockBlob = container.GetBlockBlobReference(blobName);
+                            blockBlob.UploadFromStream(file.InputStream);
+                        }
+                        // TODO: Error handling on server and client side.
+                        //else
+                        //    m_ErrorMessage = Resources.ImageUpload_InvalidFileSize;
+                    }
+                    //else
+                    //    m_ErrorMessage = Resources.ImageUpload_InvalidMimeType;
+                }
+            }
+        }
+
+        private bool ValidateMimeType(string mimeType)
+        {
+            if (string.IsNullOrWhiteSpace(this.Accept))
+                return true;
+
+            foreach (string item in this.Accept.Split(','))
+            {
+                if (string.Compare(item, mimeType, StringComparison.OrdinalIgnoreCase) == 0)
+                {
+                    return true;
+                }
+                else if (mimeType.IndexOf(item.Replace("*", string.Empty), StringComparison.OrdinalIgnoreCase) == 0)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        #endregion
+
         #region Overriden Methods
+
+        protected override void CreateChildControls()
+        {
+            IFrame = new HtmlIframe();
+            IFrame.ID = "IFrame";
+            IFrame.Attributes["style"] = "width: 100%; height: 370px; border: none 0; overflow: hidden; display: none;";
+            IFrame.Attributes["scrolling"] = "no";
+            this.Controls.Add(IFrame);
+
+            FileFromMyComputer = new System.Web.UI.WebControls.FileUpload();
+            FileFromMyComputer.Style.Add(HtmlTextWriterStyle.Display, "none");
+            if (!string.IsNullOrWhiteSpace(this.Accept))
+            {
+                FileFromMyComputer.Attributes["accept"] = this.Accept;
+            }
+            FileFromMyComputer.ID = "FileFromMyComputer";
+            this.Controls.Add(FileFromMyComputer);
+
+            if (this.Page.IsPostBack)
+                this.UploadFile();
+        }
 
         /// <summary>
         /// Raises the System.Web.UI.Control.PreRender event and registers the client scripts and style sheets for the control.
@@ -151,20 +296,11 @@ namespace Micajah.AzureFileService.WebControls
         {
             base.OnPreRender(e);
 
-            this.CssClass = "dropzone";
-
-            RegisterControlStyleSheet(this.Page, "Styles.dropzone.css");
-
-            ScriptManager.RegisterClientScriptInclude(this.Page, this.Page.GetType(), "Scripts.dropzone.js", ResourceHandler.GetWebResourceUrl("Scripts.dropzone.js", true));
+            ScriptManager.RegisterClientScriptInclude(this.Page, this.Page.GetType(), "Scripts.FileUpload.js", ResourceHandler.GetWebResourceUrl("Scripts.FileUpload.js", true));
 
             ScriptManager.RegisterStartupScript(this.Page, this.Page.GetType(), this.ClientID
-                , string.Format(CultureInfo.InvariantCulture, "var {0} = new Dropzone(\"#{1}\",{{url:\"{2}\",headers:{{\"OrganizationId\":\"{3}\",\"InstanceId\":\"{4}\",\"LocalObjectType\":\"{5}\",\"LocalObjectId\":\"{6}\"}},{7}dictDefaultMessage:\"{8}\"}});\r\n"
-                    , char.ToLowerInvariant(this.ClientID[0]) + this.ClientID.Substring(1), this.ClientID
-                    , VirtualPathUtility.ToAbsolute(ResourceHandler.ResourceHandlerVirtualPath)
-                    , this.OrganizationId, this.InstanceId, this.LocalObjectType, this.LocalObjectId
-                    , (string.IsNullOrWhiteSpace(this.Accept) ? string.Empty : string.Format(CultureInfo.InvariantCulture, "acceptedFiles:\"{0}\",", this.Accept))
-                    , Resources.FileUpload_DefaultMessage
-                )
+                , string.Format(CultureInfo.InvariantCulture, "var {0} = new FileUpload(\"{1}\",{{url:\"{2}\"}});\r\n"
+                    , char.ToLowerInvariant(this.ClientID[0]) + this.ClientID.Substring(1), this.ClientID, this.IFrameUri)
                 , true);
         }
 

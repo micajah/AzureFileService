@@ -80,43 +80,36 @@ namespace Micajah.AzureFileService.Handlers
             if (context == null)
                 return;
 
-            if (string.Compare(context.Request.HttpMethod, "POST", StringComparison.OrdinalIgnoreCase) == 0)
-            {
-                // TODO: Upload a file to BLOB storage.
-            }
-            else
-            {
-                byte[] bytes = null;
+            byte[] bytes = null;
 
-                if (IsWebResourceUrl(context.Request.FilePath) && (context.Request.QueryString["d"] != null))
+            if (IsWebResourceUrl(context.Request.FilePath) && (context.Request.QueryString["d"] != null))
+            {
+                byte[] decodedResourceName = null;
+                try
                 {
-                    byte[] decodedResourceName = null;
-                    try
-                    {
-                        decodedResourceName = HttpServerUtility.UrlTokenDecode(context.Request.QueryString["d"]);
-                    }
-                    catch (FormatException) { }
+                    decodedResourceName = HttpServerUtility.UrlTokenDecode(context.Request.QueryString["d"]);
+                }
+                catch (FormatException) { }
 
-                    if (decodedResourceName != null)
+                if (decodedResourceName != null)
+                {
+                    string resourceName = Encoding.UTF8.GetString(decodedResourceName).Split('|')[0];
+                    if (!string.IsNullOrEmpty(resourceName))
                     {
-                        string resourceName = Encoding.UTF8.GetString(decodedResourceName).Split('|')[0];
-                        if (!string.IsNullOrEmpty(resourceName))
+                        bytes = GetManifestResourceBytes(ManifestResourceNamePrefix + "." + resourceName);
+
+                        if (bytes != null)
                         {
-                            bytes = GetManifestResourceBytes(ManifestResourceNamePrefix + "." + resourceName);
-
-                            if (bytes != null)
-                            {
-                                context.Response.Clear();
-                                context.Response.ContentType = MimeMapping.GetMimeMapping(resourceName);
-                                if (bytes.Length > 0) context.Response.OutputStream.Write(bytes, 0, bytes.Length);
-                            }
+                            context.Response.Clear();
+                            context.Response.ContentType = MimeMapping.GetMimeMapping(resourceName);
+                            if (bytes.Length > 0) context.Response.OutputStream.Write(bytes, 0, bytes.Length);
                         }
                     }
                 }
-
-                if (bytes == null)
-                    throw new HttpException(404, Resources.ResourceHandler_InvalidRequest);
             }
+
+            if (bytes == null)
+                throw new HttpException(404, Resources.ResourceHandler_InvalidRequest);
         }
 
         #endregion
