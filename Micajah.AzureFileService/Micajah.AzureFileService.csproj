@@ -55,11 +55,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Properties\Settings.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <DependentUpon>Settings.settings</DependentUpon>
-    </Compile>
     <Compile Include="WebControls\FileUpload.cs" />
     <Compile Include="WebControls\IUploadControl.cs" />
   </ItemGroup>
@@ -70,14 +65,8 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
-    <None Include="Properties\Settings.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
-      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Scripts\FileUpload.js" />
+    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Scripts\dropzone.js" />
+    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Styles\dropzone.css" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

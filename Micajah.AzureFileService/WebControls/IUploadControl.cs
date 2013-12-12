@@ -5,24 +5,19 @@ namespace Micajah.AzureFileService.WebControls
     public interface IUploadControl
     {
         /// <summary>
-        /// Gets or sets the unique identifier of the organization.
+        /// Gets or sets the name of the container the files are uploaded to.
         /// </summary>
-        Guid OrganizationId { get; set; }
-
-        /// <summary>
-        /// Gets or sets the unique identifier of the instance.
-        /// </summary>
-        Guid InstanceId { get; set; }
+        string ContainerName { get; set; }
 
         /// <summary>
         /// Gets or sets the type of the object which the files are associated with.
         /// </summary>
-        string LocalObjectType { get; set; }
+        string ObjectType { get; set; }
 
         /// <summary>
         /// Gets or sets the unique identifier of the object which the files are associated with.
         /// </summary>
-        string LocalObjectId { get; set; }
+        string ObjectId { get; set; }
 
         /// <summary>
         /// Gets or sets the connection string to the storage.

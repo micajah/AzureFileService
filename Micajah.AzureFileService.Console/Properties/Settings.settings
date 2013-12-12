@@ -1,0 +1,16 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="Micajah.AzureFileService.Cors.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="AllowedOrigins" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">http://localhost:2054</Value>
+    </Setting>
+    <Setting Name="StorageConnectionString" Type="(Connection string)" Scope="Application">
+      <DesignTimeValue Profile="(Default)">&lt;?xml version="1.0" encoding="utf-16"?&gt;
+&lt;SerializableConnectionString xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;
+  &lt;ConnectionString&gt;DefaultEndpointsProtocol=https;AccountName=micajah1;AccountKey=TsxyTMtUj1014DoQzwHNtM9b2xGJMEr0/B8NEquPh2rYz2I5cgfn11T6gzxzH3ygSTCz7yN+0KOGOSKk6J+tYg==&lt;/ConnectionString&gt;
+&lt;/SerializableConnectionString&gt;</DesignTimeValue>
+      <Value Profile="(Default)">DefaultEndpointsProtocol=https;AccountName=micajah1;AccountKey=TsxyTMtUj1014DoQzwHNtM9b2xGJMEr0/B8NEquPh2rYz2I5cgfn11T6gzxzH3ygSTCz7yN+0KOGOSKk6J+tYg==</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>

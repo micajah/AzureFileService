@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Micajah.AzureFileService.Properties {
+namespace Micajah.AzureFileService.Cors.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
@@ -25,20 +25,21 @@ namespace Micajah.AzureFileService.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.SpecialSettingAttribute(global::System.Configuration.SpecialSetting.ConnectionString)]
-        [global::System.Configuration.DefaultSettingValueAttribute("UseDevelopmentStorage=true")]
-        public string StorageConnectionString {
+        [global::System.Configuration.DefaultSettingValueAttribute("http://localhost:2054")]
+        public string AllowedOrigins {
             get {
-                return ((string)(this["StorageConnectionString"]));
+                return ((string)(this["AllowedOrigins"]));
             }
         }
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("1440")]
-        public int SharedAccessExpiryTime {
+        [global::System.Configuration.SpecialSettingAttribute(global::System.Configuration.SpecialSetting.ConnectionString)]
+        [global::System.Configuration.DefaultSettingValueAttribute("DefaultEndpointsProtocol=https;AccountName=micajah1;AccountKey=TsxyTMtUj1014DoQzw" +
+            "HNtM9b2xGJMEr0/B8NEquPh2rYz2I5cgfn11T6gzxzH3ygSTCz7yN+0KOGOSKk6J+tYg==")]
+        public string StorageConnectionString {
             get {
-                return ((int)(this["SharedAccessExpiryTime"]));
+                return ((string)(this["StorageConnectionString"]));
             }
         }
     }

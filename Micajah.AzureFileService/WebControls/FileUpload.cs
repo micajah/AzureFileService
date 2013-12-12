@@ -8,6 +8,7 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Web;
+using System.Web.Configuration;
 using System.Web.UI;
 using System.Web.UI.HtmlControls;
 using System.Web.UI.WebControls;
@@ -22,10 +23,8 @@ namespace Micajah.AzureFileService.WebControls
     {
         #region Members
 
-        private const string FileServiceContanerName = "fileservice";
-        private const string UploadPageName = "upload.html";
+        private const int DefaultSharedAccessExpiryTime = 1440;
 
-        protected HtmlIframe IFrame;
         protected System.Web.UI.WebControls.FileUpload FileFromMyComputer;
 
         private CloudBlobClient m_CloudClient;
@@ -80,35 +79,15 @@ namespace Micajah.AzureFileService.WebControls
         }
 
         /// <summary>
-        /// Gets or sets the unique identifier of the organization.
+        /// Gets or sets the name of the container the files are uploaded to.
         /// </summary>
         [Category("Data")]
-        [Description("The unique identifier of the organization.")]
-        [DefaultValue(typeof(Guid), "00000000-0000-0000-0000-000000000000")]
-        public Guid OrganizationId
+        [Description("The name of the container the files are uploaded to.")]
+        [DefaultValue("")]
+        public string ContainerName
         {
-            get
-            {
-                object obj = this.ViewState["OrganizationId"];
-                return ((obj == null) ? Guid.Empty : (Guid)obj);
-            }
-            set { this.ViewState["OrganizationId"] = value; }
-        }
-
-        /// <summary>
-        /// Gets or sets the unique identifier of the instance.
-        /// </summary>
-        [Category("Data")]
-        [Description("The unique identifier of the instance.")]
-        [DefaultValue(typeof(Guid), "00000000-0000-0000-0000-000000000000")]
-        public Guid InstanceId
-        {
-            get
-            {
-                object obj = this.ViewState["InstanceId"];
-                return ((obj == null) ? Guid.Empty : (Guid)obj);
-            }
-            set { this.ViewState["InstanceId"] = value; }
+            get { return (string)this.ViewState["ContainerName"]; }
+            set { this.ViewState["ContainerName"] = value; }
         }
 
         /// <summary>
@@ -117,10 +96,10 @@ namespace Micajah.AzureFileService.WebControls
         [Category("Data")]
         [Description("The type of the object which the files are associated with.")]
         [DefaultValue("")]
-        public string LocalObjectType
+        public string ObjectType
         {
-            get { return (string)this.ViewState["LocalObjectType"]; }
-            set { this.ViewState["LocalObjectType"] = value; }
+            get { return (string)this.ViewState["ObjectType"]; }
+            set { this.ViewState["ObjectType"] = value; }
         }
 
         /// <summary>
@@ -129,10 +108,10 @@ namespace Micajah.AzureFileService.WebControls
         [Category("Data")]
         [Description("The unique identifier of the object which the files are associated with.")]
         [DefaultValue("")]
-        public string LocalObjectId
+        public string ObjectId
         {
-            get { return (string)this.ViewState["LocalObjectId"]; }
-            set { this.ViewState["LocalObjectId"] = value; }
+            get { return (string)this.ViewState["ObjectId"]; }
+            set { this.ViewState["ObjectId"] = value; }
         }
 
         /// <summary>
@@ -146,7 +125,7 @@ namespace Micajah.AzureFileService.WebControls
             get
             {
                 object obj = this.ViewState["StorageConnectionString"];
-                return ((obj == null) ? Settings.Default.StorageConnectionString : (string)obj);
+                return ((obj == null) ? WebConfigurationManager.AppSettings["mafs:StorageConnectionString"] : (string)obj);
             }
             set { this.ViewState["StorageConnectionString"] = value; }
         }
@@ -183,27 +162,69 @@ namespace Micajah.AzureFileService.WebControls
             {
                 if (m_Container == null)
                 {
-                    m_Container = this.Client.GetContainerReference(this.InstanceId.ToString("N"));
+                    m_Container = this.Client.GetContainerReference(this.ContainerName);
                     m_Container.CreateIfNotExists();
                 }
                 return m_Container;
             }
         }
 
-        private string IFrameUri
+        private int MaxFileSizeInMB
+        {
+            get
+            {
+                return this.MaxFileSize / 1024 / 1024;
+            }
+        }
+
+        private string BlobPath
+        {
+            get
+            {
+                return string.Format(CultureInfo.InvariantCulture, "{0}/{1}/", this.ObjectType, this.ObjectId);
+            }
+        }
+
+        private static int SharedAccessExpiryTime
+        {
+            get
+            {
+                int minutes = DefaultSharedAccessExpiryTime;
+                string str = WebConfigurationManager.AppSettings["mafs:SharedAccessExpiryTime"];
+                if (!int.TryParse(str, out minutes))
+                    minutes = DefaultSharedAccessExpiryTime;
+                return minutes;
+            }
+        }
+
+        private string SharedAccessSignature
         {
             get
             {
                 string sas = this.Container.GetSharedAccessSignature(new SharedAccessBlobPolicy
                 {
                     Permissions = SharedAccessBlobPermissions.Write,
-                    SharedAccessExpiryTime = DateTime.UtcNow.AddMinutes(Settings.Default.SharedAccessExpiryTime)
+                    SharedAccessExpiryTime = DateTime.UtcNow.AddMinutes(SharedAccessExpiryTime)
                 });
+                return sas;
+            }
+        }
 
-                string uploadUri = string.Format(CultureInfo.InvariantCulture, "{0}/{1}/{2}/{{0}}{3}", this.Container.Uri.AbsoluteUri, this.LocalObjectType, this.LocalObjectId, sas);
+        private string UploadUri
+        {
+            get
+            {
+                return string.Format(CultureInfo.InvariantCulture, "{0}/{1}{{0}}{2}", this.Container.Uri.AbsoluteUri, this.BlobPath, this.SharedAccessSignature);
+            }
+        }
 
-                StringBuilder sb = new StringBuilder("method:\"PUT\",createImageThumbnails:false");
-                sb.AppendFormat(CultureInfo.InvariantCulture, ",url:\"{0}\"", uploadUri);
+        private string ClientScript
+        {
+            get
+            {
+                StringBuilder sb = new StringBuilder();
+                sb.AppendFormat(CultureInfo.InvariantCulture, "Dropzone.options.{1} = false;\r\nvar {0} = new Dropzone(\"#{1}\",{{method:\"Put\",createImageThumbnails:false,paramName:\"{2}\",url:\"{3}\""
+                    , char.ToLowerInvariant(this.ClientID[0]) + this.ClientID.Substring(1), this.ClientID, FileFromMyComputer.UniqueID, this.UploadUri);
                 if (!string.IsNullOrWhiteSpace(this.Accept))
                 {
                     sb.AppendFormat(CultureInfo.InvariantCulture, ",acceptedFiles:\"{0}\"", this.Accept);
@@ -214,26 +235,10 @@ namespace Micajah.AzureFileService.WebControls
                 }
                 if (this.MaxFileSize > 0)
                 {
-                    sb.AppendFormat(CultureInfo.InvariantCulture, ",maxFilesize:{0}", this.MaxFileSize / 1024 / 1024);
+                    sb.AppendFormat(CultureInfo.InvariantCulture, ",maxFilesize:{0}", this.MaxFileSizeInMB);
                 }
-                sb.AppendFormat(CultureInfo.InvariantCulture, ",dictDefaultMessage:\"{0}\"", Resources.FileUpload_DefaultMessage);
-
-                byte[] settingsBytes = Encoding.UTF8.GetBytes(sb.ToString());
-                string settingsBase64String = Convert.ToBase64String(settingsBytes);
-                settingsBase64String = HttpUtility.UrlEncode(settingsBase64String);
-
-                return this.UploadPageUri + "?d=" + settingsBase64String;
-            }
-        }
-
-        private string UploadPageUri
-        {
-            get
-            {
-                CloudBlobContainer container = this.Client.GetContainerReference(FileServiceContanerName);
-                CloudBlockBlob blob = container.GetBlockBlobReference(UploadPageName);
-
-                return blob.Uri.AbsoluteUri;
+                sb.AppendFormat(CultureInfo.InvariantCulture, ",dictDefaultMessage:\"{0}\"}});\r\n", Resources.FileUpload_DefaultMessage);
+                return sb.ToString();
             }
         }
 
@@ -253,7 +258,7 @@ namespace Micajah.AzureFileService.WebControls
                         long fileSize = file.InputStream.Length;
                         if ((this.MaxFileSize == 0) || (fileSize <= this.MaxFileSize))
                         {
-                            string blobName = string.Format(CultureInfo.InvariantCulture, "{0}/{1}/{2}", this.LocalObjectType, this.LocalObjectId, Path.GetFileName(file.FileName));
+                            string blobName = string.Format(CultureInfo.InvariantCulture, "{0}{1}", this.BlobPath, Path.GetFileName(file.FileName));
 
                             CloudBlockBlob blob = this.Container.GetBlockBlobReference(blobName);
                             blob.UploadFromStream(file.InputStream);
@@ -290,24 +295,54 @@ namespace Micajah.AzureFileService.WebControls
 
         #endregion
 
+        #region Internal Methods
+
+        /// <summary>
+        /// Registers the specified style sheet for the specified control.
+        /// </summary>
+        /// <param name="ctl">The control to register style sheet for.</param>
+        /// <param name="styleSheetWebResourceName">The name of the server-side resource of the style sheet to register.</param>
+        internal static void RegisterControlStyleSheet(Page page, string styleSheetWebResourceName)
+        {
+            Type pageType = page.GetType();
+            string webResourceUrl = ResourceHandler.GetWebResourceUrl(styleSheetWebResourceName, true);
+
+            if (!page.ClientScript.IsClientScriptBlockRegistered(pageType, webResourceUrl))
+            {
+                string script = string.Empty;
+
+                if (page.Header == null)
+                    script = string.Format(CultureInfo.InvariantCulture, "<link type=\"text/css\" rel=\"stylesheet\" href=\"{0}\"></link>", webResourceUrl);
+                else
+                {
+                    HtmlLink link = new HtmlLink();
+                    link.Href = webResourceUrl;
+                    link.Attributes.Add("type", "text/css");
+                    link.Attributes.Add("rel", "stylesheet");
+                    page.Header.Controls.Add(link);
+                }
+
+                page.ClientScript.RegisterClientScriptBlock(pageType, webResourceUrl, script, false);
+            }
+        }
+
+        #endregion
+
         #region Overriden Methods
 
         protected override void CreateChildControls()
         {
-            IFrame = new HtmlIframe();
-            IFrame.ID = "IFrame";
-            IFrame.Attributes["style"] = "width: 100%; height: 370px; border: none 0; overflow: hidden; display: none;";
-            IFrame.Attributes["scrolling"] = "no";
-            this.Controls.Add(IFrame);
+            HtmlGenericControl div = new HtmlGenericControl("div");
+            div.Attributes["class"] = "fallback";
+            this.Controls.Add(div);
 
             FileFromMyComputer = new System.Web.UI.WebControls.FileUpload();
-            FileFromMyComputer.Style.Add(HtmlTextWriterStyle.Display, "none");
             if (!string.IsNullOrWhiteSpace(this.Accept))
             {
                 FileFromMyComputer.Attributes["accept"] = this.Accept;
             }
             FileFromMyComputer.ID = "FileFromMyComputer";
-            this.Controls.Add(FileFromMyComputer);
+            div.Controls.Add(FileFromMyComputer);
 
             if (this.Page.IsPostBack)
                 this.UploadFile();
@@ -319,14 +354,13 @@ namespace Micajah.AzureFileService.WebControls
         /// <param name="e">An System.EventArgs object that contains the event data.</param>
         protected override void OnPreRender(EventArgs e)
         {
-            base.OnPreRender(e);
+            this.CssClass = "dropzone";
 
-            ScriptManager.RegisterClientScriptInclude(this.Page, this.Page.GetType(), "Scripts.FileUpload.js", ResourceHandler.GetWebResourceUrl("Scripts.FileUpload.js", true));
+            RegisterControlStyleSheet(this.Page, "Styles.dropzone.css");
 
-            ScriptManager.RegisterStartupScript(this.Page, this.Page.GetType(), this.ClientID
-                , string.Format(CultureInfo.InvariantCulture, "var {0} = new FileUpload(\"{1}\",{{url:\"{2}\"}});\r\n"
-                    , char.ToLowerInvariant(this.ClientID[0]) + this.ClientID.Substring(1), this.ClientID, this.IFrameUri)
-                , true);
+            ScriptManager.RegisterClientScriptInclude(this.Page, this.Page.GetType(), "Scripts.dropzone.js", ResourceHandler.GetWebResourceUrl("Scripts.dropzone.js", true));
+
+            ScriptManager.RegisterStartupScript(this.Page, this.Page.GetType(), this.ClientID, this.ClientScript, true);
         }
 
         #endregion

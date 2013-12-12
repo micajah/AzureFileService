@@ -1,17 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 2013
+VisualStudioVersion = 12.0.21005.1
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Micajah.AzureFileService", "Micajah.AzureFileService\Micajah.AzureFileService.csproj", "{E0BF03C3-26F0-4F31-8956-CD6BE179C61D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Micajah.AzureFileService.Web", "Micajah.AzureFileService.Web\Micajah.AzureFileService.Web.csproj", "{E640E504-FB0F-4B54-917A-C2EBE9DB9DAE}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Micajah.AzureFileService.Files", "Micajah.AzureFileService.Files", "{0603A456-A8F6-44C5-A9FA-0277824F7BC7}"
-	ProjectSection(SolutionItems) = preProject
-		Micajah.AzureFileService.Files\dropzone.css = Micajah.AzureFileService.Files\dropzone.css
-		Micajah.AzureFileService.Files\dropzone.js = Micajah.AzureFileService.Files\dropzone.js
-		Micajah.AzureFileService.Files\upload.html = Micajah.AzureFileService.Files\upload.html
-		Micajah.AzureFileService.Files\upload.js = Micajah.AzureFileService.Files\upload.js
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
