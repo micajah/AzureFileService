@@ -12,7 +12,7 @@
         <div>
             Text above the file upload control.
             <mafs:FileUpload ID="FileUpload1" runat="server"
-                ContainerName="15acca54-8bc3-4519-b609-5c11a16a63ec"
+                ContainerName="15acca548bc34519b6095c11a16a63ec"
                 ObjectType="ticket" ObjectId="12345" Accept="image/*" />
             <br />
             <asp:Button ID="Button1" runat="server" Text="Submit" />
