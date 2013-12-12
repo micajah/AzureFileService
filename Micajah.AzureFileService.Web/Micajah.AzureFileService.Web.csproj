@@ -71,7 +71,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="app.template.config" />
+    <Content Include="appSettings.template.config" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -118,6 +118,7 @@
   </Target>
   -->
   <Target Name="AfterBuild">
-    <Copy SourceFiles="app.template.config" DestinationFiles="app.config" SkipUnchangedFiles="true" Condition="!Exists('app.config')"></Copy>
+    <Copy SourceFiles="appSettings.template.config" DestinationFiles="appSettings.config" SkipUnchangedFiles="true" Condition="!Exists('appSettings.config')">
+    </Copy>
   </Target>
 </Project>
