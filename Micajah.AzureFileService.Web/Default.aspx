@@ -6,16 +6,15 @@
     <title></title>
 </head>
 <body>
-
     <form id="form1" runat="server">
         Top navigation.
         <div>
             Text above the file upload control.
-            <mafs:FileUpload ID="FileUpload1" runat="server"
-                ContainerName="15acca548bc34519b6095c11a16a63ec"
-                ObjectType="ticket" ObjectId="12345" Accept="image/*" />
+            <mafs:FileUpload ID="FileUpload1" runat="server" ContainerName="micajahazurefileservice" TemporaryContainerName="micajahazurefileservicetemp" ObjectType="ticket" ObjectId="12345" Accept="image/*" />
             <br />
-            <asp:Button ID="Button1" runat="server" Text="Submit" />
+            <asp:Button ID="AcceptButton" runat="server" Text="Accept Changes" OnClick="AcceptButton_Click" />
+            &nbsp;&nbsp;&nbsp;
+            <asp:Button ID="RejectButton" runat="server" Text="Reject Changes" OnClick="RejectButton_Click" />
         </div>
         Text below the file upload control.
     </form>

@@ -3,6 +3,7 @@ using Micajah.AzureFileService.Properties;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.IO;
@@ -24,11 +25,13 @@ namespace Micajah.AzureFileService.WebControls
         #region Members
 
         private const int DefaultSharedAccessExpiryTime = 1440;
+        private const string DefaultTemporaryContanerName = "temp";
 
         protected System.Web.UI.WebControls.FileUpload FileFromMyComputer;
 
         private CloudBlobClient m_CloudClient;
         private CloudBlobContainer m_Container;
+        private CloudBlobContainer m_TemporaryContainer;
 
         #endregion
 
@@ -88,6 +91,30 @@ namespace Micajah.AzureFileService.WebControls
         {
             get { return (string)this.ViewState["ContainerName"]; }
             set { this.ViewState["ContainerName"] = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the name of the temporary container the files are uploaded to.
+        /// </summary>
+        [Category("Data")]
+        [Description("The name of the temporary container the files are uploaded to.")]
+        [DefaultValue("")]
+        public string TemporaryContainerName
+        {
+            get
+            {
+                string value = (string)this.ViewState["TemporaryContainerName"];
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    value = WebConfigurationManager.AppSettings["mafs:TemporaryContainerName"];
+                }
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    value = DefaultTemporaryContanerName;
+                }
+                return value;
+            }
+            set { this.ViewState["TemporaryContainerName"] = value; }
         }
 
         /// <summary>
@@ -169,6 +196,19 @@ namespace Micajah.AzureFileService.WebControls
             }
         }
 
+        private CloudBlobContainer TemporaryContainer
+        {
+            get
+            {
+                if (m_TemporaryContainer == null)
+                {
+                    m_TemporaryContainer = this.Client.GetContainerReference(this.TemporaryContainerName);
+                    m_TemporaryContainer.CreateIfNotExists();
+                }
+                return m_TemporaryContainer;
+            }
+        }
+
         private int MaxFileSizeInMB
         {
             get
@@ -177,12 +217,19 @@ namespace Micajah.AzureFileService.WebControls
             }
         }
 
-        private string BlobPath
+        private string TemporaryBlobPath
         {
             get
             {
-                return string.Format(CultureInfo.InvariantCulture, "{0}/{1}/", this.ObjectType, this.ObjectId);
+                string value = (string)this.ViewState["TemporaryBlobPath"];
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    value = string.Format(CultureInfo.InvariantCulture, "{0:N}/", Guid.NewGuid());
+                    this.TemporaryBlobPath = value;
+                }
+                return value;
             }
+            set { this.ViewState["TemporaryBlobPath"] = value; }
         }
 
         private static int SharedAccessExpiryTime
@@ -201,7 +248,7 @@ namespace Micajah.AzureFileService.WebControls
         {
             get
             {
-                string sas = this.Container.GetSharedAccessSignature(new SharedAccessBlobPolicy
+                string sas = this.TemporaryContainer.GetSharedAccessSignature(new SharedAccessBlobPolicy
                 {
                     Permissions = SharedAccessBlobPermissions.Write,
                     SharedAccessExpiryTime = DateTime.UtcNow.AddMinutes(SharedAccessExpiryTime)
@@ -214,7 +261,7 @@ namespace Micajah.AzureFileService.WebControls
         {
             get
             {
-                return string.Format(CultureInfo.InvariantCulture, "{0}/{1}{{0}}{2}", this.Container.Uri.AbsoluteUri, this.BlobPath, this.SharedAccessSignature);
+                return string.Format(CultureInfo.InvariantCulture, "{0}/{1}{{0}}{2}", this.TemporaryContainer.Uri.AbsoluteUri, this.TemporaryBlobPath, this.SharedAccessSignature);
             }
         }
 
@@ -258,9 +305,9 @@ namespace Micajah.AzureFileService.WebControls
                         long fileSize = file.InputStream.Length;
                         if ((this.MaxFileSize == 0) || (fileSize <= this.MaxFileSize))
                         {
-                            string blobName = string.Format(CultureInfo.InvariantCulture, "{0}{1}", this.BlobPath, Path.GetFileName(file.FileName));
+                            string blobName = string.Format(CultureInfo.InvariantCulture, "{0}{1}", this.TemporaryBlobPath, Path.GetFileName(file.FileName));
 
-                            CloudBlockBlob blob = this.Container.GetBlockBlobReference(blobName);
+                            CloudBlockBlob blob = this.TemporaryContainer.GetBlockBlobReference(blobName);
                             blob.UploadFromStream(file.InputStream);
                         }
                         // TODO: Error handling on server and client side.
@@ -343,9 +390,15 @@ namespace Micajah.AzureFileService.WebControls
             }
             FileFromMyComputer.ID = "FileFromMyComputer";
             div.Controls.Add(FileFromMyComputer);
+        }
 
+        protected override void OnLoad(EventArgs e)
+        {
             if (this.Page.IsPostBack)
+            {
+                this.EnsureChildControls();
                 this.UploadFile();
+            }
         }
 
         /// <summary>
@@ -372,7 +425,30 @@ namespace Micajah.AzureFileService.WebControls
         /// </summary>
         public void AcceptChanges()
         {
-            // TODO: Move the files from temporary folder.
+            string blobNameFormat = string.Format(CultureInfo.InvariantCulture, "{0}/{1}/{{0}}", this.ObjectType, this.ObjectId);
+
+            IEnumerable<IListBlobItem> temporaryBlobList = this.TemporaryContainer.ListBlobs(this.TemporaryBlobPath);
+            foreach (IListBlobItem item in temporaryBlobList)
+            {
+                CloudBlockBlob tempBlob = item as CloudBlockBlob;
+                if (tempBlob.Properties.BlobType == BlobType.BlockBlob)
+                {
+                    string blobName = tempBlob.Name;
+                    string[] parts = tempBlob.Name.Split('/');
+                    int length = parts.Length;
+                    if (length > 0)
+                    {
+                        blobName = string.Format(CultureInfo.InvariantCulture, blobNameFormat, parts[length - 1]);
+                    }
+
+                    CloudBlockBlob blob = this.Container.GetBlockBlobReference(blobName);
+                    blob.StartCopyFromBlob(tempBlob);
+
+                    tempBlob.Delete();
+                }
+            }
+
+            this.TemporaryBlobPath = null;
         }
 
         /// <summary>
@@ -380,7 +456,14 @@ namespace Micajah.AzureFileService.WebControls
         /// </summary>
         public void RejectChanges()
         {
-            // TODO: Delete the files?
+            IEnumerable<IListBlobItem> temporaryBlobList = this.TemporaryContainer.ListBlobs(this.TemporaryBlobPath);
+            foreach (IListBlobItem item in temporaryBlobList)
+            {
+                CloudBlockBlob tempBlob = item as CloudBlockBlob;
+                tempBlob.Delete();
+            }
+
+            this.TemporaryBlobPath = null;
         }
 
         #endregion

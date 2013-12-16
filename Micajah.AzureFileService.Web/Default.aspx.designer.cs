@@ -31,12 +31,21 @@ namespace Micajah.AzureFileService.Web {
         protected global::Micajah.AzureFileService.WebControls.FileUpload FileUpload1;
         
         /// <summary>
-        /// Button1 control.
+        /// AcceptButton control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Button Button1;
+        protected global::System.Web.UI.WebControls.Button AcceptButton;
+        
+        /// <summary>
+        /// RejectButton control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button RejectButton;
     }
 }
