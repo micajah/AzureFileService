@@ -1,0 +1,18 @@
+﻿body {
+    font-family: Arial;
+    color: black;
+    font-size: 16px;
+}
+
+a {
+    text-decoration: none;
+}
+
+    a:visited {
+        color: black;
+    }
+
+    a:hover {
+        color: blue;
+        text-decoration: underline;
+    }

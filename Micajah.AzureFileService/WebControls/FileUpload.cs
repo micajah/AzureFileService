@@ -270,8 +270,12 @@ namespace Micajah.AzureFileService.WebControls
             get
             {
                 StringBuilder sb = new StringBuilder();
-                sb.AppendFormat(CultureInfo.InvariantCulture, "Dropzone.options.{1} = false;\r\nvar {0} = new Dropzone(\"#{1}\",{{method:\"Put\",createImageThumbnails:false,paramName:\"{2}\",url:\"{3}\""
-                    , char.ToLowerInvariant(this.ClientID[0]) + this.ClientID.Substring(1), this.ClientID, FileFromMyComputer.UniqueID, this.UploadUri);
+                sb.AppendFormat(CultureInfo.InvariantCulture, "Dropzone.options.{0} = false;\r\nvar {1} = new Dropzone(\"#{2}\",{{method:\"Put\",createImageThumbnails:false,paramName:\"{3}\",url:\"{4}\""
+                    , this.ClientID.Replace("_", string.Empty)
+                    , (char.ToLowerInvariant(this.ClientID[0]) + this.ClientID.Substring(1)).Replace("_", string.Empty)
+                    , this.ClientID
+                    , FileFromMyComputer.UniqueID
+                    , this.UploadUri);
                 if (!string.IsNullOrWhiteSpace(this.Accept))
                 {
                     sb.AppendFormat(CultureInfo.InvariantCulture, ",acceptedFiles:\"{0}\"", this.Accept);
