@@ -1,5 +1,4 @@
-﻿using Micajah.AzureFileService.Handlers;
-using Micajah.AzureFileService.Properties;
+﻿using Micajah.AzureFileService.Properties;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using System;
@@ -22,14 +21,18 @@ namespace Micajah.AzureFileService.WebControls
     [ToolboxData("<{0}:FileUpload runat=server></{0}:FileUpload>")]
     public class FileUpload : WebControl, IUploadControl, INamingContainer
     {
-        #region Members
+        #region Constants
 
         private const int DefaultSharedAccessExpiryTime = 1440;
         private const string DefaultTemporaryContanerName = "temp";
 
+        #endregion
+
+        #region Members
+
         protected System.Web.UI.WebControls.FileUpload FileFromMyComputer;
 
-        private CloudBlobClient m_CloudClient;
+        private CloudBlobClient m_Client;
         private CloudBlobContainer m_Container;
         private CloudBlobContainer m_TemporaryContainer;
 
@@ -82,18 +85,6 @@ namespace Micajah.AzureFileService.WebControls
         }
 
         /// <summary>
-        /// Gets or sets the name of the container the files are uploaded to.
-        /// </summary>
-        [Category("Data")]
-        [Description("The name of the container the files are uploaded to.")]
-        [DefaultValue("")]
-        public string ContainerName
-        {
-            get { return (string)this.ViewState["ContainerName"]; }
-            set { this.ViewState["ContainerName"] = value; }
-        }
-
-        /// <summary>
         /// Gets or sets the name of the temporary container the files are uploaded to.
         /// </summary>
         [Category("Data")]
@@ -115,6 +106,18 @@ namespace Micajah.AzureFileService.WebControls
                 return value;
             }
             set { this.ViewState["TemporaryContainerName"] = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the name of the container the files are uploaded to.
+        /// </summary>
+        [Category("Data")]
+        [Description("The name of the container the files are uploaded to.")]
+        [DefaultValue("")]
+        public string ContainerName
+        {
+            get { return (string)this.ViewState["ContainerName"]; }
+            set { this.ViewState["ContainerName"] = value; }
         }
 
         /// <summary>
@@ -174,12 +177,12 @@ namespace Micajah.AzureFileService.WebControls
         {
             get
             {
-                if (m_CloudClient == null)
+                if (m_Client == null)
                 {
                     CloudStorageAccount storageAccount = CloudStorageAccount.Parse(this.StorageConnectionString);
-                    m_CloudClient = storageAccount.CreateCloudBlobClient();
+                    m_Client = storageAccount.CreateCloudBlobClient();
                 }
-                return m_CloudClient;
+                return m_Client;
             }
         }
 
@@ -232,29 +235,24 @@ namespace Micajah.AzureFileService.WebControls
             set { this.ViewState["TemporaryBlobPath"] = value; }
         }
 
-        private static int SharedAccessExpiryTime
-        {
-            get
-            {
-                int minutes = DefaultSharedAccessExpiryTime;
-                string str = WebConfigurationManager.AppSettings["mafs:SharedAccessExpiryTime"];
-                if (!int.TryParse(str, out minutes))
-                    minutes = DefaultSharedAccessExpiryTime;
-                return minutes;
-            }
-        }
-
         private string SharedAccessSignature
         {
             get
             {
-                string sas = this.TemporaryContainer.GetSharedAccessSignature(new SharedAccessBlobPolicy
+                string value = (string)this.ViewState["SharedAccessSignature"];
+                if (string.IsNullOrWhiteSpace(value))
                 {
-                    Permissions = SharedAccessBlobPermissions.Write,
-                    SharedAccessExpiryTime = DateTime.UtcNow.AddMinutes(SharedAccessExpiryTime)
-                });
-                return sas;
+                    value = this.TemporaryContainer.GetSharedAccessSignature(new SharedAccessBlobPolicy
+                    {
+                        Permissions = SharedAccessBlobPermissions.Write,
+                        SharedAccessExpiryTime = DateTime.UtcNow.AddMinutes(SharedAccessExpiryTime)
+                    });
+
+                    this.SharedAccessSignature = value;
+                }
+                return value;
             }
+            set { this.ViewState["SharedAccessSignature"] = value; }
         }
 
         private string UploadUri
@@ -290,6 +288,22 @@ namespace Micajah.AzureFileService.WebControls
                 }
                 sb.AppendFormat(CultureInfo.InvariantCulture, ",dictDefaultMessage:\"{0}\"}});\r\n", Resources.FileUpload_DefaultMessage);
                 return sb.ToString();
+            }
+        }
+
+        #endregion
+
+        #region Internal Properties
+
+        internal static int SharedAccessExpiryTime
+        {
+            get
+            {
+                int minutes = DefaultSharedAccessExpiryTime;
+                string str = WebConfigurationManager.AppSettings["mafs:SharedAccessExpiryTime"];
+                if (!int.TryParse(str, out minutes))
+                    minutes = DefaultSharedAccessExpiryTime;
+                return minutes;
             }
         }
 
@@ -346,39 +360,6 @@ namespace Micajah.AzureFileService.WebControls
 
         #endregion
 
-        #region Internal Methods
-
-        /// <summary>
-        /// Registers the specified style sheet for the specified control.
-        /// </summary>
-        /// <param name="ctl">The control to register style sheet for.</param>
-        /// <param name="styleSheetWebResourceName">The name of the server-side resource of the style sheet to register.</param>
-        internal static void RegisterControlStyleSheet(Page page, string styleSheetWebResourceName)
-        {
-            Type pageType = page.GetType();
-            string webResourceUrl = ResourceHandler.GetWebResourceUrl(styleSheetWebResourceName, true);
-
-            if (!page.ClientScript.IsClientScriptBlockRegistered(pageType, webResourceUrl))
-            {
-                string script = string.Empty;
-
-                if (page.Header == null)
-                    script = string.Format(CultureInfo.InvariantCulture, "<link type=\"text/css\" rel=\"stylesheet\" href=\"{0}\"></link>", webResourceUrl);
-                else
-                {
-                    HtmlLink link = new HtmlLink();
-                    link.Href = webResourceUrl;
-                    link.Attributes.Add("type", "text/css");
-                    link.Attributes.Add("rel", "stylesheet");
-                    page.Header.Controls.Add(link);
-                }
-
-                page.ClientScript.RegisterClientScriptBlock(pageType, webResourceUrl, script, false);
-            }
-        }
-
-        #endregion
-
         #region Overriden Methods
 
         protected override void CreateChildControls()
@@ -413,11 +394,29 @@ namespace Micajah.AzureFileService.WebControls
         {
             this.CssClass = "dropzone";
 
-            RegisterControlStyleSheet(this.Page, "Styles.dropzone.css");
+            Helper.RegisterControlStyleSheet(this.Page, "Styles.FileUpload.css");
 
             ScriptManager.RegisterClientScriptInclude(this.Page, this.Page.GetType(), "Scripts.dropzone.js", ResourceHandler.GetWebResourceUrl("Scripts.dropzone.js", true));
 
             ScriptManager.RegisterStartupScript(this.Page, this.Page.GetType(), this.ClientID, this.ClientScript, true);
+        }
+
+        /// <summary>
+        /// Renders the control.
+        /// </summary>
+        /// <param name="writer">A System.Web.UI.HtmlTextWriter that contains the output stream to render on the client.</param>
+        public override void RenderControl(HtmlTextWriter writer)
+        {
+            if (writer == null) return;
+
+            if (this.DesignMode)
+            {
+                writer.Write(string.Format(CultureInfo.InvariantCulture, "[{0} \"{1}\"]", this.GetType().Name, this.ID));
+            }
+            else
+            {
+                base.RenderControl(writer);
+            }
         }
 
         #endregion
@@ -435,7 +434,7 @@ namespace Micajah.AzureFileService.WebControls
             foreach (IListBlobItem item in temporaryBlobList)
             {
                 CloudBlockBlob tempBlob = item as CloudBlockBlob;
-                if (tempBlob.Properties.BlobType == BlobType.BlockBlob)
+                if (tempBlob.BlobType == BlobType.BlockBlob)
                 {
                     string blobName = tempBlob.Name;
                     string[] parts = tempBlob.Name.Split('/');

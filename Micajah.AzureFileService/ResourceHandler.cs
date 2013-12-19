@@ -6,14 +6,13 @@ using System.Reflection;
 using System.Text;
 using System.Web;
 
-namespace Micajah.AzureFileService.Handlers
+namespace Micajah.AzureFileService
 {
     public sealed class ResourceHandler : IHttpHandler
     {
         #region Members
 
-        internal const string ResourceHandlerVirtualPath = "~/mafs.axd";
-        internal const string ManifestResourceNamePrefix = "Micajah.AzureFileService.Resources.Micajah.AzureFileService";
+        internal const string VirtualPath = "~/mafs.axd";
 
         #endregion
 
@@ -58,7 +57,7 @@ namespace Micajah.AzureFileService.Handlers
 
         internal static string GetWebResourceUrlFormat(bool createApplicationAbsoluteUrl)
         {
-            return ((createApplicationAbsoluteUrl ? VirtualPathUtility.ToAbsolute(ResourceHandlerVirtualPath) : ResourceHandlerVirtualPath) + "?d={0}");
+            return ((createApplicationAbsoluteUrl ? VirtualPathUtility.ToAbsolute(VirtualPath) : VirtualPath) + "?d={0}");
         }
 
         internal static string GetWebResourceUrl(string resourceName, bool createApplicationAbsoluteUrl)
@@ -68,7 +67,7 @@ namespace Micajah.AzureFileService.Handlers
 
         internal static bool IsWebResourceUrl(string virtualPath)
         {
-            return (string.Compare(VirtualPathUtility.ToAppRelative(virtualPath), ResourceHandlerVirtualPath, StringComparison.OrdinalIgnoreCase) == 0);
+            return (string.Compare(VirtualPathUtility.ToAppRelative(virtualPath), VirtualPath, StringComparison.OrdinalIgnoreCase) == 0);
         }
 
         #endregion
@@ -96,7 +95,7 @@ namespace Micajah.AzureFileService.Handlers
                     string resourceName = Encoding.UTF8.GetString(decodedResourceName).Split('|')[0];
                     if (!string.IsNullOrEmpty(resourceName))
                     {
-                        bytes = GetManifestResourceBytes(ManifestResourceNamePrefix + "." + resourceName);
+                        bytes = GetManifestResourceBytes(ResourceVirtualPathProvider.ManifestResourceNamePrefix + "." + resourceName);
 
                         if (bytes != null)
                         {

@@ -1538,6 +1538,7 @@ require.register("dropzone/lib/dropzone.js", function(exports, require, module){
         this.emit("sending", file, xhr, null);
         var slice = file.slice(0, file.size);
         var reader = new FileReader();
+        xhr.setRequestHeader("x-ms-blob-content-type", file.type);
         reader.onloadend = function (evt) {
           readerOnLoadEnd(evt, file.xhr)
         };

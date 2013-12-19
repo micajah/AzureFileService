@@ -59,6 +59,7 @@
   <ItemGroup>
     <Content Include="Default.aspx" />
     <Content Include="FileList.aspx" />
+    <Content Include="Global.asax" />
     <Content Include="Styles\Site.css" />
     <Content Include="Web.config" />
   </ItemGroup>
@@ -76,6 +77,9 @@
     </Compile>
     <Compile Include="FileList.aspx.designer.cs">
       <DependentUpon>FileList.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Global.asax.cs">
+      <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Site.Master.cs">

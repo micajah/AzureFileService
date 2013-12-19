@@ -117,6 +117,27 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="FileList_DeleteText" xml:space="preserve">
+    <value>delete</value>
+  </data>
+  <data name="FileList_DeletingConfirmationText" xml:space="preserve">
+    <value>Do you really want to delete it?</value>
+  </data>
+  <data name="FileList_EmptyDataText" xml:space="preserve">
+    <value>No files found.</value>
+  </data>
+  <data name="FileList_FileNameText" xml:space="preserve">
+    <value>File Name</value>
+  </data>
+  <data name="FileList_SizeText" xml:space="preserve">
+    <value>Size</value>
+  </data>
+  <data name="FileList_UpdatedWhenText" xml:space="preserve">
+    <value>Date Modified</value>
+  </data>
+  <data name="FileList_ViewAllAtOnceLink_Text" xml:space="preserve">
+    <value>View all of these images at once</value>
+  </data>
   <data name="FileUpload_DefaultMessage" xml:space="preserve">
     <value>Drop files here&lt;br /&gt;or&lt;br /&gt;&lt;input type='button' value='Select Files' /&gt;</value>
   </data>

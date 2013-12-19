@@ -3,8 +3,9 @@
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
-    <mafs:FileUpload ID="FileUpload1" runat="server" ContainerName="micajahazurefileservice" TemporaryContainerName="micajahazurefileservicetemp" ObjectType="ticket" ObjectId="12345" Accept="image/*" />
+    <mafs:FileUpload ID="FileUpload1" runat="server" ContainerName="micajahazurefileservice" TemporaryContainerName="micajahazurefileservicetemp" ObjectType="ticket" ObjectId="12345" />
     <br />
     <asp:Button ID="AcceptButton" runat="server" Text="Accept Changes" OnClick="AcceptButton_Click" />&nbsp;
-    <asp:Button ID="RejectButton" runat="server" Text="Reject Changes" OnClick="RejectButton_Click" />
+    <asp:Button ID="RejectButton" runat="server" Text="Reject Changes" OnClick="RejectButton_Click" />&nbsp;&nbsp;&nbsp;
+    <asp:Button ID="SubmitButton" runat="server" Text="Just Do Postback" />
 </asp:Content>
