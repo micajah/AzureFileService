@@ -139,7 +139,7 @@
   </Target>
   -->
   <Target Name="AfterBuild">
-    <Copy SourceFiles="appSettings.template.config" DestinationFiles="appSettings.config" SkipUnchangedFiles="true" Condition="!Exists('appSettings.config')">
+    <Copy SourceFiles="$(OutputDir)appSettings.template.config" DestinationFiles="$(OutputDir)appSettings.config" SkipUnchangedFiles="true" Condition="!Exists('$(OutputDir)appSettings.config')">
     </Copy>
   </Target>
 </Project>
