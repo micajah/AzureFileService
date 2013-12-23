@@ -190,23 +190,24 @@ namespace Micajah.AzureFileService.WebControls
                 }
             }
 
-            //private void Panel_DataBinding(object sender, EventArgs e)
-            //{
-            //    Panel panel = (Panel)sender;
-            //    DataRowView drv = (DataRowView)DataBinder.GetDataItem(panel.NamingContainer);
+            private void Panel_DataBinding(object sender, EventArgs e)
+            {
+                Panel panel = (Panel)sender;
+                DataRowView drv = (DataRowView)DataBinder.GetDataItem(panel.NamingContainer);
 
-            //    string fileName = (string)drv[FileNameColumnName];
-            //    string uri = (string)drv[UriColumnName];
-            //    long lengthInKB = (long)drv[LengthInKBColumnName];
-            //    DateTime lastModified = (DateTime)drv[LastModifiedColumnName];
+                string fileName = (string)drv[FileNameColumnName];
+                string uri = (string)drv[UriColumnName];
+                long lengthInKB = (long)drv[LengthInKBColumnName];
+                DateTime lastModified = (DateTime)drv[LastModifiedColumnName];
 
-            //    string date = string.Format(m_FileList.Culture, m_FileList.DateTimeToolTipFormatString, TimeZoneInfo.ConvertTimeFromUtc(lastModified, m_FileList.TimeZone));
-            //    string content = string.Format(m_FileList.Culture,
-            //        "<div style=\"width: 250px\" class=\"flToolTip\"><a class=\"flFileName\" href=\"{0}\" target=\"_blank\">{1}</a><span class=\"flFileInfo\">{2}, {3:N0} KB</span>DELETE_LINK</div>",
-            //        uri, fileName, date, lengthInKB);
+                string date = string.Format(m_FileList.Culture, m_FileList.DateTimeToolTipFormatString, TimeZoneInfo.ConvertTimeFromUtc(lastModified, m_FileList.TimeZone));
+                string content = string.Format(m_FileList.Culture,
+                    "<div style=\"width: 250px\" class=\"flToolTip\"><a class=\"flFileName\" href=\"{0}\" target=\"_blank\">{1}</a><span class=\"flFileInfo\">{2}, {3:N0} KB</span><a class=\"flRemove\" href=\"{4}\"{6}>{5}</a></div>",
+                    uri, fileName, date, lengthInKB, m_FileList.Page.ClientScript.GetPostBackClientHyperlink(DeleteLink, string.Empty), Resources.FileList_DeleteText,
+                    m_FileList.EnableDeletingConfirmation ? string.Format(m_FileList.Culture, " onclick='{0}'", OnClientDeleting) : string.Empty);
 
-            //    panel.Attributes["data-ot"] = content;
-            //}
+                panel.Attributes["data-ot"] = content;
+            }
 
             #endregion
 
@@ -229,10 +230,9 @@ namespace Micajah.AzureFileService.WebControls
                 panel.ID = "ThumbPanel";
                 panel.Width = panel.Height = Unit.Pixel(m_FileList.ShowVideoOnly ? 148 : 128);
                 panel.Style[HtmlTextWriterStyle.BackgroundColor] = "White";
-                //panel.DataBinding += new EventHandler(Panel_DataBinding);
-                panel.Attributes["data-ot-style"] = "fileInfo";
+                panel.DataBinding += new EventHandler(Panel_DataBinding);
+                panel.Attributes["data-ot-style"] = "mafs";
                 panel.Attributes["data-ot-group"] = m_FileList.ClientID;
-                panel.Attributes["data-ot"] = DateTime.UtcNow.Ticks.ToString();
                 panel.Controls.Add(link);
 
                 if (m_FileList.EnableDeleting)
@@ -246,7 +246,7 @@ namespace Micajah.AzureFileService.WebControls
                     DeleteLink.Style[HtmlTextWriterStyle.Display] = "none";
                     if (m_FileList.EnableDeletingConfirmation)
                     {
-                        DeleteLink.OnClientClick = FileList.OnClientDeleting;
+                        DeleteLink.OnClientClick = OnClientDeleting;
                     }
                     panel.Controls.Add(DeleteLink);
                 }
@@ -476,16 +476,6 @@ namespace Micajah.AzureFileService.WebControls
                 return view.ToTable();
             }
         }
-
-        //private string ClientScript
-        //{
-        //    get
-        //    {
-        //        StringBuilder sb = new StringBuilder();
-        //        sb.AppendFormat(CultureInfo.InvariantCulture, "var opentip1 = new Opentip('#{0}');", this.ClientID);
-        //        return sb.ToString();
-        //    }
-        //}
 
         #endregion
 
@@ -1181,8 +1171,6 @@ namespace Micajah.AzureFileService.WebControls
 
             ScriptManager.RegisterClientScriptInclude(this.Page, this.Page.GetType(), "Scripts.opentip.js", ResourceHandler.GetWebResourceUrl("Scripts.opentip.js", true));
             ScriptManager.RegisterClientScriptInclude(this.Page, this.Page.GetType(), "Scripts.FileList.js", ResourceHandler.GetWebResourceUrl("Scripts.FileList.js", true));
-
-            //ScriptManager.RegisterStartupScript(this.Page, this.Page.GetType(), this.ClientID, this.ClientScript, true);
         }
 
         /// <summary>

@@ -1,178 +1,108 @@
-.flGrid td, .flGrid a, .flThumbs td, .flThumbs a, .flToolTip, .flToolTip a, .flFiles
-{
+.flGrid td, .flGrid a, .flThumbs td, .flThumbs a, .flToolTip, .flToolTip a, .flFiles {
     font-family: Arial;
     font-size: 11px;
     color: Black;
 }
 
-.flGrid td
-{
+.flGrid td {
     padding-right: 10px;
 }
 
-.flGrid a.flFileName, .flGrid a.flFileName:hover
-{
+.flGrid a.flFileName, .flGrid a.flFileName:hover {
     font-size: 12px;
 }
 
-.flGrid a:hover, .flThumbs a:hover
-{
+.flGrid a:hover, .flThumbs a:hover {
     color: Blue;
 }
 
-.flGrid a.flRemove:hover, .flToolTip a.flRemove:hover, .flFiles a.flRemove:hover
-{
+.flGrid a.flRemove:hover, .flToolTip a.flRemove:hover, .flFiles a.flRemove:hover {
     color: Red;
 }
 
-.flGrid tr a.flRemove
-{
+.flGrid tr a.flRemove {
     visibility: hidden;
 }
 
-.flGrid tr.flHover a.flRemove
-{
+.flGrid tr.flHover a.flRemove {
     visibility: visible;
 }
 
-.flGrid tr.flPt td
-{
+.flGrid tr.flPt td {
     padding-top: 10px;
 }
 
-.flGrid td.flDate
-{
+.flGrid td.flDate {
     color: #6c6c6c;
     font-size: 12px;
 }
 
-.flThumbs div
-{
+.flThumbs div {
     border: solid 1px #cccccc !important;
     padding: 1px;
     margin: 0 5px 5px 0;
     text-align: center;
 }
 
-.flFiles a.flFileName, .flFiles a.flFileName:hover
-{
+.flThumbs img {
+    border: 0 none;
+}
+
+.flFiles a.flFileName, .flFiles a.flFileName:hover {
     font-weight: bold;
     color: Black;
     text-decoration: none;
 }
 
-.flFiles div
-{
+.flFiles div {
     padding: 7px 0 35px 0;
 }
 
-.flToolTip
-{
+.flToolTip {
     text-align: center;
     padding: 10px;
     line-height: 18px;
 }
 
-.flToolTip a.flFileName, .flToolTip a.flFileName:hover
-{
-    font-size: 12px;
-    font-weight: bold;
-}
+    .flToolTip a.flFileName, .flToolTip a.flFileName:hover {
+        font-size: 12px;
+        font-weight: bold;
+    }
 
-.flToolTip .flFileInfo
-{
-    font-size: 10px;
-    color: #666666;
-    display: block;
-}
+    .flToolTip .flFileInfo {
+        font-size: 10px;
+        color: #666666;
+        display: block;
+    }
 
-a.flUploadFiles, a.flUploadFiles:hover, a.flCptCtrl, a.flCptCtrl:hover
-{
+a.flUploadFiles, a.flUploadFiles:hover, a.flCptCtrl, a.flCptCtrl:hover {
     font-size: 13px;
     color: Black;
     padding-bottom: 3px;
     display: inline-block;
 }
 
-a.flCptCtrl, a.flCptCtrl:hover
-{
-    font-size: 11px;
-}
+    a.flCptCtrl, a.flCptCtrl:hover {
+        font-size: 11px;
+    }
 
-a.flUploadFiles:hover, a.flCptCtrl:hover
-{
-    color: Blue;
-}
+        a.flUploadFiles:hover, a.flCptCtrl:hover {
+            color: Blue;
+        }
 
-a.flLink
-{
+a.flLink {
     font-family: Arial;
     padding: 1px 2px 2px 2px;
     color: Gray;
 }
 
-a.flLink:hover
-{
-    padding: 1px 2px 2px 2px;
-    color: White;
-    background-color: #5c5c5c;
-}
+    a.flLink:hover {
+        padding: 1px 2px 2px 2px;
+        color: White;
+        background-color: #5c5c5c;
+    }
 
-/* ------------ FileList as CommonGridView ------------------------------------------------------------------------------------------------------------------------------------*/
-.flGrid_T
-{
-    border-collapse: collapse;
-    border-width: 1px;
-    border-style: solid;
-}
-
-.flGrid_T a
-{
-    color: Black;
-}
-
-.flGrid_T a:hover
-{
-    color: Blue;
-}
-
-.flGrid_H a, .flGrid_H a:hover, .flGrid_H th
-{
-    color: White;
-    background-color: #505050;
-}
-
-.flGrid_H th
-{
-    padding: 3px 5px 3px 6px;
-}
-
-td.flGrid_C, td.flGrid_A, .flGrid_Er td
-{
-    padding: 3px 6px 3px 6px;
-}
-
-.flGrid_Db
-{
-    padding: 3px 6px 3px 6px;
-    text-align: center;
-    white-space: nowrap;
-    width: 1px;
-}
-
-.flGrid_Db a:hover
-{
-    color: Red;
-}
-
-.flGrid_T a, .flGrid_T a:hover, .flGrid_H a, .flGrid_H a:hover, .flGrid_H th, td.flGrid_C, td.flGrid_A, .flGrid_Er td, .flGrid_Db, .flGrid_Db a:hover
-{
-    font-family: Arial, Helvetica, Sans-Serif;
-    font-size: 11px;
-}
-
-/* ------------ RadToolTip bug fix ---------------------------------------------------------------------------------------------------------------------------------------------*/
-div.RadToolTip_Default table.rtWrapper td.rtWrapperLeftMiddle, div.RadToolTip_Default table.rtWrapper td.rtWrapperRightMiddle
-{
-    font-size: inherit !important;
+/* ------------ opentip --------------------------------------------------------------------------------------------------------------------------------------------------*/
+.style-glass.opentip-container .opentip {
+    text-shadow: none !important;
 }
