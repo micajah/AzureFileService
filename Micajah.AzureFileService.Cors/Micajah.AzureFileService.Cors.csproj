@@ -74,7 +74,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="appSettings.template.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
@@ -85,10 +84,4 @@
   <Target Name="AfterBuild">
   </Target>
   -->
-  <Target Name="AfterBuild">
-    <Copy SourceFiles="appSettings.template.config" DestinationFiles="appSettings.config" SkipUnchangedFiles="true" Condition="!Exists('appSettings.config')">
-    </Copy>
-    <Copy SourceFiles="appSettings.config" DestinationFolder="$(OutputPath)" ContinueOnError="true">
-    </Copy>
-  </Target>
 </Project>
