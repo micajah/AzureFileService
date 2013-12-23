@@ -71,7 +71,6 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources.Micajah.AzureFileService\Scripts\dropzone.js" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Styles\FileUpload.css" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons128x128\avi.gif" />
@@ -179,7 +178,16 @@
       <SubType>ASPXCodeBehind</SubType>
     </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Scripts\opentip.js" />
+    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Styles\opentip.css" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Styles\dropzone.css" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Scripts\FileList.js" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

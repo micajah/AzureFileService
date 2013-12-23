@@ -6,17 +6,22 @@ namespace Micajah.AzureFileService.WebControls
     /// Defines the different rendering modes for the Micajah.AzureFileService.WebControls.FileList.
     /// </summary>
     [Serializable]
-    public enum FileListRenderingMode
+    public enum FileListRenderingMode : int
     {
         /// <summary>
         /// The control is rendered as simple grid view.
         /// </summary>
-        Grid,
+        Grid = 0,
 
         /// <summary>
         /// The control is rendered as files list where one file on top of the other file.
         /// </summary>
-        List
+        List = 1,
+
+        /// <summary>
+        /// The control is rendered as thumbnails list.
+        /// </summary>
+        Thumbnails = 2,
     }
 
     /// <summary>

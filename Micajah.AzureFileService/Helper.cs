@@ -12,7 +12,7 @@ namespace Micajah.AzureFileService
 {
     public static class Helper
     {
-        #region Internal Methods
+        #region Public Methods
 
         /// <summary>
         /// Registers the specified style sheet for the specified control.

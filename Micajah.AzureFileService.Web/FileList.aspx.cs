@@ -1,10 +1,5 @@
 ﻿using Micajah.AzureFileService.WebControls;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.UI;
-using System.Web.UI.WebControls;
 
 namespace Micajah.AzureFileService.Web
 {
@@ -14,8 +9,8 @@ namespace Micajah.AzureFileService.Web
         {
             if (!this.IsPostBack)
             {
-                //FileList3.FileExtensionsFilter = FilterTextBox.Text.Split(',');
-                //FileList3.NegateFileExtensionsFilter = NegateCheckBox.Checked;
+                FileList3.FileExtensionsFilter = FilterTextBox.Text.Split(',');
+                FileList3.NegateFileExtensionsFilter = NegateCheckBox.Checked;
 
                 foreach (string name in Enum.GetNames(typeof(IconSize)))
                 {
@@ -25,12 +20,12 @@ namespace Micajah.AzureFileService.Web
             }
         }
 
-        //protected void SubmitButton_Click(object sender, EventArgs e)
-        //{
-        //    FileList3.FileExtensionsFilter = FilterTextBox.Text.Split(',');
-        //    FileList3.NegateFileExtensionsFilter = NegateCheckBox.Checked;
-        //    FileList3.DataBind();
-        //}
+        protected void SubmitButton_Click(object sender, EventArgs e)
+        {
+            FileList3.FileExtensionsFilter = FilterTextBox.Text.Split(',');
+            FileList3.NegateFileExtensionsFilter = NegateCheckBox.Checked;
+            FileList3.DataBind();
+        }
 
         protected void Button1_Click(object sender, EventArgs e)
         {

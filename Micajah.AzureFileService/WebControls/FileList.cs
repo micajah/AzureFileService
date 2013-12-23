@@ -33,7 +33,7 @@ namespace Micajah.AzureFileService.WebControls
 
         #endregion
 
-        #region Members
+        #region Classes
 
         private class FilesListItemTemplate : ITemplate, IDisposable
         {
@@ -74,7 +74,7 @@ namespace Micajah.AzureFileService.WebControls
 
             private void HyperLink_DataBinding(object sender, EventArgs e)
             {
-                HyperLink link = (sender as HyperLink);
+                HyperLink link = (HyperLink)sender;
                 DataRowView drv = (DataRowView)DataBinder.GetDataItem(link.NamingContainer);
 
                 string fileName = (string)drv[FileNameColumnName];
@@ -137,11 +137,144 @@ namespace Micajah.AzureFileService.WebControls
             #endregion
         }
 
+        private class ThumbnailsListItemTemplate : ITemplate, IDisposable
+        {
+            #region Members
+
+            private ListItemType m_ItemType;
+            private FileList m_FileList;
+            private LinkButton DeleteLink;
+
+            #endregion
+
+            #region Constructors
+
+            public ThumbnailsListItemTemplate(ListItemType itemType, FileList fileList)
+            {
+                m_ItemType = itemType;
+                m_FileList = fileList;
+            }
+
+            #endregion
+
+            #region Private Methods
+
+            private void Image_DataBinding(object sender, EventArgs e)
+            {
+                Image img = (sender as Image);
+                DataRowView drv = (DataRowView)DataBinder.GetDataItem(img.NamingContainer);
+
+                string uri = (m_FileList.ShowVideoOnly
+                    ? ResourceHandler.GetWebResourceUrl("Images.Video.gif", true)
+                    : GetNonImageFileTypeIconUrl((string)drv[FileNameColumnName], IconSize.Bigger));
+                if (uri == null)
+                {
+                    uri = (string)drv[UriColumnName];
+                }
+                img.ImageUrl = uri;
+            }
+
+            private void HyperLink_DataBinding(object sender, EventArgs e)
+            {
+                HyperLink link = (HyperLink)sender;
+                DataRowView drv = (DataRowView)DataBinder.GetDataItem(link.NamingContainer);
+
+                string fileName = (string)drv[FileNameColumnName];
+                string extension = Path.GetExtension(fileName);
+                string contentType = (string)drv[ContentTypeColumnName];
+
+                link.NavigateUrl = (string)drv[UriColumnName];
+                if ((string.Compare(extension, ".swf", StringComparison.OrdinalIgnoreCase) == 0) || MimeType.IsImageType(MimeMapping.GetMimeMapping(extension)))
+                {
+                    link.Target = "_blank";
+                }
+            }
+
+            //private void Panel_DataBinding(object sender, EventArgs e)
+            //{
+            //    Panel panel = (Panel)sender;
+            //    DataRowView drv = (DataRowView)DataBinder.GetDataItem(panel.NamingContainer);
+
+            //    string fileName = (string)drv[FileNameColumnName];
+            //    string uri = (string)drv[UriColumnName];
+            //    long lengthInKB = (long)drv[LengthInKBColumnName];
+            //    DateTime lastModified = (DateTime)drv[LastModifiedColumnName];
+
+            //    string date = string.Format(m_FileList.Culture, m_FileList.DateTimeToolTipFormatString, TimeZoneInfo.ConvertTimeFromUtc(lastModified, m_FileList.TimeZone));
+            //    string content = string.Format(m_FileList.Culture,
+            //        "<div style=\"width: 250px\" class=\"flToolTip\"><a class=\"flFileName\" href=\"{0}\" target=\"_blank\">{1}</a><span class=\"flFileInfo\">{2}, {3:N0} KB</span>DELETE_LINK</div>",
+            //        uri, fileName, date, lengthInKB);
+
+            //    panel.Attributes["data-ot"] = content;
+            //}
+
+            #endregion
+
+            #region Public Methods
+
+            public void InstantiateIn(Control container)
+            {
+                if (container == null) return;
+                if ((m_ItemType != ListItemType.Item) && (m_ItemType != ListItemType.AlternatingItem)) return;
+
+                Image img = new Image();
+                img.DataBinding += new EventHandler(Image_DataBinding);
+                img.Width = img.Height = Unit.Pixel(m_FileList.ShowVideoOnly ? 148 : 128);
+
+                HyperLink link = new HyperLink();
+                link.DataBinding += new EventHandler(HyperLink_DataBinding);
+                link.Controls.Add(img);
+
+                Panel panel = new Panel();
+                panel.ID = "ThumbPanel";
+                panel.Width = panel.Height = Unit.Pixel(m_FileList.ShowVideoOnly ? 148 : 128);
+                panel.Style[HtmlTextWriterStyle.BackgroundColor] = "White";
+                //panel.DataBinding += new EventHandler(Panel_DataBinding);
+                panel.Attributes["data-ot-style"] = "fileInfo";
+                panel.Attributes["data-ot-group"] = m_FileList.ClientID;
+                panel.Attributes["data-ot"] = DateTime.UtcNow.Ticks.ToString();
+                panel.Controls.Add(link);
+
+                if (m_FileList.EnableDeleting)
+                {
+                    DeleteLink = new LinkButton();
+                    DeleteLink.ID = "DeleteLink";
+                    DeleteLink.CommandName = DataList.DeleteCommandName;
+                    DeleteLink.CausesValidation = false;
+                    DeleteLink.CssClass = "flRemove";
+                    DeleteLink.Text = Resources.FileList_DeleteText;
+                    DeleteLink.Style[HtmlTextWriterStyle.Display] = "none";
+                    if (m_FileList.EnableDeletingConfirmation)
+                    {
+                        DeleteLink.OnClientClick = FileList.OnClientDeleting;
+                    }
+                    panel.Controls.Add(DeleteLink);
+                }
+
+                container.Controls.Add(panel);
+            }
+
+            public void Dispose()
+            {
+                GC.SuppressFinalize(this);
+
+                if (DeleteLink != null)
+                {
+                    DeleteLink.Dispose();
+                }
+            }
+
+            #endregion
+        }
+
+        #endregion
+
+        #region Members
+
         private GridView Grid;
         private DataList List;
         private HyperLink ViewAllAtOnceLink;
         private Panel CaptionPanel;
-        private LiteralControl Separator;
 
         private DateTime m_UpdatedDate = DateTime.MinValue;
         private TimeZoneInfo m_TimeZone;
@@ -343,6 +476,16 @@ namespace Micajah.AzureFileService.WebControls
                 return view.ToTable();
             }
         }
+
+        //private string ClientScript
+        //{
+        //    get
+        //    {
+        //        StringBuilder sb = new StringBuilder();
+        //        sb.AppendFormat(CultureInfo.InvariantCulture, "var opentip1 = new Opentip('#{0}');", this.ClientID);
+        //        return sb.ToString();
+        //    }
+        //}
 
         #endregion
 
@@ -842,8 +985,20 @@ namespace Micajah.AzureFileService.WebControls
             List.CellPadding = 0;
             List.DataKeyField = BlobNameColumnName;
             List.DeleteCommand += new DataListCommandEventHandler(DataList_DeleteCommand);
-            List.CssClass = "flFiles";
-            List.ItemTemplate = new FilesListItemTemplate(ListItemType.Item, this);
+
+            switch (this.RenderingMode)
+            {
+                case FileListRenderingMode.Thumbnails:
+                    List.CssClass = "flThumbs";
+                    List.ItemTemplate = new ThumbnailsListItemTemplate(ListItemType.Item, this);
+                    List.RepeatColumns = this.RepeatColumns;
+                    List.RepeatDirection = this.RepeatDirection;
+                    break;
+                case FileListRenderingMode.List:
+                    List.CssClass = "flFiles";
+                    List.ItemTemplate = new FilesListItemTemplate(ListItemType.Item, this);
+                    break;
+            }
         }
 
         private void DeleteFile(string blobName)
@@ -859,7 +1014,7 @@ namespace Micajah.AzureFileService.WebControls
         {
             if ((Grid == null) && (List == null))
             {
-                if (this.RenderingMode == FileListRenderingMode.List)
+                if ((this.RenderingMode == FileListRenderingMode.Thumbnails) || (this.RenderingMode == FileListRenderingMode.List))
                     this.CreateDataList();
                 else
                     this.CreateGridView();
@@ -1021,7 +1176,13 @@ namespace Micajah.AzureFileService.WebControls
             this.ApplyStyle();
             this.GridDataBind();
 
+            Helper.RegisterControlStyleSheet(this.Page, "Styles.opentip.css");
             Helper.RegisterControlStyleSheet(this.Page, "Styles.FileList.css");
+
+            ScriptManager.RegisterClientScriptInclude(this.Page, this.Page.GetType(), "Scripts.opentip.js", ResourceHandler.GetWebResourceUrl("Scripts.opentip.js", true));
+            ScriptManager.RegisterClientScriptInclude(this.Page, this.Page.GetType(), "Scripts.FileList.js", ResourceHandler.GetWebResourceUrl("Scripts.FileList.js", true));
+
+            //ScriptManager.RegisterStartupScript(this.Page, this.Page.GetType(), this.ClientID, this.ClientScript, true);
         }
 
         /// <summary>
@@ -1045,9 +1206,6 @@ namespace Micajah.AzureFileService.WebControls
                 writer.Write(string.Format(CultureInfo.InvariantCulture, "[{0} \"{1}\"]", this.GetType().Name, this.ID));
             else
             {
-                if (Separator != null)
-                    Separator.Visible = (!this.IsEmpty);
-
                 if (ViewAllAtOnceLink != null)
                 {
                     ViewAllAtOnceLink.NavigateUrl = this.ViewAllAtOnceLinkNavigateUrl;

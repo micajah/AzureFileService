@@ -394,7 +394,7 @@ namespace Micajah.AzureFileService.WebControls
         {
             this.CssClass = "dropzone";
 
-            Helper.RegisterControlStyleSheet(this.Page, "Styles.FileUpload.css");
+            Helper.RegisterControlStyleSheet(this.Page, "Styles.dropzone.css");
 
             ScriptManager.RegisterClientScriptInclude(this.Page, this.Page.GetType(), "Scripts.dropzone.js", ResourceHandler.GetWebResourceUrl("Scripts.dropzone.js", true));
 

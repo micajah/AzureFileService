@@ -91,7 +91,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="appSettings.template.config" />
     <Content Include="Site.Master" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
@@ -138,8 +137,4 @@
   <Target Name="AfterBuild">
   </Target>
   -->
-  <Target Name="AfterBuild">
-    <Copy SourceFiles="$(OutputDir)appSettings.template.config" DestinationFiles="$(OutputDir)appSettings.config" SkipUnchangedFiles="true" Condition="!Exists('$(OutputDir)appSettings.config')">
-    </Copy>
-  </Target>
 </Project>

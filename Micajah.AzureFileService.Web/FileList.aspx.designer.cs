@@ -38,5 +38,41 @@ namespace Micajah.AzureFileService.Web {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::Micajah.AzureFileService.WebControls.FileList FileList2;
+        
+        /// <summary>
+        /// FilterTextBox control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.TextBox FilterTextBox;
+        
+        /// <summary>
+        /// NegateCheckBox control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.CheckBox NegateCheckBox;
+        
+        /// <summary>
+        /// SubmitButton control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button SubmitButton;
+        
+        /// <summary>
+        /// FileList3 control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::Micajah.AzureFileService.WebControls.FileList FileList3;
     }
 }

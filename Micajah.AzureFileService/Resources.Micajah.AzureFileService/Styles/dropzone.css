@@ -158,7 +158,7 @@
 }
 
 /* Buttons */
-input[type=button], input[type=button]:focus, input[type=button]:hover
+.dropzone input[type=button], .dropzone input[type=button]:focus, .dropzone input[type=button]:hover
 {
     cursor: pointer;
     outline: none !important;
@@ -184,14 +184,14 @@ input[type=button], input[type=button]:focus, input[type=button]:hover
     *overflow: visible;
 }
 
-input[type=button]
+.dropzone input[type=button]
 {
     color: #333;
     border: 1px solid #d4d4d4;
     background-color: #d3d3d3;
 }
 
-input[type=button]:focus, input[type=button]:hover
+.dropzone input[type=button]:focus, .dropzone input[type=button]:hover
 {
 	color: #fff;
 	border-left-color: #3072b3;
@@ -202,14 +202,14 @@ input[type=button]:focus, input[type=button]:hover
 }
 
 /* Blue Button */
-input[type=button].Blue
+.dropzone input[type=button].Blue
 {
     color: White;
     border: 1px solid #058dc7;
     background-color: #058dc7;
 }
 
-input[type=button].Blue:focus, input[type=button].Blue:hover, input[type=button].Blue:active
+.dropzone input[type=button].Blue:focus, .dropzone input[type=button].Blue:hover, .dropzone input[type=button].Blue:active
 {
     color: White;
     background-color: #09a0e1;
