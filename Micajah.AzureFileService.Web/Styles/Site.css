@@ -5,11 +5,11 @@
 }
 
 a {
-    color: blue;
+    color: black;
 }
 
     a:visited {
-        color: blue;
+        color: black;
     }
 
     a:hover {
@@ -26,3 +26,11 @@ p {
     text-align: right;
     width: 100%;
 }
+
+    .menu a {
+        color: blue;
+    }
+
+        .menu a:visited {
+            color: blue;
+        }

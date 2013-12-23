@@ -1,5 +1,6 @@
 ﻿using Micajah.AzureFileService.WebControls;
 using System;
+using System.Globalization;
 
 namespace Micajah.AzureFileService.Web
 {
@@ -17,6 +18,9 @@ namespace Micajah.AzureFileService.Web
                     IconSizeList.Items.Add(name);
                 }
                 IconSizeList.SelectedValue = IconSize.Smaller.ToString();
+
+                VideoLink.Attributes["onclick"] = string.Format(CultureInfo.InvariantCulture, "document.getElementById('{0}').value='video';", FilterTextBox.ClientID);
+                ImageLink.Attributes["onclick"] = string.Format(CultureInfo.InvariantCulture, "document.getElementById('{0}').value='image';", FilterTextBox.ClientID);
             }
         }
 
