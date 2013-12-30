@@ -1,4 +1,6 @@
-﻿using System.Web.Configuration;
+﻿using System;
+using System.Globalization;
+using System.Web.Configuration;
 
 namespace Micajah.AzureFileService
 {
@@ -8,7 +10,8 @@ namespace Micajah.AzureFileService
 
         private const int DefaultSharedAccessExpiryTime = 60;
         private const int DefaultClientCacheExpiryTime = 720;
-        private const string DefaultTemporaryContanerName = "temp";
+        private const string DefaultTemporaryContanerName = "micajahazurefileservicetemp";
+        private const string ClientCacheControlFormat = "public, max-age={0}";
 
         #endregion
 
@@ -57,6 +60,15 @@ namespace Micajah.AzureFileService
                     value = DefaultTemporaryContanerName;
                 }
                 return value;
+            }
+        }
+
+        internal static string ClientCacheControl
+        {
+            get
+            {
+                TimeSpan t = new TimeSpan(0, ClientCacheExpiryTime, 0);
+                return string.Format(CultureInfo.InvariantCulture, ClientCacheControlFormat, t.TotalSeconds);
             }
         }
 

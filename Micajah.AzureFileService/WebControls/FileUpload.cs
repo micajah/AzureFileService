@@ -8,7 +8,6 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Web;
-using System.Web.Configuration;
 using System.Web.UI;
 using System.Web.UI.HtmlControls;
 using System.Web.UI.WebControls;
@@ -275,7 +274,7 @@ namespace Micajah.AzureFileService.WebControls
                 {
                     sb.AppendFormat(CultureInfo.InvariantCulture, ",maxFilesize:{0}", this.MaxFileSizeInMB);
                 }
-                sb.AppendFormat(CultureInfo.InvariantCulture, ",dictDefaultMessage:\"{0}\"}});\r\n", Resources.FileUpload_DefaultMessage);
+                sb.AppendFormat(CultureInfo.InvariantCulture, ",cacheControl:\"{0}\",dictDefaultMessage:\"{1}\"}});\r\n", Settings.ClientCacheControl, Resources.FileUpload_DefaultMessage);
                 return sb.ToString();
             }
         }
@@ -299,6 +298,8 @@ namespace Micajah.AzureFileService.WebControls
                             string blobName = string.Format(CultureInfo.InvariantCulture, "{0}{1}", this.TemporaryBlobPath, Path.GetFileName(file.FileName));
 
                             CloudBlockBlob blob = this.TemporaryContainer.GetBlockBlobReference(blobName);
+                            blob.Properties.ContentType = file.ContentType;
+                            blob.Properties.CacheControl = Settings.ClientCacheControl;
                             blob.UploadFromStream(file.InputStream);
                         }
                         // TODO: Error handling on server and client side.

@@ -424,6 +424,7 @@ require.register("dropzone/lib/dropzone.js", function(exports, require, module){
       paramName: "file",
       createImageThumbnails: true,
       maxThumbnailFilesize: 10,
+      cacheControl: null,
       thumbnailWidth: 100,
       thumbnailHeight: 100,
       maxFiles: null,
@@ -1539,6 +1540,9 @@ require.register("dropzone/lib/dropzone.js", function(exports, require, module){
         var slice = file.slice(0, file.size);
         var reader = new FileReader();
         xhr.setRequestHeader("x-ms-blob-content-type", file.type);
+        if (this.options.cacheControl) {
+            xhr.setRequestHeader("x-ms-blob-cache-control", this.options.cacheControl);
+        }
         reader.onloadend = function (evt) {
           readerOnLoadEnd(evt, file.xhr)
         };

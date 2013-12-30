@@ -47,14 +47,25 @@ namespace Micajah.AzureFileService
 
         #region Private Methods
 
-        private static void ConfigureResponse(HttpResponse response, DateTime expires)
+        private static void ConfigureResponse(HttpContext context, string fileName, string contentType)
         {
-            response.Clear();
-            response.ClearHeaders();
-            response.Charset = Encoding.UTF8.WebName;
-            response.ContentEncoding = Encoding.UTF8;
-            response.Cache.SetCacheability(HttpCacheability.Public);
-            response.Cache.SetExpires(expires.ToLocalTime());
+            context.Response.Clear();
+            context.Response.ClearHeaders();
+            context.Response.Charset = Encoding.UTF8.WebName;
+            context.Response.ContentEncoding = Encoding.UTF8;
+            context.Response.Cache.SetCacheability(HttpCacheability.Public);
+            context.Response.Cache.SetExpires(DateTime.UtcNow.AddMinutes(Settings.ClientCacheExpiryTime).ToLocalTime());
+            context.Response.ContentType = contentType;
+
+            string contentDisposition = string.Empty;
+            if (context.Request.Browser.IsBrowser("IE") || context.Request.UserAgent.Contains("Chrome"))
+                contentDisposition = "filename=\"" + Helper.ToHexString(fileName) + "\";";
+            else if (context.Request.UserAgent.Contains("Safari"))
+                contentDisposition = "filename=\"" + fileName + "\";";
+            else
+                contentDisposition = "filename*=utf-8''" + HttpUtility.UrlPathEncode(fileName) + ";";
+
+            context.Response.AddHeader("Content-Disposition", contentDisposition);
         }
 
         private static string GetObjectTag(int width, int height, string fileUrl, string fileName)
@@ -137,6 +148,7 @@ namespace Micajah.AzureFileService
                                 Stream thumb = Thumbnail.Create(stream, width, height, align);
 
                                 thumbBlob.Properties.ContentType = MimeType.Jpeg;
+                                thumbBlob.Properties.CacheControl = Settings.ClientCacheControl;
                                 thumbBlob.UploadFromStream(thumb);
 
                                 long length = thumb.Length;
@@ -146,18 +158,7 @@ namespace Micajah.AzureFileService
                             }
                         }
 
-                        // TODO: Need to set expiration and define expire policy for the blobs in the container. Move the setting to the config file.
-                        ConfigureResponse(context.Response, DateTime.UtcNow.AddMinutes(Settings.ClientCacheExpiryTime));
-
-                        context.Response.ContentType = thumbBlob.Properties.ContentType;
-
-                        string contentDisposition = string.Empty;
-                        if (context.Request.Browser.IsBrowser("IE") || context.Request.UserAgent.Contains("Chrome"))
-                            contentDisposition = "filename=\"" + Helper.ToHexString(fileName) + "\";";
-                        else if (context.Request.UserAgent.Contains("Safari"))
-                            contentDisposition = "filename=\"" + fileName + "\";";
-                        else
-                            contentDisposition = "filename*=utf-8''" + HttpUtility.UrlPathEncode(fileName) + ";";
+                        ConfigureResponse(context, fileName, thumbBlob.Properties.ContentType);
                     }
                 }
             }
