@@ -132,6 +132,8 @@ namespace Micajah.AzureFileService
 
                         if (thumbBlob.Exists())
                         {
+                            ConfigureResponse(context, fileName, thumbBlob.Properties.ContentType);
+
                             thumbBlob.DownloadToStream(context.Response.OutputStream);
                         }
                         else
@@ -151,14 +153,14 @@ namespace Micajah.AzureFileService
                                 thumbBlob.Properties.CacheControl = Settings.ClientCacheControl;
                                 thumbBlob.UploadFromStream(thumb);
 
+                                ConfigureResponse(context, fileName, thumbBlob.Properties.ContentType);
+
                                 long length = thumb.Length;
                                 BinaryReader reader = new BinaryReader(thumb);
                                 byte[] bytes = reader.ReadBytes((int)length);
                                 context.Response.BinaryWrite(bytes);
                             }
                         }
-
-                        ConfigureResponse(context, fileName, thumbBlob.Properties.ContentType);
                     }
                 }
             }
