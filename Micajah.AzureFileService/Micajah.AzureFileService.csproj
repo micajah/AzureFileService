@@ -39,6 +39,7 @@
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Web" />
     <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Xml.Linq" />
@@ -48,6 +49,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FileHandler.cs" />
     <Compile Include="ResourceHandler.cs" />
     <Compile Include="MimeType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -58,6 +60,7 @@
     </Compile>
     <Compile Include="Helper.cs" />
     <Compile Include="ResourceVirtualPathProvider.cs" />
+    <Compile Include="Thumbnail.cs" />
     <Compile Include="WebControls\Enums.cs" />
     <Compile Include="WebControls\FileList.cs" />
     <Compile Include="WebControls\FileUpload.cs" />

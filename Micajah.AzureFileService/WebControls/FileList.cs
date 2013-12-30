@@ -17,7 +17,6 @@ using System.Web.UI.WebControls;
 
 namespace Micajah.AzureFileService.WebControls
 {
-    // TODO: Need to display the flash like in FS - add the embedded page.
     public class FileList : Control, INamingContainer, IUploadControl
     {
         #region Constants
@@ -30,6 +29,8 @@ namespace Micajah.AzureFileService.WebControls
         private const string LengthInKBColumnName = "LengthInKB";
         private const string LastModifiedColumnName = "LastModified";
         private const string LastModifiedDateColumnName = "LastModifiedDate";
+        private const string DeleteCommandName = "Delete";
+        private const string OnClientDeletingScript = "return flDel();";
 
         #endregion
 
@@ -116,7 +117,7 @@ namespace Micajah.AzureFileService.WebControls
                     DeleteLink.CausesValidation = false;
                     DeleteLink.CssClass = "flRemove";
                     DeleteLink.Text = Resources.FileList_DeleteText;
-                    if (m_FileList.EnableDeletingConfirmation) DeleteLink.OnClientClick = FileList.OnClientDeleting;
+                    if (m_FileList.EnableDeletingConfirmation) DeleteLink.OnClientClick = OnClientDeletingScript;
                     panel.Controls.Add(DeleteLink);
                 }
 
@@ -164,12 +165,12 @@ namespace Micajah.AzureFileService.WebControls
                 Image img = (sender as Image);
                 DataRowView drv = (DataRowView)DataBinder.GetDataItem(img.NamingContainer);
 
-                string uri = (m_FileList.ShowVideoOnly
-                    ? ResourceHandler.GetWebResourceUrl("Images.Video.gif", true)
-                    : GetNonImageFileTypeIconUrl((string)drv[FileNameColumnName], IconSize.Bigger));
+                string fileName = (string)drv[FileNameColumnName];
+
+                string uri = (m_FileList.ShowVideoOnly ? ResourceHandler.GetWebResourceUrl("Images.Video.gif", true) : GetNonImageFileTypeIconUrl(fileName, IconSize.Bigger));
                 if (uri == null)
                 {
-                    uri = (string)drv[UriColumnName];
+                    uri = FileHandler.GetThumbnailUrl(fileName, (int)IconSize.Bigger, (int)IconSize.Bigger, 1, m_FileList.PropertyTableId, false);
                 }
                 img.ImageUrl = uri;
             }
@@ -201,10 +202,11 @@ namespace Micajah.AzureFileService.WebControls
                 DateTime lastModified = (DateTime)drv[LastModifiedColumnName];
 
                 string date = string.Format(m_FileList.Culture, m_FileList.DateTimeToolTipFormatString, TimeZoneInfo.ConvertTimeFromUtc(lastModified, m_FileList.TimeZone));
+
                 string content = string.Format(m_FileList.Culture,
-                    "<div style=\"width: 250px\" class=\"flToolTip\"><a class=\"flFileName\" href=\"{0}\" target=\"_blank\">{1}</a><span class=\"flFileInfo\">{2}, {3:N0} KB</span><a class=\"flRemove\" href=\"{4}\"{6}>{5}</a></div>",
+                    "<div class=\"flToolTip s250\"><a class=\"flFileName\" href=\"{0}\" target=\"_blank\">{1}</a><span class=\"flFileInfo\">{2}, {3:N0} KB</span><a class=\"flRemove\" href=\"{4}\"{6}>{5}</a></div>",
                     uri, fileName, date, lengthInKB, m_FileList.Page.ClientScript.GetPostBackClientHyperlink(DeleteLink, string.Empty), Resources.FileList_DeleteText,
-                    m_FileList.EnableDeletingConfirmation ? string.Format(m_FileList.Culture, " onclick='{0}'", OnClientDeleting) : string.Empty);
+                    m_FileList.EnableDeletingConfirmation ? string.Format(m_FileList.Culture, " onclick='{0}'", OnClientDeletingScript) : string.Empty);
 
                 panel.Attributes["data-ot"] = content;
             }
@@ -231,8 +233,6 @@ namespace Micajah.AzureFileService.WebControls
                 panel.Width = panel.Height = Unit.Pixel(m_FileList.ShowVideoOnly ? 148 : 128);
                 panel.Style[HtmlTextWriterStyle.BackgroundColor] = "White";
                 panel.DataBinding += new EventHandler(Panel_DataBinding);
-                panel.Attributes["data-ot-style"] = "mafs";
-                panel.Attributes["data-ot-group"] = m_FileList.ClientID;
                 panel.Controls.Add(link);
 
                 if (m_FileList.EnableDeleting)
@@ -246,7 +246,7 @@ namespace Micajah.AzureFileService.WebControls
                     DeleteLink.Style[HtmlTextWriterStyle.Display] = "none";
                     if (m_FileList.EnableDeletingConfirmation)
                     {
-                        DeleteLink.OnClientClick = OnClientDeleting;
+                        DeleteLink.OnClientClick = OnClientDeletingScript;
                     }
                     panel.Controls.Add(DeleteLink);
                 }
@@ -327,39 +327,31 @@ namespace Micajah.AzureFileService.WebControls
             }
         }
 
-        private string ViewAllAtOnceLinkId
+        private string PropertyTableId
         {
             get
             {
-                string value = (string)this.ViewState["ViewAllAtOnceLinkId"];
+                string value = (string)this.ViewState["PropertyTableId"];
                 if (string.IsNullOrWhiteSpace(value))
                 {
-                    value = string.Format(CultureInfo.InvariantCulture, "mafs:ViewAllAtOnceLinkId:{0:N}", Guid.NewGuid());
-                    this.ViewAllAtOnceLinkId = value;
+                    value = string.Format(CultureInfo.InvariantCulture, "mafs:PropertyTableId:{0:N}", Guid.NewGuid());
+                    this.PropertyTableId = value;
                 }
                 return value;
             }
-            set { this.ViewState["ViewAllAtOnceLinkId"] = value; }
+            set
+            {
+                this.ViewState["PropertyTableId"] = value;
+                this.EnsurePropertyTable(value);
+            }
         }
 
         private string ViewAllAtOnceLinkNavigateUrl
         {
             get
             {
-                string key = this.ViewAllAtOnceLinkId;
-
-                Hashtable properties = new Hashtable();
-                properties["NegateFileExtensionsFilter"] = this.NegateFileExtensionsFilter;
-                properties["ContainerName"] = this.ContainerName;
-                properties["ObjectId"] = this.ObjectId;
-                properties["ObjectType"] = this.ObjectType;
-                properties["StorageConnectionString"] = this.StorageConnectionString;
-                properties["SharedAccessSignature"] = this.SharedAccessSignature;
-
-                this.Page.Session[key] = properties;
-
                 return ResourceVirtualPathProvider.VirtualPathToAbsolute(ResourceVirtualPathProvider.VirtualRootShortPath + "FileList.aspx")
-                    + "?d=" + HttpServerUtility.UrlTokenEncode(Encoding.UTF8.GetBytes(key));
+                    + "?d=" + HttpServerUtility.UrlTokenEncode(Encoding.UTF8.GetBytes(this.PropertyTableId));
             }
         }
 
@@ -439,19 +431,22 @@ namespace Micajah.AzureFileService.WebControls
                 foreach (IListBlobItem item in blobList)
                 {
                     CloudBlockBlob blob = item as CloudBlockBlob;
-                    if (blob.BlobType == BlobType.BlockBlob)
+                    if (blob != null)
                     {
-                        string[] parts = blob.Name.Split('/');
-                        string fileName = parts[parts.Length - 1];
-                        table.Rows.Add(
-                            blob.Name,
-                            blob.Properties.ContentType,
-                            fileName,
-                            blob.Uri.ToString() + sas,
-                            blob.Properties.Length,
-                            blob.Properties.LastModified.Value.DateTime,
-                            blob.Properties.LastModified.Value.Date
-                        );
+                        if (blob.BlobType == BlobType.BlockBlob)
+                        {
+                            string[] parts = blob.Name.Split('/');
+                            string fileName = parts[parts.Length - 1];
+                            table.Rows.Add(
+                                blob.Name,
+                                blob.Properties.ContentType,
+                                fileName,
+                                blob.Uri.ToString() + sas,
+                                blob.Properties.Length,
+                                blob.Properties.LastModified.Value.DateTime,
+                                blob.Properties.LastModified.Value.Date
+                            );
+                        }
                     }
                 }
 
@@ -477,14 +472,14 @@ namespace Micajah.AzureFileService.WebControls
             }
         }
 
+        private static string ClientScript
+        {
+            get { return string.Format(CultureInfo.CurrentCulture, "function flDel() {{ return window.confirm(\"{0}\"); }}\r\n", Resources.FileList_DeletingConfirmationText); }
+        }
+
         #endregion
 
         #region Internal Properties
-
-        internal static string OnClientDeleting
-        {
-            get { return string.Format(CultureInfo.CurrentCulture, "return window.confirm(\"{0}\");", Resources.FileList_DeletingConfirmationText); }
-        }
 
         internal bool ShowVideoOnly
         {
@@ -998,6 +993,27 @@ namespace Micajah.AzureFileService.WebControls
             {
                 blob.Delete();
             }
+
+            if (this.FileDeleted != null)
+            {
+                this.FileDeleted(this, new CommandEventArgs(DeleteCommandName, blobName));
+            }
+        }
+
+        private void EnsurePropertyTable(string propertyTableId)
+        {
+            if (this.Page.Session[propertyTableId] == null)
+            {
+                Hashtable properties = new Hashtable();
+                properties["NegateFileExtensionsFilter"] = this.NegateFileExtensionsFilter;
+                properties["ContainerName"] = this.ContainerName;
+                properties["ObjectId"] = this.ObjectId;
+                properties["ObjectType"] = this.ObjectType;
+                properties["StorageConnectionString"] = this.StorageConnectionString;
+                properties["SharedAccessSignature"] = this.SharedAccessSignature;
+
+                this.Page.Session[propertyTableId] = properties;
+            }
         }
 
         private void EnsureGrid()
@@ -1075,19 +1091,32 @@ namespace Micajah.AzureFileService.WebControls
                 if (count > 0)
                 {
                     DataRowView drv = (DataRowView)e.Row.DataItem;
+                    string fileName = (string)drv[FileNameColumnName];
 
                     if (this.ShowIcons)
                     {
                         Image img = e.Row.Cells[0].Controls[0] as Image;
                         if (img != null)
                         {
-                            string fileName = (string)drv[FileNameColumnName];
                             img.ImageUrl = GetFileTypeIconUrl(fileName, this.IconSize);
                         }
                     }
 
-                    e.Row.Attributes["onmouseover"] = "this.className += ' flHover';";
-                    e.Row.Attributes["onmouseout"] = "this.className = this.className.replace(' flHover', '');";
+                    HyperLink link = e.Row.Cells[this.ShowIcons ? 1 : 0].Controls[0] as HyperLink;
+                    if (link != null)
+                    {
+                        if (MimeType.IsImageType(MimeMapping.GetMimeMapping(fileName)))
+                        {
+                            string uri = (string)drv[UriColumnName];
+                            string thumbUri = FileHandler.GetThumbnailUrl(fileName, 600, 500, 1, this.PropertyTableId, true);
+
+                            string content = string.Format(CultureInfo.InvariantCulture,
+                                "<div class=\"flToolTip s600x500\"><a class=\"flFileName\" target=\"_blank\" href=\"{0}\"><img alt=\"{1}\" src=\"{2}\"></a></div>",
+                                uri, fileName, thumbUri);
+
+                            link.Attributes["data-ot"] = content;
+                        }
+                    }
 
                     DateTime updatedTime = (DateTime)drv[LastModifiedColumnName];
                     updatedTime = TimeZoneInfo.ConvertTimeFromUtc(updatedTime, this.TimeZone);
@@ -1114,7 +1143,7 @@ namespace Micajah.AzureFileService.WebControls
                         if (deleteCell.Controls.Count > 0)
                         {
                             WebControl control = e.Row.Cells[count - 2].Controls[0] as WebControl;
-                            if (control != null) control.Attributes.Add("onclick", OnClientDeleting);
+                            if (control != null) control.Attributes.Add("onclick", OnClientDeletingScript);
                         }
                     }
                 }
@@ -1169,6 +1198,7 @@ namespace Micajah.AzureFileService.WebControls
             Helper.RegisterControlStyleSheet(this.Page, "Styles.opentip.css");
             Helper.RegisterControlStyleSheet(this.Page, "Styles.FileList.css");
 
+            ScriptManager.RegisterClientScriptBlock(this.Page, this.Page.GetType(), "Scripts.FileList", ClientScript, true);
             ScriptManager.RegisterClientScriptInclude(this.Page, this.Page.GetType(), "Scripts.opentip.js", ResourceHandler.GetWebResourceUrl("Scripts.opentip.js", true));
             ScriptManager.RegisterClientScriptInclude(this.Page, this.Page.GetType(), "Scripts.FileList.js", ResourceHandler.GetWebResourceUrl("Scripts.FileList.js", true));
         }

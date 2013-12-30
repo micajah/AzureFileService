@@ -8,6 +8,13 @@ namespace Micajah.AzureFileService
     /// </summary>
     public static class MimeType
     {
+        #region Constants
+
+        public const string Flash = "application/x-shockwave-flash";
+        public const string Jpeg = "image/jpeg";
+
+        #endregion
+
         #region Members
 
         private static ReadOnlyCollection<string> s_ImageExtensions;
@@ -54,7 +61,7 @@ namespace Micajah.AzureFileService
         /// <returns>true, if the specified MIME type is flash; otherwise, false.</returns>
         public static bool IsFlash(string mimeType)
         {
-            return (string.Compare(mimeType, "application/x-shockwave-flash", StringComparison.OrdinalIgnoreCase) == 0);
+            return (string.Compare(mimeType, Flash, StringComparison.OrdinalIgnoreCase) == 0);
         }
 
         /// <summary>

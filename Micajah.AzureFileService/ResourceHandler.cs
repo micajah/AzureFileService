@@ -10,9 +10,9 @@ namespace Micajah.AzureFileService
 {
     public sealed class ResourceHandler : IHttpHandler
     {
-        #region Members
+        #region Constants
 
-        internal const string VirtualPath = "~/mafs.axd";
+        internal const string VirtualPath = "~/mafsr.axd";
 
         #endregion
 
@@ -65,30 +65,17 @@ namespace Micajah.AzureFileService
             return string.Format(CultureInfo.InvariantCulture, GetWebResourceUrlFormat(createApplicationAbsoluteUrl), GetWebResourceName(resourceName));
         }
 
-        internal static bool IsWebResourceUrl(string virtualPath)
-        {
-            return (string.Compare(VirtualPathUtility.ToAppRelative(virtualPath), VirtualPath, StringComparison.OrdinalIgnoreCase) == 0);
-        }
-
         #endregion
 
         #region Public Methods
 
         public void ProcessRequest(HttpContext context)
         {
-            if (context == null)
-                return;
-
             byte[] bytes = null;
 
-            if (IsWebResourceUrl(context.Request.FilePath) && (context.Request.QueryString["d"] != null))
+            if (context.Request.QueryString["d"] != null)
             {
-                byte[] decodedResourceName = null;
-                try
-                {
-                    decodedResourceName = HttpServerUtility.UrlTokenDecode(context.Request.QueryString["d"]);
-                }
-                catch (FormatException) { }
+                byte[] decodedResourceName = HttpServerUtility.UrlTokenDecode(context.Request.QueryString["d"]);
 
                 if (decodedResourceName != null)
                 {
@@ -101,14 +88,19 @@ namespace Micajah.AzureFileService
                         {
                             context.Response.Clear();
                             context.Response.ContentType = MimeMapping.GetMimeMapping(resourceName);
-                            if (bytes.Length > 0) context.Response.OutputStream.Write(bytes, 0, bytes.Length);
+                            if (bytes.Length > 0)
+                            {
+                                context.Response.OutputStream.Write(bytes, 0, bytes.Length);
+                            }
                         }
                     }
                 }
             }
 
             if (bytes == null)
+            {
                 throw new HttpException(404, Resources.ResourceHandler_InvalidRequest);
+            }
         }
 
         #endregion

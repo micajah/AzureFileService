@@ -28,7 +28,7 @@ namespace Micajah.AzureFileService.WebControls
     /// Represents the different sizes of icon.
     /// </summary>
     [Serializable]
-    public enum IconSize
+    public enum IconSize : int
     {
         /// <summary>
         /// The size is 128 x 128 pixels.

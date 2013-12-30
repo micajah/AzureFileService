@@ -24,7 +24,7 @@
     visibility: hidden;
 }
 
-.flGrid tr.flHover a.flRemove {
+.flGrid tr:hover a.flRemove {
     visibility: visible;
 }
 
@@ -60,7 +60,6 @@
 
 .flToolTip {
     text-align: center;
-    padding: 10px;
     line-height: 18px;
 }
 
@@ -73,6 +72,15 @@
         font-size: 10px;
         color: #666666;
         display: block;
+    }
+
+    .flToolTip.s600x500 {
+        width: 600px;
+        height: 500px;
+    }
+
+    .flToolTip.s250 {
+        width: 250px;
     }
 
 a.flUploadFiles, a.flUploadFiles:hover, a.flCptCtrl, a.flCptCtrl:hover {
@@ -102,7 +110,7 @@ a.flLink {
         background-color: #5c5c5c;
     }
 
-/* ------------ opentip --------------------------------------------------------------------------------------------------------------------------------------------------*/
-.style-glass.opentip-container .opentip {
-    text-shadow: none !important;
+/* opentip */
+.style-mafs.opentip-container .opentip {
+   padding: 15px 25px;
 }
