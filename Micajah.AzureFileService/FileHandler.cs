@@ -146,8 +146,8 @@ namespace Micajah.AzureFileService
                             }
                         }
 
-                        // TODO: Need to set expiration and define expire policy for the blobs in the container.
-                        //ConfigureResponse(context.Response, m_Expires);
+                        // TODO: Need to set expiration and define expire policy for the blobs in the container. Move the setting to the config file.
+                        ConfigureResponse(context.Response, DateTime.UtcNow.AddMinutes(Settings.ClientCacheExpiryTime));
 
                         context.Response.ContentType = thumbBlob.Properties.ContentType;
 

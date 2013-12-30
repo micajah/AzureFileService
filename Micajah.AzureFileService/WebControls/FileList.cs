@@ -391,7 +391,7 @@ namespace Micajah.AzureFileService.WebControls
                     value = this.Container.GetSharedAccessSignature(new SharedAccessBlobPolicy
                     {
                         Permissions = SharedAccessBlobPermissions.Read,
-                        SharedAccessExpiryTime = DateTime.UtcNow.AddMinutes(FileUpload.SharedAccessExpiryTime)
+                        SharedAccessExpiryTime = DateTime.UtcNow.AddMinutes(Settings.SharedAccessExpiryTime)
                     });
 
                     this.SharedAccessSignature = value;
@@ -858,7 +858,7 @@ namespace Micajah.AzureFileService.WebControls
             get
             {
                 object obj = this.ViewState["StorageConnectionString"];
-                return ((obj == null) ? WebConfigurationManager.AppSettings["mafs:StorageConnectionString"] : (string)obj);
+                return ((obj == null) ? Settings.StorageConnectionString : (string)obj);
             }
             set { this.ViewState["StorageConnectionString"] = value; }
         }

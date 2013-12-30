@@ -60,6 +60,7 @@
     </Compile>
     <Compile Include="Helper.cs" />
     <Compile Include="ResourceVirtualPathProvider.cs" />
+    <Compile Include="Settings.cs" />
     <Compile Include="Thumbnail.cs" />
     <Compile Include="WebControls\Enums.cs" />
     <Compile Include="WebControls\FileList.cs" />

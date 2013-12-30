@@ -21,13 +21,6 @@ namespace Micajah.AzureFileService.WebControls
     [ToolboxData("<{0}:FileUpload runat=server></{0}:FileUpload>")]
     public class FileUpload : WebControl, IUploadControl, INamingContainer
     {
-        #region Constants
-
-        private const int DefaultSharedAccessExpiryTime = 1440;
-        private const string DefaultTemporaryContanerName = "temp";
-
-        #endregion
-
         #region Members
 
         protected System.Web.UI.WebControls.FileUpload FileFromMyComputer;
@@ -97,11 +90,7 @@ namespace Micajah.AzureFileService.WebControls
                 string value = (string)this.ViewState["TemporaryContainerName"];
                 if (string.IsNullOrWhiteSpace(value))
                 {
-                    value = WebConfigurationManager.AppSettings["mafs:TemporaryContainerName"];
-                }
-                if (string.IsNullOrWhiteSpace(value))
-                {
-                    value = DefaultTemporaryContanerName;
+                    value = Settings.TemporaryContainerName;
                 }
                 return value;
             }
@@ -155,7 +144,7 @@ namespace Micajah.AzureFileService.WebControls
             get
             {
                 object obj = this.ViewState["StorageConnectionString"];
-                return ((obj == null) ? WebConfigurationManager.AppSettings["mafs:StorageConnectionString"] : (string)obj);
+                return ((obj == null) ? Settings.StorageConnectionString : (string)obj);
             }
             set { this.ViewState["StorageConnectionString"] = value; }
         }
@@ -245,7 +234,7 @@ namespace Micajah.AzureFileService.WebControls
                     value = this.TemporaryContainer.GetSharedAccessSignature(new SharedAccessBlobPolicy
                     {
                         Permissions = SharedAccessBlobPermissions.Write,
-                        SharedAccessExpiryTime = DateTime.UtcNow.AddMinutes(SharedAccessExpiryTime)
+                        SharedAccessExpiryTime = DateTime.UtcNow.AddMinutes(Settings.SharedAccessExpiryTime)
                     });
 
                     this.SharedAccessSignature = value;
@@ -288,22 +277,6 @@ namespace Micajah.AzureFileService.WebControls
                 }
                 sb.AppendFormat(CultureInfo.InvariantCulture, ",dictDefaultMessage:\"{0}\"}});\r\n", Resources.FileUpload_DefaultMessage);
                 return sb.ToString();
-            }
-        }
-
-        #endregion
-
-        #region Internal Properties
-
-        internal static int SharedAccessExpiryTime
-        {
-            get
-            {
-                int minutes = DefaultSharedAccessExpiryTime;
-                string str = WebConfigurationManager.AppSettings["mafs:SharedAccessExpiryTime"];
-                if (!int.TryParse(str, out minutes))
-                    minutes = DefaultSharedAccessExpiryTime;
-                return minutes;
             }
         }
 
