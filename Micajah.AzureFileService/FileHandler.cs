@@ -1,9 +1,6 @@
-﻿using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
-using System;
+﻿using System;
 using System.Collections;
 using System.Globalization;
-using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Web;
@@ -97,67 +94,33 @@ namespace Micajah.AzureFileService
 
         public void ProcessRequest(HttpContext context)
         {
-            if (context.Request.QueryString["d"] != null)
+            if (context != null)
             {
-                byte[] decodedVars = HttpServerUtility.UrlTokenDecode(context.Request.QueryString["d"]);
-
-                if (decodedVars != null)
+                if (context.Request.QueryString["d"] != null)
                 {
-                    string[] parts = Encoding.UTF8.GetString(decodedVars).Split('|');
-                    string propertyTableId = parts[4];
-
-                    Hashtable properties = context.Session[propertyTableId] as Hashtable;
-                    if (properties != null)
+                    byte[] decodedVars = HttpServerUtility.UrlTokenDecode(context.Request.QueryString["d"]);
+                    if (decodedVars != null)
                     {
-                        string fileName = parts[0];
-                        int width = Convert.ToInt32(parts[1], CultureInfo.InvariantCulture);
-                        int height = Convert.ToInt32(parts[2], CultureInfo.InvariantCulture);
-                        int align = Convert.ToInt32(parts[3], CultureInfo.InvariantCulture);
+                        string[] parts = Encoding.UTF8.GetString(decodedVars).Split('|');
+                        string propertyTableId = parts[4];
 
-                        string containerName = (string)properties["ContainerName"];
-                        string objectId = (string)properties["ObjectId"];
-                        string objectType = (string)properties["ObjectType"];
-                        string storageConnectionString = (string)properties["StorageConnectionString"];
-
-                        // TODO: Separate the logic (from there and controls also) to a BL class.
-                        CloudStorageAccount storageAccount = CloudStorageAccount.Parse(storageConnectionString);
-
-                        CloudBlobClient client = storageAccount.CreateCloudBlobClient();
-
-                        CloudBlobContainer container = client.GetContainerReference(containerName);
-                        container.CreateIfNotExists();
-
-                        string thumbBlobName = string.Format(CultureInfo.InvariantCulture, "{0}/{1}/{2}x{3}x{4}/{5}", objectType, objectId, width, height, align, fileName);
-                        CloudBlockBlob thumbBlob = container.GetBlockBlobReference(thumbBlobName);
-
-                        if (thumbBlob.Exists())
+                        Hashtable properties = context.Session[propertyTableId] as Hashtable;
+                        if (properties != null)
                         {
-                            ConfigureResponse(context, fileName, thumbBlob.Properties.ContentType);
+                            string fileName = parts[0];
+                            int width = Convert.ToInt32(parts[1], CultureInfo.InvariantCulture);
+                            int height = Convert.ToInt32(parts[2], CultureInfo.InvariantCulture);
+                            int align = Convert.ToInt32(parts[3], CultureInfo.InvariantCulture);
 
-                            thumbBlob.DownloadToStream(context.Response.OutputStream);
-                        }
-                        else
-                        {
-                            string blobName = string.Format(CultureInfo.InvariantCulture, "{0}/{1}/{2}", objectType, objectId, fileName);
-                            CloudBlockBlob blob = container.GetBlockBlobReference(blobName);
+                            string containerName = (string)properties["ContainerName"];
+                            string objectId = (string)properties["ObjectId"];
+                            string objectType = (string)properties["ObjectType"];
+                            string storageConnectionString = (string)properties["StorageConnectionString"];
 
-                            if (blob.Exists())
+                            byte[] bytes = Client.GetThumbnail(fileName, width, height, align, containerName, objectId, objectType, storageConnectionString);
+                            if (bytes != null)
                             {
-                                MemoryStream stream = new MemoryStream();
-                                blob.DownloadToStream(stream);
-                                stream.Position = 0;
-
-                                Stream thumb = Thumbnail.Create(stream, width, height, align);
-
-                                thumbBlob.Properties.ContentType = MimeType.Jpeg;
-                                thumbBlob.Properties.CacheControl = Settings.ClientCacheControl;
-                                thumbBlob.UploadFromStream(thumb);
-
-                                ConfigureResponse(context, fileName, thumbBlob.Properties.ContentType);
-
-                                long length = thumb.Length;
-                                BinaryReader reader = new BinaryReader(thumb);
-                                byte[] bytes = reader.ReadBytes((int)length);
+                                ConfigureResponse(context, fileName, MimeType.Jpeg);
                                 context.Response.BinaryWrite(bytes);
                             }
                         }

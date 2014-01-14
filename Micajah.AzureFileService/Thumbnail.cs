@@ -21,7 +21,7 @@ namespace Micajah.AzureFileService
 
         #region Private Methods
 
-        private static void DrawImage(Image image, int x, int y, int width, int height, ref Bitmap bitmap)
+        private static void DrawImage(Image image, int x, int y, int width, int height, Bitmap bitmap)
         {
             using (Graphics graphics = Graphics.FromImage(bitmap))
             {
@@ -115,8 +115,9 @@ namespace Micajah.AzureFileService
 
         #region Public Methods
 
-        public static Stream Create(Stream input, int width, int height, int align)
+        public static void Create(Stream input, int width, int height, int align, Stream output)
         {
+            // TODO: Should the validations below be added somewhere?
             //if (!File.Exists(sourceFileName))
             //    return "Internal error: Source file not exist.";
 
@@ -133,51 +134,72 @@ namespace Micajah.AzureFileService
             //    return "Internal error: " + sourceFileExtension + " format not supported.";
             //}
 
-            Image originalImage = Image.FromStream(input);
-
-            if (align == 0)
+            if (output == null)
             {
-                if ((((width > 0) && (originalImage.Width <= width)) || (width <= 0))
-                    && (((height > 0) && (originalImage.Height <= height)) || (height <= 0)))
+                return;
+            }
+
+            Image originalImage = null;
+            Bitmap scaledImage = null;
+            Bitmap outputImage = null;
+
+            try
+            {
+                originalImage = Image.FromStream(input);
+
+                if (align == 0)
                 {
-                    return null;
+                    if ((((width > 0) && (originalImage.Width <= width)) || (width <= 0))
+                        && (((height > 0) && (originalImage.Height <= height)) || (height <= 0)))
+                    {
+                        return;
+                    }
+                }
+
+                int outputWidth = width;
+                int outputHeight = height;
+                GetProportionalSize(originalImage.Width, originalImage.Height, ref outputWidth, ref outputHeight);
+
+                scaledImage = new Bitmap(outputWidth, outputHeight);
+                DrawImage(originalImage, 0, 0, outputWidth, outputHeight, scaledImage);
+
+                if (align > 0)
+                {
+                    if (width == 0) width = outputWidth;
+                    if (height == 0) height = outputHeight;
+                    int maxWidth = ((outputWidth > width) ? outputWidth : width);
+                    int maxHeight = ((outputHeight > height) ? outputHeight : height);
+
+                    int x = 0;
+                    int y = 0;
+                    GetAlignPosition(align, maxWidth, maxHeight, outputWidth, outputHeight, ref x, ref y);
+
+                    outputImage = new Bitmap(maxWidth, maxHeight);
+                    DrawImage((Image)scaledImage, x, y, outputWidth, outputHeight, outputImage);
+                    outputImage.Save(output, System.Drawing.Imaging.ImageFormat.Jpeg);
+                }
+                else
+                    scaledImage.Save(output, System.Drawing.Imaging.ImageFormat.Jpeg);
+
+                output.Position = 0;
+            }
+            finally
+            {
+                if (originalImage != null)
+                {
+                    originalImage.Dispose();
+                }
+
+                if (scaledImage != null)
+                {
+                    scaledImage.Dispose();
+                }
+
+                if (outputImage != null)
+                {
+                    outputImage.Dispose();
                 }
             }
-
-            int outputWidth = width;
-            int outputHeight = height;
-            GetProportionalSize(originalImage.Width, originalImage.Height, ref outputWidth, ref outputHeight);
-
-            Bitmap scaledImage = new Bitmap(outputWidth, outputHeight);
-            DrawImage(originalImage, 0, 0, outputWidth, outputHeight, ref scaledImage);
-
-            MemoryStream output = new MemoryStream();
-
-            if (align > 0)
-            {
-                if (width == 0) width = outputWidth;
-                if (height == 0) height = outputHeight;
-                int maxWidth = ((outputWidth > width) ? outputWidth : width);
-                int maxHeight = ((outputHeight > height) ? outputHeight : height);
-
-                int x = 0;
-                int y = 0;
-                GetAlignPosition(align, maxWidth, maxHeight, outputWidth, outputHeight, ref x, ref y);
-
-                Bitmap outputImage = new Bitmap(maxWidth, maxHeight);
-                DrawImage((Image)scaledImage, x, y, outputWidth, outputHeight, ref outputImage);
-                outputImage.Save(output, System.Drawing.Imaging.ImageFormat.Jpeg);
-                outputImage.Dispose();
-            }
-            else
-                scaledImage.Save(output, System.Drawing.Imaging.ImageFormat.Jpeg);
-
-            originalImage.Dispose();
-            scaledImage.Dispose();
-
-            output.Position = 0;
-
-            return output;
         }
 
         #endregion

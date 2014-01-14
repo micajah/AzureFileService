@@ -23,6 +23,7 @@
     <WarningLevel>4</WarningLevel>
     <RunCodeAnalysis>true</RunCodeAnalysis>
     <Prefer32Bit>false</Prefer32Bit>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -49,7 +50,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Client.cs" />
     <Compile Include="FileHandler.cs" />
+    <Compile Include="WebControls\FilesListItemTemplate.cs" />
+    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="ResourceHandler.cs" />
     <Compile Include="MimeType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -62,6 +66,7 @@
     <Compile Include="ResourceVirtualPathProvider.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="Thumbnail.cs" />
+    <Compile Include="WebControls\ThumbnailsListItemTemplate.cs" />
     <Compile Include="WebControls\Enums.cs" />
     <Compile Include="WebControls\FileList.cs" />
     <Compile Include="WebControls\FileUpload.cs" />

@@ -39,39 +39,44 @@ namespace Micajah.AzureFileService
         /// <param name="styleSheetWebResourceName">The name of the server-side resource of the style sheet to register.</param>
         public static void RegisterControlStyleSheet(Page page, string styleSheetWebResourceName)
         {
-            Type pageType = page.GetType();
-            string webResourceUrl = ResourceHandler.GetWebResourceUrl(styleSheetWebResourceName, true);
-
-            if (!page.ClientScript.IsClientScriptBlockRegistered(pageType, webResourceUrl))
+            if (page != null)
             {
-                string script = string.Empty;
+                Type pageType = page.GetType();
+                string webResourceUrl = ResourceHandler.GetWebResourceUrl(styleSheetWebResourceName, true);
 
-                if (page.Header == null)
-                    script = string.Format(CultureInfo.InvariantCulture, "<link type=\"text/css\" rel=\"stylesheet\" href=\"{0}\"></link>", webResourceUrl);
-                else
+                if (!page.ClientScript.IsClientScriptBlockRegistered(pageType, webResourceUrl))
                 {
-                    HtmlLink link = new HtmlLink();
-                    link.Href = webResourceUrl;
-                    link.Attributes.Add("type", "text/css");
-                    link.Attributes.Add("rel", "stylesheet");
-                    page.Header.Controls.Add(link);
-                }
+                    string script = string.Empty;
 
-                page.ClientScript.RegisterClientScriptBlock(pageType, webResourceUrl, script, false);
+                    if (page.Header == null)
+                        script = string.Format(CultureInfo.InvariantCulture, "<link type=\"text/css\" rel=\"stylesheet\" href=\"{0}\"></link>", webResourceUrl);
+                    else
+                    {
+                        using (HtmlLink link = new HtmlLink())
+                        {
+                            link.Href = webResourceUrl;
+                            link.Attributes.Add("type", "text/css");
+                            link.Attributes.Add("rel", "stylesheet");
+                            page.Header.Controls.Add(link);
+                        }
+                    }
+
+                    page.ClientScript.RegisterClientScriptBlock(pageType, webResourceUrl, script, false);
+                }
             }
         }
 
-        public static void LoadProperties(object obj, Hashtable table)
+        public static void LoadProperties(object value, Hashtable table)
         {
-            if ((obj != null) && (table != null))
+            if ((value != null) && (table != null))
             {
-                foreach (PropertyInfo p in obj.GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly))
+                foreach (PropertyInfo p in value.GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly))
                 {
                     if (table.ContainsKey(p.Name) && p.CanWrite)
                     {
                         try
                         {
-                            p.SetValue(obj, table[p.Name], null);
+                            p.SetValue(value, table[p.Name], null);
                         }
                         catch (ArgumentException) { }
                         catch (TargetException) { }
@@ -90,6 +95,11 @@ namespace Micajah.AzureFileService
         /// <returns>Encoded string.</returns>
         public static string ToHexString(string value)
         {
+            if (string.IsNullOrEmpty(value))
+            {
+                return value;
+            }
+
             UTF8Encoding utf8 = new UTF8Encoding();
             StringBuilder sb = new StringBuilder();
             foreach (char chr in value)

@@ -31,6 +31,11 @@ namespace Micajah.AzureFileService.WebControls
     public enum IconSize : int
     {
         /// <summary>
+        /// The size is not defined.
+        /// </summary>
+        NotSet = 0,
+
+        /// <summary>
         /// The size is 128 x 128 pixels.
         /// </summary>
         Bigger = 128,

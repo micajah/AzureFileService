@@ -73,24 +73,27 @@ namespace Micajah.AzureFileService
         {
             byte[] bytes = null;
 
-            if (context.Request.QueryString["d"] != null)
+            if (context != null)
             {
-                byte[] decodedResourceName = HttpServerUtility.UrlTokenDecode(context.Request.QueryString["d"]);
-
-                if (decodedResourceName != null)
+                if (context.Request.QueryString["d"] != null)
                 {
-                    string resourceName = Encoding.UTF8.GetString(decodedResourceName).Split('|')[0];
-                    if (!string.IsNullOrEmpty(resourceName))
-                    {
-                        bytes = GetManifestResourceBytes(ResourceVirtualPathProvider.ManifestResourceNamePrefix + "." + resourceName);
+                    byte[] decodedResourceName = HttpServerUtility.UrlTokenDecode(context.Request.QueryString["d"]);
 
-                        if (bytes != null)
+                    if (decodedResourceName != null)
+                    {
+                        string resourceName = Encoding.UTF8.GetString(decodedResourceName).Split('|')[0];
+                        if (!string.IsNullOrEmpty(resourceName))
                         {
-                            context.Response.Clear();
-                            context.Response.ContentType = MimeMapping.GetMimeMapping(resourceName);
-                            if (bytes.Length > 0)
+                            bytes = GetManifestResourceBytes(ResourceVirtualPathProvider.ManifestResourceNamePrefix + "." + resourceName);
+
+                            if (bytes != null)
                             {
-                                context.Response.OutputStream.Write(bytes, 0, bytes.Length);
+                                context.Response.Clear();
+                                context.Response.ContentType = MimeMapping.GetMimeMapping(resourceName);
+                                if (bytes.Length > 0)
+                                {
+                                    context.Response.OutputStream.Write(bytes, 0, bytes.Length);
+                                }
                             }
                         }
                     }

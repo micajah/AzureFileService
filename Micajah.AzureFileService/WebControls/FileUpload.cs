@@ -338,17 +338,29 @@ namespace Micajah.AzureFileService.WebControls
 
         protected override void CreateChildControls()
         {
-            HtmlGenericControl div = new HtmlGenericControl("div");
-            div.Attributes["class"] = "fallback";
-            this.Controls.Add(div);
+            HtmlGenericControl div = null;
 
-            FileFromMyComputer = new System.Web.UI.WebControls.FileUpload();
-            if (!string.IsNullOrWhiteSpace(this.Accept))
+            try
             {
-                FileFromMyComputer.Attributes["accept"] = this.Accept;
+                div = new HtmlGenericControl("div");
+                div.Attributes["class"] = "fallback";
+                this.Controls.Add(div);
+
+                FileFromMyComputer = new System.Web.UI.WebControls.FileUpload();
+                if (!string.IsNullOrWhiteSpace(this.Accept))
+                {
+                    FileFromMyComputer.Attributes["accept"] = this.Accept;
+                }
+                FileFromMyComputer.ID = "FileFromMyComputer";
+                div.Controls.Add(FileFromMyComputer);
             }
-            FileFromMyComputer.ID = "FileFromMyComputer";
-            div.Controls.Add(FileFromMyComputer);
+            finally
+            {
+                if (div != null)
+                {
+                    div.Dispose();
+                }
+            }
         }
 
         protected override void OnLoad(EventArgs e)

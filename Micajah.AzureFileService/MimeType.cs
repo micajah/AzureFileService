@@ -12,6 +12,7 @@ namespace Micajah.AzureFileService
 
         public const string Flash = "application/x-shockwave-flash";
         public const string Jpeg = "image/jpeg";
+        public const string SwfExtension = ".swf";
 
         #endregion
 
@@ -45,7 +46,7 @@ namespace Micajah.AzureFileService
             get
             {
                 if (s_VideoExtensions == null)
-                    s_VideoExtensions = new ReadOnlyCollection<string>(new string[] { ".asf", ".avi", ".fli", ".mov", ".movie", ".mp4", ".mpe", ".mpeg", ".mpg", ".swf", ".viv", ".vivo", ".wmv" });
+                    s_VideoExtensions = new ReadOnlyCollection<string>(new string[] { ".asf", ".avi", ".fli", ".mov", ".movie", ".mp4", ".mpe", ".mpeg", ".mpg", SwfExtension, ".viv", ".vivo", ".wmv" });
                 return s_VideoExtensions;
             }
         }
