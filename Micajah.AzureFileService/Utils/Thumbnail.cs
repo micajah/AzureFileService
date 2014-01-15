@@ -8,16 +8,15 @@ namespace Micajah.AzureFileService
 {
     public static class Thumbnail
     {
-        //   Align
-        //
-        //2 -- 3 -- 4 
-        //|         |
-        //|         |
-        //9    1    5
-        //|         |
-        //|         |
-        //8 -- 7 -- 6
-        //0 - The original image will be returned as thumbnail if its width and height are not greater than specified values.
+        // Align
+        // 2 -- 3 -- 4 
+        // |         |
+        // |         |
+        // 9    1    5
+        // |         |
+        // |         |
+        // 8 -- 7 -- 6
+        // 0 - The original image will be returned as thumbnail if its width and height are not greater than specified values.
 
         #region Private Methods
 
@@ -115,42 +114,25 @@ namespace Micajah.AzureFileService
 
         #region Public Methods
 
-        public static void Create(Stream input, int width, int height, int align, Stream output)
+        public static void Create(Stream source, int width, int height, int align, Stream output)
         {
-            // TODO: Should the validations below be added somewhere?
-            //if (!File.Exists(sourceFileName))
-            //    return "Internal error: Source file not exist.";
-
-            //if (destinationFileName.Length == 0)
-            //    return "Internal error: Destination path not defined.";
-
-            //if ((string.Compare(sourceFileExtension, ".bmp", StringComparison.OrdinalIgnoreCase) != 0)
-            //    && (string.Compare(sourceFileExtension, ".tif", StringComparison.OrdinalIgnoreCase) != 0)
-            //    && (string.Compare(sourceFileExtension, ".gif", StringComparison.OrdinalIgnoreCase) != 0)
-            //    && (string.Compare(sourceFileExtension, ".png", StringComparison.OrdinalIgnoreCase) != 0)
-            //    && (string.Compare(sourceFileExtension, ".jpg", StringComparison.OrdinalIgnoreCase) != 0)
-            //    && (string.Compare(sourceFileExtension, ".jpeg", StringComparison.OrdinalIgnoreCase) != 0))
-            //{
-            //    return "Internal error: " + sourceFileExtension + " format not supported.";
-            //}
-
             if (output == null)
             {
                 return;
             }
 
-            Image originalImage = null;
+            Image sourceImage = null;
             Bitmap scaledImage = null;
             Bitmap outputImage = null;
 
             try
             {
-                originalImage = Image.FromStream(input);
+                sourceImage = Image.FromStream(source);
 
                 if (align == 0)
                 {
-                    if ((((width > 0) && (originalImage.Width <= width)) || (width <= 0))
-                        && (((height > 0) && (originalImage.Height <= height)) || (height <= 0)))
+                    if ((((width > 0) && (sourceImage.Width <= width)) || (width <= 0))
+                        && (((height > 0) && (sourceImage.Height <= height)) || (height <= 0)))
                     {
                         return;
                     }
@@ -158,10 +140,10 @@ namespace Micajah.AzureFileService
 
                 int outputWidth = width;
                 int outputHeight = height;
-                GetProportionalSize(originalImage.Width, originalImage.Height, ref outputWidth, ref outputHeight);
+                GetProportionalSize(sourceImage.Width, sourceImage.Height, ref outputWidth, ref outputHeight);
 
                 scaledImage = new Bitmap(outputWidth, outputHeight);
-                DrawImage(originalImage, 0, 0, outputWidth, outputHeight, scaledImage);
+                DrawImage(sourceImage, 0, 0, outputWidth, outputHeight, scaledImage);
 
                 if (align > 0)
                 {
@@ -185,9 +167,9 @@ namespace Micajah.AzureFileService
             }
             finally
             {
-                if (originalImage != null)
+                if (sourceImage != null)
                 {
-                    originalImage.Dispose();
+                    sourceImage.Dispose();
                 }
 
                 if (scaledImage != null)
