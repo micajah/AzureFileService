@@ -133,6 +133,24 @@ namespace Micajah.AzureFileService.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid file size.
+        /// </summary>
+        internal static string FileUpload_InvalidFileSize {
+            get {
+                return ResourceManager.GetString("FileUpload_InvalidFileSize", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid file type.
+        /// </summary>
+        internal static string FileUpload_InvalidMimeType {
+            get {
+                return ResourceManager.GetString("FileUpload_InvalidMimeType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This is an invalid resource request..
         /// </summary>
         internal static string ResourceHandler_InvalidRequest {

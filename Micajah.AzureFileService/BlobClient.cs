@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
 using System.IO;
+using System.Web;
 
 namespace Micajah.AzureFileService
 {
@@ -190,7 +191,10 @@ namespace Micajah.AzureFileService
             foreach (IListBlobItem item in temporaryBlobList)
             {
                 CloudBlockBlob tempBlob = item as CloudBlockBlob;
-                tempBlob.Delete();
+                if (tempBlob != null)
+                {
+                    tempBlob.Delete();
+                }
             }
         }
 
@@ -202,20 +206,23 @@ namespace Micajah.AzureFileService
             foreach (IListBlobItem item in temporaryBlobList)
             {
                 CloudBlockBlob tempBlob = item as CloudBlockBlob;
-                if (tempBlob.BlobType == BlobType.BlockBlob)
+                if (tempBlob != null)
                 {
-                    string blobName = tempBlob.Name;
-                    string[] parts = tempBlob.Name.Split('/');
-                    int length = parts.Length;
-                    if (length > 0)
+                    if (tempBlob.BlobType == BlobType.BlockBlob)
                     {
-                        blobName = string.Format(CultureInfo.InvariantCulture, blobNameFormat, parts[length - 1]);
+                        string blobName = tempBlob.Name;
+                        string[] parts = tempBlob.Name.Split('/');
+                        int length = parts.Length;
+                        if (length > 0)
+                        {
+                            blobName = string.Format(CultureInfo.InvariantCulture, blobNameFormat, parts[length - 1]);
+                        }
+
+                        CloudBlockBlob blob = this.Container.GetBlockBlobReference(blobName);
+                        blob.StartCopyFromBlob(tempBlob);
+
+                        tempBlob.Delete();
                     }
-
-                    CloudBlockBlob blob = this.Container.GetBlockBlobReference(blobName);
-                    blob.StartCopyFromBlob(tempBlob);
-
-                    tempBlob.Delete();
                 }
             }
         }
@@ -286,9 +293,32 @@ namespace Micajah.AzureFileService
 
         public void Delete(string blobName)
         {
-            CloudBlockBlob blob = this.Container.GetBlockBlobReference(blobName);
+            if (MimeType.IsImageType(MimeMapping.GetMimeMapping(blobName)))
+            {
+                // Delete all thumbnails of the image.
+                string[] parts = blobName.Split('/');
+                string fileName = parts[parts.Length - 1];
+                string prefix = blobName.Replace(fileName, string.Empty);
+                fileName = "/" + fileName;
 
-            blob.Delete();
+                IEnumerable<IListBlobItem> thumbnailBlobList = this.Container.ListBlobs(prefix, true);
+                foreach (IListBlobItem item in thumbnailBlobList)
+                {
+                    CloudBlockBlob blob = item as CloudBlockBlob;
+                    if (blob != null)
+                    {
+                        if (blob.Name.EndsWith(fileName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            blob.Delete();
+                        }
+                    }
+                }
+            }
+            else
+            {
+                CloudBlockBlob blob = this.Container.GetBlockBlobReference(blobName);
+                blob.Delete();
+            }
         }
 
         #endregion

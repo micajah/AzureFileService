@@ -21,16 +21,9 @@
 .dropzone.dz-clickable .dz-message,
 .dropzone.dz-clickable .dz-message span {
   cursor: pointer;
-  font-size: 30px;
 }
 .dropzone.dz-clickable * {
   cursor: default;
-}
-.dropzone .dz-message {
-  position: absolute;
-  top: 34%;
-  left: 42%;
-  text-align: center;
 }
 .dropzone.dz-drag-hover {
   border-color: rgba(0,0,0,0.15);
@@ -157,9 +150,35 @@
   display: block;
 }
 
+/* Overrides */
+.dropzone {
+    font-size: 14px;
+}
+
+.dropzone.dz-clickable .dz-message{
+  position: absolute;
+  text-align: center;
+  font-size: 30px;
+  top: 34%;
+  left: 42%;
+}
+
+.dropzone.dz-browser-not-supported .dz-message {
+  position: absolute;
+  text-align: center;
+  font-size: 30px;
+  top: 45%;
+  left: 20%;
+}
+
+.dropzone.dz-browser-not-supported .dz-error-message {
+    color: #800;
+    display: block;
+    padding-top: 10px;
+}
+
 /* Buttons */
-.dropzone input[type=button], .dropzone input[type=button]:focus, .dropzone input[type=button]:hover
-{
+.dropzone input[type=button], .dropzone input[type=button]:focus, .dropzone input[type=button]:hover {
     cursor: pointer;
     outline: none !important;
     font-weight: bold;
@@ -184,15 +203,13 @@
     *overflow: visible;
 }
 
-.dropzone input[type=button]
-{
+.dropzone input[type=button] {
     color: #333;
     border: 1px solid #d4d4d4;
     background-color: #d3d3d3;
 }
 
-.dropzone input[type=button]:focus, .dropzone input[type=button]:hover
-{
+.dropzone input[type=button]:focus, .dropzone input[type=button]:hover {
 	color: #fff;
 	border-left-color: #3072b3;
     border-right-color: #3072b3;
@@ -202,15 +219,13 @@
 }
 
 /* Blue Button */
-.dropzone input[type=button].Blue
-{
+.dropzone input[type=button].Blue {
     color: White;
     border: 1px solid #058dc7;
     background-color: #058dc7;
 }
 
-.dropzone input[type=button].Blue:focus, .dropzone input[type=button].Blue:hover, .dropzone input[type=button].Blue:active
-{
+.dropzone input[type=button].Blue:focus, .dropzone input[type=button].Blue:hover, .dropzone input[type=button].Blue:active {
     color: White;
     background-color: #09a0e1;
     border: 1px solid #09a0e1;

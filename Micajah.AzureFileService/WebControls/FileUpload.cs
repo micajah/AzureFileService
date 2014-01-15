@@ -6,7 +6,6 @@ using System.IO;
 using System.Text;
 using System.Web;
 using System.Web.UI;
-using System.Web.UI.HtmlControls;
 using System.Web.UI.WebControls;
 
 namespace Micajah.AzureFileService.WebControls
@@ -19,7 +18,9 @@ namespace Micajah.AzureFileService.WebControls
     {
         #region Members
 
+        protected Panel FallbackPanel;
         protected System.Web.UI.WebControls.FileUpload FileFromMyComputer;
+        protected CustomValidator Validator;
 
         private BlobClient m_Client;
 
@@ -143,6 +144,40 @@ namespace Micajah.AzureFileService.WebControls
             set { this.ViewState["StorageConnectionString"] = value; }
         }
 
+        /// <summary>
+        /// Gets or set a value indicating whether the error message is displayed in the control.
+        /// </summary>
+        [Category("Appearance")]
+        [Description("Whether the error message is displayed in the control.")]
+        [DefaultValue(true)]
+        public bool ShowErrorMessage
+        {
+            get
+            {
+                object obj = ViewState["ShowErrorMessage"];
+                return ((obj == null) ? true : (bool)obj);
+            }
+            set { ViewState["ShowErrorMessage"] = value; }
+        }
+
+        /// <summary>
+        /// Gets the message that describes the error, if it is occured.
+        /// </summary>
+        [Browsable(false)]
+        public string ErrorMessage { get; private set; }
+
+        /// <summary>
+        /// Gets a value indicating that an error occurred.
+        /// </summary>
+        [Browsable(false)]
+        public bool ErrorOccurred
+        {
+            get
+            {
+                return (!string.IsNullOrEmpty(this.ErrorMessage));
+            }
+        }
+
         #endregion
 
         #region Overriden Properties
@@ -256,12 +291,11 @@ namespace Micajah.AzureFileService.WebControls
 
                             this.Client.UploadToTemporaryContainer(blobName, file.ContentType, file.InputStream);
                         }
-                        // TODO: Error handling on server and client side.
-                        //else
-                        //    m_ErrorMessage = Resources.ImageUpload_InvalidFileSize;
+                        else
+                            this.ErrorMessage = Resources.FileUpload_InvalidFileSize;
                     }
-                    //else
-                    //    m_ErrorMessage = Resources.ImageUpload_InvalidMimeType;
+                    else
+                        this.ErrorMessage = Resources.FileUpload_InvalidMimeType;
                 }
             }
         }
@@ -286,35 +320,45 @@ namespace Micajah.AzureFileService.WebControls
             return false;
         }
 
+        private void Validator_ServerValidate(object source, ServerValidateEventArgs args)
+        {
+            if (this.ErrorOccurred)
+            {
+                args.IsValid = false;
+                Validator.ErrorMessage = (this.ShowErrorMessage ? this.ErrorMessage : string.Empty);
+            }
+            else
+            {
+                args.IsValid = true;
+                Validator.ErrorMessage = string.Empty;
+            }
+        }
+
         #endregion
 
         #region Overriden Methods
 
         protected override void CreateChildControls()
         {
-            HtmlGenericControl div = null;
+            FallbackPanel = new Panel();
+            FallbackPanel.ID = "FallbackPanel";
+            FallbackPanel.CssClass = "fallback";
+            this.Controls.Add(FallbackPanel);
 
-            try
+            FileFromMyComputer = new System.Web.UI.WebControls.FileUpload();
+            if (!string.IsNullOrWhiteSpace(this.Accept))
             {
-                div = new HtmlGenericControl("div");
-                div.Attributes["class"] = "fallback";
-                this.Controls.Add(div);
+                FileFromMyComputer.Attributes["accept"] = this.Accept;
+            }
+            FileFromMyComputer.ID = "FileFromMyComputer";
+            FallbackPanel.Controls.Add(FileFromMyComputer);
 
-                FileFromMyComputer = new System.Web.UI.WebControls.FileUpload();
-                if (!string.IsNullOrWhiteSpace(this.Accept))
-                {
-                    FileFromMyComputer.Attributes["accept"] = this.Accept;
-                }
-                FileFromMyComputer.ID = "FileFromMyComputer";
-                div.Controls.Add(FileFromMyComputer);
-            }
-            finally
-            {
-                if (div != null)
-                {
-                    div.Dispose();
-                }
-            }
+            Validator = new CustomValidator();
+            Validator.ID = "Validator";
+            Validator.Display = ValidatorDisplay.Dynamic;
+            Validator.CssClass = "dz-error-message";
+            Validator.ServerValidate += new ServerValidateEventHandler(Validator_ServerValidate);
+            FallbackPanel.Controls.Add(Validator);
         }
 
         protected override void OnLoad(EventArgs e)
