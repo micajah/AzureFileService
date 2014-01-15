@@ -293,31 +293,34 @@ namespace Micajah.AzureFileService
 
         public void Delete(string blobName)
         {
-            if (MimeType.IsImageType(MimeMapping.GetMimeMapping(blobName)))
+            if (!string.IsNullOrEmpty(blobName))
             {
-                // Delete all thumbnails of the image.
-                string[] parts = blobName.Split('/');
-                string fileName = parts[parts.Length - 1];
-                string prefix = blobName.Replace(fileName, string.Empty);
-                fileName = "/" + fileName;
-
-                IEnumerable<IListBlobItem> thumbnailBlobList = this.Container.ListBlobs(prefix, true);
-                foreach (IListBlobItem item in thumbnailBlobList)
+                if (MimeType.IsImageType(MimeMapping.GetMimeMapping(blobName)))
                 {
-                    CloudBlockBlob blob = item as CloudBlockBlob;
-                    if (blob != null)
+                    // Delete all thumbnails of the image.
+                    string[] parts = blobName.Split('/');
+                    string fileName = parts[parts.Length - 1];
+                    string prefix = blobName.Replace(fileName, string.Empty);
+                    fileName = "/" + fileName;
+
+                    IEnumerable<IListBlobItem> thumbnailBlobList = this.Container.ListBlobs(prefix, true);
+                    foreach (IListBlobItem item in thumbnailBlobList)
                     {
-                        if (blob.Name.EndsWith(fileName, StringComparison.OrdinalIgnoreCase))
+                        CloudBlockBlob blob = item as CloudBlockBlob;
+                        if (blob != null)
                         {
-                            blob.Delete();
+                            if (blob.Name.EndsWith(fileName, StringComparison.OrdinalIgnoreCase))
+                            {
+                                blob.Delete();
+                            }
                         }
                     }
                 }
-            }
-            else
-            {
-                CloudBlockBlob blob = this.Container.GetBlockBlobReference(blobName);
-                blob.Delete();
+                else
+                {
+                    CloudBlockBlob blob = this.Container.GetBlockBlobReference(blobName);
+                    blob.Delete();
+                }
             }
         }
 
