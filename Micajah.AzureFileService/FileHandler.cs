@@ -65,16 +65,17 @@ namespace Micajah.AzureFileService
             context.Response.AddHeader("Content-Disposition", contentDisposition);
         }
 
-        private static string GetObjectTag(int width, int height, string fileUrl, string fileName)
-        {
-            string widthAttribute = string.Empty;
-            if (width > 0) widthAttribute = " width=\"" + width + "\"";
-            string heightAttribute = string.Empty;
-            if (height > 0) heightAttribute = " height=\"" + height + "\"";
-            StringBuilder sb = new StringBuilder();
-            sb.AppendFormat(CultureInfo.InvariantCulture, HtmlObjectFormat, widthAttribute, heightAttribute, fileUrl, fileName);
-            return sb.ToString();
-        }
+        // TODO: Display HTML with object tag for Flash files.
+        //private static string GetObjectTag(int width, int height, string fileUrl, string fileName)
+        //{
+        //    string widthAttribute = string.Empty;
+        //    if (width > 0) widthAttribute = " width=\"" + width + "\"";
+        //    string heightAttribute = string.Empty;
+        //    if (height > 0) heightAttribute = " height=\"" + height + "\"";
+        //    StringBuilder sb = new StringBuilder();
+        //    sb.AppendFormat(CultureInfo.InvariantCulture, HtmlObjectFormat, widthAttribute, heightAttribute, fileUrl, fileName);
+        //    return sb.ToString();
+        //}
 
         #endregion
 
@@ -117,7 +118,15 @@ namespace Micajah.AzureFileService
                             string objectType = (string)properties["ObjectType"];
                             string storageConnectionString = (string)properties["StorageConnectionString"];
 
-                            byte[] bytes = Client.GetThumbnail(fileName, width, height, align, containerName, objectId, objectType, storageConnectionString);
+                            BlobClient client = new BlobClient()
+                            {
+                                ContainerName = containerName,
+                                ObjectId = objectId,
+                                ObjectType = objectType,
+                                StorageConnectionString = storageConnectionString
+                            };
+
+                            byte[] bytes = client.GetThumbnail(fileName, width, height, align);
                             if (bytes != null)
                             {
                                 ConfigureResponse(context, fileName, MimeType.Jpeg);

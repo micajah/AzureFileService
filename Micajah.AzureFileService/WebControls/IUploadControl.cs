@@ -5,7 +5,7 @@ namespace Micajah.AzureFileService.WebControls
     public interface IUploadControl
     {
         /// <summary>
-        /// Gets or sets the name of the container the files are uploaded to.
+        /// Gets or sets the name of the container where the files are stored.
         /// </summary>
         string ContainerName { get; set; }
 

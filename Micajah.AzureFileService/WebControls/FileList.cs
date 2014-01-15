@@ -1,6 +1,4 @@
 ﻿using Micajah.AzureFileService.Properties;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -46,8 +44,7 @@ namespace Micajah.AzureFileService.WebControls
         private DateTime m_UpdatedDate = DateTime.MinValue;
         private TimeZoneInfo m_TimeZone;
         private static ReadOnlyCollection<string> s_KnownFileExtensions;
-        private CloudBlobClient m_Client;
-        private CloudBlobContainer m_Container;
+        private BlobClient m_Client;
 
         #endregion
 
@@ -102,57 +99,21 @@ namespace Micajah.AzureFileService.WebControls
             }
         }
 
-        private CloudBlobClient Client
+        private BlobClient Client
         {
             get
             {
                 if (m_Client == null)
                 {
-                    CloudStorageAccount storageAccount = CloudStorageAccount.Parse(this.StorageConnectionString);
-                    m_Client = storageAccount.CreateCloudBlobClient();
+                    m_Client = new BlobClient()
+                    {
+                        ContainerName = this.ContainerName,
+                        ObjectId = this.ObjectId,
+                        ObjectType = this.ObjectType,
+                        StorageConnectionString = this.StorageConnectionString
+                    };
                 }
                 return m_Client;
-            }
-        }
-
-        private CloudBlobContainer Container
-        {
-            get
-            {
-                if (m_Container == null)
-                {
-                    m_Container = this.Client.GetContainerReference(this.ContainerName);
-                    m_Container.CreateIfNotExists();
-                }
-                return m_Container;
-            }
-        }
-
-        private string SharedAccessSignature
-        {
-            get
-            {
-                string value = (string)this.ViewState["SharedAccessSignature"];
-                if (string.IsNullOrWhiteSpace(value))
-                {
-                    value = this.Container.GetSharedAccessSignature(new SharedAccessBlobPolicy
-                    {
-                        Permissions = SharedAccessBlobPermissions.Read,
-                        SharedAccessExpiryTime = DateTime.UtcNow.AddMinutes(Settings.SharedAccessExpiryTime)
-                    });
-
-                    this.SharedAccessSignature = value;
-                }
-                return value;
-            }
-            set { this.ViewState["SharedAccessSignature"] = value; }
-        }
-
-        private string BlobPath
-        {
-            get
-            {
-                return string.Format(CultureInfo.InvariantCulture, "{0}/{1}/", this.ObjectType, this.ObjectId);
             }
         }
 
@@ -176,33 +137,9 @@ namespace Micajah.AzureFileService.WebControls
                     table.Columns.Add(LastModifiedDateColumnName, typeof(DateTime));
                     table.Columns[5].DateTimeMode = DataSetDateTime.Utc;
                     table.Columns[6].DateTimeMode = DataSetDateTime.Utc;
-
-                    string sas = this.SharedAccessSignature;
-
-                    IEnumerable<IListBlobItem> blobList = this.Container.ListBlobs(this.BlobPath);
-                    foreach (IListBlobItem item in blobList)
-                    {
-                        CloudBlockBlob blob = item as CloudBlockBlob;
-                        if (blob != null)
-                        {
-                            if (blob.BlobType == BlobType.BlockBlob)
-                            {
-                                string[] parts = blob.Name.Split('/');
-                                string fileName = parts[parts.Length - 1];
-                                table.Rows.Add(
-                                    blob.Name,
-                                    blob.Properties.ContentType,
-                                    fileName,
-                                    blob.Uri.ToString() + sas,
-                                    blob.Properties.Length,
-                                    blob.Properties.LastModified.Value.DateTime,
-                                    blob.Properties.LastModified.Value.Date
-                                );
-                            }
-                        }
-                    }
-
                     table.Columns.Add(LengthInKBColumnName, typeof(long), string.Format(CultureInfo.InvariantCulture, "{0} / 1024", LengthColumnName));
+
+                    this.Client.FillFromContainer(table);
 
                     view = table.DefaultView;
                 }
@@ -237,11 +174,7 @@ namespace Micajah.AzureFileService.WebControls
             get { return string.Format(CultureInfo.CurrentCulture, DeletingClientScript, Resources.FileList_DeletingConfirmationText); }
         }
 
-        #endregion
-
-        #region Internal Properties
-
-        internal string PropertyTableId
+        private string PropertyTableId
         {
             get
             {
@@ -260,7 +193,7 @@ namespace Micajah.AzureFileService.WebControls
             }
         }
 
-        internal bool ShowVideoOnly
+        private bool ShowVideoOnly
         {
             get
             {
@@ -553,7 +486,7 @@ namespace Micajah.AzureFileService.WebControls
             get
             {
                 object obj = this.ViewState["ShowIcons"];
-                return ((obj == null) ? false : (bool)obj);
+                return (((obj == null) ? false : (bool)obj) && (this.IconSize != IconSize.NotSet));
             }
             set { this.ViewState["ShowIcons"] = value; }
         }
@@ -767,11 +700,7 @@ namespace Micajah.AzureFileService.WebControls
 
         private void DeleteFile(string blobName)
         {
-            CloudBlockBlob blob = this.Container.GetBlockBlobReference(blobName);
-            if (blob != null)
-            {
-                blob.Delete();
-            }
+            this.Client.Delete(blobName);
 
             if (this.FileDeleted != null)
             {
@@ -789,7 +718,6 @@ namespace Micajah.AzureFileService.WebControls
                 properties["ObjectId"] = this.ObjectId;
                 properties["ObjectType"] = this.ObjectType;
                 properties["StorageConnectionString"] = this.StorageConnectionString;
-                properties["SharedAccessSignature"] = this.SharedAccessSignature;
 
                 this.Page.Session[propertyTableId] = properties;
             }

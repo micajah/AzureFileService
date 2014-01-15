@@ -1,8 +1,5 @@
 ﻿using Micajah.AzureFileService.Properties;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.IO;
@@ -24,9 +21,7 @@ namespace Micajah.AzureFileService.WebControls
 
         protected System.Web.UI.WebControls.FileUpload FileFromMyComputer;
 
-        private CloudBlobClient m_Client;
-        private CloudBlobContainer m_Container;
-        private CloudBlobContainer m_TemporaryContainer;
+        private BlobClient m_Client;
 
         #endregion
 
@@ -161,42 +156,22 @@ namespace Micajah.AzureFileService.WebControls
 
         #region Private Properties
 
-        private CloudBlobClient Client
+        private BlobClient Client
         {
             get
             {
                 if (m_Client == null)
                 {
-                    CloudStorageAccount storageAccount = CloudStorageAccount.Parse(this.StorageConnectionString);
-                    m_Client = storageAccount.CreateCloudBlobClient();
+                    m_Client = new BlobClient()
+                    {
+                        ContainerName = this.ContainerName,
+                        ObjectId = this.ObjectId,
+                        ObjectType = this.ObjectType,
+                        StorageConnectionString = this.StorageConnectionString,
+                        TemporaryContainerName = this.TemporaryContainerName
+                    };
                 }
                 return m_Client;
-            }
-        }
-
-        private CloudBlobContainer Container
-        {
-            get
-            {
-                if (m_Container == null)
-                {
-                    m_Container = this.Client.GetContainerReference(this.ContainerName);
-                    m_Container.CreateIfNotExists();
-                }
-                return m_Container;
-            }
-        }
-
-        private CloudBlobContainer TemporaryContainer
-        {
-            get
-            {
-                if (m_TemporaryContainer == null)
-                {
-                    m_TemporaryContainer = this.Client.GetContainerReference(this.TemporaryContainerName);
-                    m_TemporaryContainer.CreateIfNotExists();
-                }
-                return m_TemporaryContainer;
             }
         }
 
@@ -223,31 +198,13 @@ namespace Micajah.AzureFileService.WebControls
             set { this.ViewState["TemporaryBlobPath"] = value; }
         }
 
-        private string SharedAccessSignature
-        {
-            get
-            {
-                string value = (string)this.ViewState["SharedAccessSignature"];
-                if (string.IsNullOrWhiteSpace(value))
-                {
-                    value = this.TemporaryContainer.GetSharedAccessSignature(new SharedAccessBlobPolicy
-                    {
-                        Permissions = SharedAccessBlobPermissions.Write,
-                        SharedAccessExpiryTime = DateTime.UtcNow.AddMinutes(Settings.SharedAccessExpiryTime)
-                    });
-
-                    this.SharedAccessSignature = value;
-                }
-                return value;
-            }
-            set { this.ViewState["SharedAccessSignature"] = value; }
-        }
-
         private string UploadUri
         {
             get
             {
-                return string.Format(CultureInfo.InvariantCulture, "{0}/{1}{{0}}{2}", this.TemporaryContainer.Uri.AbsoluteUri, this.TemporaryBlobPath, this.SharedAccessSignature);
+                string sas = this.Client.TemporaryContainer.GetSharedAccessSignature(BlobClient.WriteAccessPolicy);
+
+                return string.Format(CultureInfo.InvariantCulture, "{0}/{1}{{0}}{2}", this.Client.TemporaryContainer.Uri.AbsoluteUri, this.TemporaryBlobPath, sas);
             }
         }
 
@@ -297,10 +254,7 @@ namespace Micajah.AzureFileService.WebControls
                         {
                             string blobName = string.Format(CultureInfo.InvariantCulture, "{0}{1}", this.TemporaryBlobPath, Path.GetFileName(file.FileName));
 
-                            CloudBlockBlob blob = this.TemporaryContainer.GetBlockBlobReference(blobName);
-                            blob.Properties.ContentType = file.ContentType;
-                            blob.Properties.CacheControl = Settings.ClientCacheControl;
-                            blob.UploadFromStream(file.InputStream);
+                            this.Client.UploadToTemporaryContainer(blobName, file.ContentType, file.InputStream);
                         }
                         // TODO: Error handling on server and client side.
                         //else
@@ -414,28 +368,7 @@ namespace Micajah.AzureFileService.WebControls
         /// </summary>
         public void AcceptChanges()
         {
-            string blobNameFormat = string.Format(CultureInfo.InvariantCulture, "{0}/{1}/{{0}}", this.ObjectType, this.ObjectId);
-
-            IEnumerable<IListBlobItem> temporaryBlobList = this.TemporaryContainer.ListBlobs(this.TemporaryBlobPath);
-            foreach (IListBlobItem item in temporaryBlobList)
-            {
-                CloudBlockBlob tempBlob = item as CloudBlockBlob;
-                if (tempBlob.BlobType == BlobType.BlockBlob)
-                {
-                    string blobName = tempBlob.Name;
-                    string[] parts = tempBlob.Name.Split('/');
-                    int length = parts.Length;
-                    if (length > 0)
-                    {
-                        blobName = string.Format(CultureInfo.InvariantCulture, blobNameFormat, parts[length - 1]);
-                    }
-
-                    CloudBlockBlob blob = this.Container.GetBlockBlobReference(blobName);
-                    blob.StartCopyFromBlob(tempBlob);
-
-                    tempBlob.Delete();
-                }
-            }
+            this.Client.MoveFromTemporaryContainerToContainer(this.TemporaryBlobPath);
 
             this.TemporaryBlobPath = null;
         }
@@ -445,12 +378,7 @@ namespace Micajah.AzureFileService.WebControls
         /// </summary>
         public void RejectChanges()
         {
-            IEnumerable<IListBlobItem> temporaryBlobList = this.TemporaryContainer.ListBlobs(this.TemporaryBlobPath);
-            foreach (IListBlobItem item in temporaryBlobList)
-            {
-                CloudBlockBlob tempBlob = item as CloudBlockBlob;
-                tempBlob.Delete();
-            }
+            this.Client.DeleteFromTemporaryContainer(this.TemporaryBlobPath);
 
             this.TemporaryBlobPath = null;
         }

@@ -50,7 +50,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Client.cs" />
+    <Compile Include="BlobClient.cs" />
     <Compile Include="FileHandler.cs" />
     <Compile Include="WebControls\FilesListItemTemplate.cs" />
     <Compile Include="GlobalSuppressions.cs" />
