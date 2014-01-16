@@ -9,7 +9,7 @@ namespace Micajah.AzureFileService
         #region Constants
 
         private const int DefaultSharedAccessExpiryTime = 60;
-        private const int DefaultClientCacheExpiryTime = 720;
+        private const int DefaultClientCacheExpiryTime = 144000; // 100 days
         private const string DefaultTemporaryContanerName = "micajahazurefileservicetemp";
         private const string ClientCacheControlFormat = "public, max-age={0}";
 
