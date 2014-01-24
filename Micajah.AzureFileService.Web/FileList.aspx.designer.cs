@@ -49,15 +49,6 @@ namespace Micajah.AzureFileService.Web {
         protected global::System.Web.UI.WebControls.TextBox FilterTextBox;
         
         /// <summary>
-        /// NegateCheckBox control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.CheckBox NegateCheckBox;
-        
-        /// <summary>
         /// VideoLink control.
         /// </summary>
         /// <remarks>
@@ -74,6 +65,24 @@ namespace Micajah.AzureFileService.Web {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.HyperLink ImageLink;
+        
+        /// <summary>
+        /// NegateCheckBox control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.CheckBox NegateCheckBox;
+        
+        /// <summary>
+        /// ResetLink control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.HyperLink ResetLink;
         
         /// <summary>
         /// SubmitButton control.

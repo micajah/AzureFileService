@@ -1,19 +1,14 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" Inherits="System.Web.UI.Page" EnableViewState="false" EnableViewStateMac="false" EnableEventValidation="false" %>
 
 <%@ Register Assembly="Micajah.AzureFileService" Namespace="Micajah.AzureFileService.WebControls" TagPrefix="mafs" %>
+<%@ Import Namespace="Micajah.AzureFileService" %>
 
 <script runat="server" type="text/C#">
     private void Page_Load(object sender, EventArgs e)
     {
         if (!this.Page.IsPostBack)
         {
-            byte[] bytes = HttpServerUtility.UrlTokenDecode(Request.QueryString["d"]);
-            string key = Encoding.UTF8.GetString(bytes);
-            Hashtable table = Session[key] as Hashtable;
-            if (table != null)
-            {
-                Micajah.AzureFileService.Helper.LoadProperties(FileList1, table);
-            }
+            FileList1.LoadPropertiesFromRequest();
         }
     }
 </script>

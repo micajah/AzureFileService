@@ -1,7 +1,5 @@
 ﻿using Micajah.AzureFileService.Properties;
 using System;
-using System.Data;
-using System.IO;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
@@ -43,14 +41,12 @@ namespace Micajah.AzureFileService.WebControls
             private void Image_DataBinding(object sender, EventArgs e)
             {
                 Image img = (sender as Image);
-                DataRowView drv = (DataRowView)DataBinder.GetDataItem(img.NamingContainer);
+                File file = (File)DataBinder.GetDataItem(img.NamingContainer);
 
-                string fileName = (string)drv[FileNameColumnName];
-
-                string uri = (m_FileList.ShowVideoOnly ? ResourceHandler.GetWebResourceUrl("Images.Video.gif", true) : GetNonImageFileTypeIconUrl(fileName, IconSize.Bigger));
+                string uri = (m_FileList.ShowVideoOnly ? ResourceHandler.GetWebResourceUrl("Images.Video.gif", true) : GetNonImageFileTypeIconUrl(file.Name, IconSize.Bigger));
                 if (uri == null)
                 {
-                    uri = FileHandler.GetThumbnailUrl(fileName, (int)IconSize.Bigger, (int)IconSize.Bigger, 1, m_FileList.PropertyTableId, false);
+                    uri = m_FileList.Manager.GetThumbnailUrl(file.FileId, (int)IconSize.Bigger, (int)IconSize.Bigger, 1, m_FileList.PropertyTableId, false);
                 }
                 img.ImageUrl = uri;
             }
@@ -58,12 +54,11 @@ namespace Micajah.AzureFileService.WebControls
             private void HyperLink_DataBinding(object sender, EventArgs e)
             {
                 HyperLink link = (HyperLink)sender;
-                DataRowView drv = (DataRowView)DataBinder.GetDataItem(link.NamingContainer);
+                File file = (File)DataBinder.GetDataItem(link.NamingContainer);
 
-                string fileName = (string)drv[FileNameColumnName];
-                string extension = Path.GetExtension(fileName);
+                string extension = file.Extension;
 
-                link.NavigateUrl = (string)drv[UriColumnName];
+                link.NavigateUrl = file.Uri;
                 if ((string.Compare(extension, MimeType.SwfExtension, StringComparison.OrdinalIgnoreCase) == 0) || MimeType.IsImageType(MimeMapping.GetMimeMapping(extension)))
                 {
                     link.Target = "_blank";
@@ -73,17 +68,12 @@ namespace Micajah.AzureFileService.WebControls
             private void Panel_DataBinding(object sender, EventArgs e)
             {
                 Panel panel = (Panel)sender;
-                DataRowView drv = (DataRowView)DataBinder.GetDataItem(panel.NamingContainer);
+                File file = (File)DataBinder.GetDataItem(panel.NamingContainer);
 
-                string fileName = (string)drv[FileNameColumnName];
-                string uri = (string)drv[UriColumnName];
-                long lengthInKB = (long)drv[LengthInKBColumnName];
-                DateTime lastModified = (DateTime)drv[LastModifiedColumnName];
-
-                string date = string.Format(m_FileList.Culture, m_FileList.DateTimeToolTipFormatString, TimeZoneInfo.ConvertTimeFromUtc(lastModified, m_FileList.TimeZone));
+                string date = string.Format(m_FileList.Culture, m_FileList.DateTimeToolTipFormatString, TimeZoneInfo.ConvertTimeFromUtc(file.LastModified, m_FileList.TimeZone));
 
                 string content = string.Format(m_FileList.Culture, ToolTipSmallHtml,
-                    uri, fileName, date, lengthInKB, m_FileList.Page.ClientScript.GetPostBackClientHyperlink(DeleteLink, string.Empty), Resources.FileList_DeleteText,
+                    file.Uri, file.Name, date, file.LengthInKB, m_FileList.Page.ClientScript.GetPostBackClientHyperlink(DeleteLink, string.Empty), Resources.FileList_DeleteText,
                     m_FileList.EnableDeletingConfirmation ? string.Format(m_FileList.Culture, " onclick='{0}'", OnDeletingClientScript) : string.Empty);
 
                 panel.Attributes["data-ot"] = content;

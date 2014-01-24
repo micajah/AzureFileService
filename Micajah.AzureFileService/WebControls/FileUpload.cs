@@ -22,7 +22,7 @@ namespace Micajah.AzureFileService.WebControls
         protected System.Web.UI.WebControls.FileUpload FileFromMyComputer;
         protected CustomValidator Validator;
 
-        private BlobClient m_Client;
+        private FileManager m_Manager;
 
         #endregion
 
@@ -191,13 +191,13 @@ namespace Micajah.AzureFileService.WebControls
 
         #region Private Properties
 
-        private BlobClient Client
+        private FileManager Manager
         {
             get
             {
-                if (m_Client == null)
+                if (m_Manager == null)
                 {
-                    m_Client = new BlobClient()
+                    m_Manager = new FileManager()
                     {
                         ContainerName = this.ContainerName,
                         ObjectId = this.ObjectId,
@@ -206,7 +206,7 @@ namespace Micajah.AzureFileService.WebControls
                         TemporaryContainerName = this.TemporaryContainerName
                     };
                 }
-                return m_Client;
+                return m_Manager;
             }
         }
 
@@ -218,28 +218,28 @@ namespace Micajah.AzureFileService.WebControls
             }
         }
 
-        private string TemporaryBlobPath
+        private string TemporaryDirectoryName
         {
             get
             {
-                string value = (string)this.ViewState["TemporaryBlobPath"];
+                string value = (string)this.ViewState["TemporaryDirectoryName"];
                 if (string.IsNullOrWhiteSpace(value))
                 {
-                    value = string.Format(CultureInfo.InvariantCulture, "{0:N}/", Guid.NewGuid());
-                    this.TemporaryBlobPath = value;
+                    value = Guid.NewGuid().ToString("N");
+                    this.TemporaryDirectoryName = value;
                 }
                 return value;
             }
-            set { this.ViewState["TemporaryBlobPath"] = value; }
+            set { this.ViewState["TemporaryDirectoryName"] = value; }
         }
 
         private string UploadUri
         {
             get
             {
-                string sas = this.Client.TemporaryContainer.GetSharedAccessSignature(BlobClient.WriteAccessPolicy);
+                string sas = this.Manager.TemporaryContainer.GetSharedAccessSignature(FileManager.WriteAccessPolicy);
 
-                return string.Format(CultureInfo.InvariantCulture, "{0}/{1}{{0}}{2}", this.Client.TemporaryContainer.Uri.AbsoluteUri, this.TemporaryBlobPath, sas);
+                return string.Format(CultureInfo.InvariantCulture, "{0}/{1}/{{0}}{2}", this.Manager.TemporaryContainer.Uri.AbsoluteUri, this.TemporaryDirectoryName, sas);
             }
         }
 
@@ -287,9 +287,9 @@ namespace Micajah.AzureFileService.WebControls
                         long fileSize = file.InputStream.Length;
                         if ((this.MaxFileSize == 0) || (fileSize <= this.MaxFileSize))
                         {
-                            string blobName = string.Format(CultureInfo.InvariantCulture, "{0}{1}", this.TemporaryBlobPath, Path.GetFileName(file.FileName));
+                            string fileName = Path.GetFileName(file.FileName);
 
-                            this.Client.UploadToTemporaryContainer(blobName, file.ContentType, file.InputStream);
+                            this.Manager.UploadTemporaryFile(fileName, file.ContentType, file.InputStream, this.TemporaryDirectoryName);
                         }
                         else
                             this.ErrorMessage = Resources.FileUpload_InvalidFileSize;
@@ -378,7 +378,7 @@ namespace Micajah.AzureFileService.WebControls
         {
             this.CssClass = "dropzone";
 
-            Helper.RegisterControlStyleSheet(this.Page, "Styles.dropzone.css");
+            this.RegisterStyleSheet("Styles.dropzone.css");
 
             ScriptManager.RegisterClientScriptInclude(this.Page, this.Page.GetType(), "Scripts.dropzone.js", ResourceHandler.GetWebResourceUrl("Scripts.dropzone.js", true));
 
@@ -412,9 +412,9 @@ namespace Micajah.AzureFileService.WebControls
         /// </summary>
         public void AcceptChanges()
         {
-            this.Client.MoveFromTemporaryContainerToContainer(this.TemporaryBlobPath);
+            this.Manager.MoveTemporaryFiles(this.TemporaryDirectoryName);
 
-            this.TemporaryBlobPath = null;
+            this.TemporaryDirectoryName = null;
         }
 
         /// <summary>
@@ -422,9 +422,9 @@ namespace Micajah.AzureFileService.WebControls
         /// </summary>
         public void RejectChanges()
         {
-            this.Client.DeleteFromTemporaryContainer(this.TemporaryBlobPath);
+            this.Manager.DeleteTemporaryFiles(this.TemporaryDirectoryName);
 
-            this.TemporaryBlobPath = null;
+            this.TemporaryDirectoryName = null;
         }
 
         #endregion

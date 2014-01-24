@@ -10,7 +10,7 @@ namespace Micajah.AzureFileService.Web
         {
             if (!this.IsPostBack)
             {
-                FileList3.FileExtensionsFilter = FilterTextBox.Text.Split(',');
+                FileList3.FileExtensionsFilter = (string.IsNullOrWhiteSpace(FilterTextBox.Text) ? null : FilterTextBox.Text.Split(','));
                 FileList3.NegateFileExtensionsFilter = NegateCheckBox.Checked;
 
                 foreach (string name in Enum.GetNames(typeof(IconSize)))
@@ -21,12 +21,13 @@ namespace Micajah.AzureFileService.Web
 
                 VideoLink.Attributes["onclick"] = string.Format(CultureInfo.InvariantCulture, "document.getElementById('{0}').value='video';", FilterTextBox.ClientID);
                 ImageLink.Attributes["onclick"] = string.Format(CultureInfo.InvariantCulture, "document.getElementById('{0}').value='image';", FilterTextBox.ClientID);
+                ResetLink.Attributes["onclick"] = string.Format(CultureInfo.InvariantCulture, "document.getElementById('{0}').value='';", FilterTextBox.ClientID);
             }
         }
 
         protected void SubmitButton_Click(object sender, EventArgs e)
         {
-            FileList3.FileExtensionsFilter = FilterTextBox.Text.Split(',');
+            FileList3.FileExtensionsFilter = (string.IsNullOrWhiteSpace(FilterTextBox.Text) ? null : FilterTextBox.Text.Split(','));
             FileList3.NegateFileExtensionsFilter = NegateCheckBox.Checked;
             FileList3.DataBind();
         }

@@ -4,7 +4,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -18,14 +17,11 @@ namespace Micajah.AzureFileService.WebControls
     {
         #region Constants
 
-        private const string BlobNameColumnName = "BlobName";
-        private const string ContentTypeColumnName = "ContentType";
-        private const string FileNameColumnName = "FileName";
+        private const string FileIdColumnName = "FileId";
+        private const string NameColumnName = "Name";
         private const string UriColumnName = "Uri";
-        private const string LengthColumnName = "Length";
         private const string LengthInKBColumnName = "LengthInKB";
         private const string LastModifiedColumnName = "LastModified";
-        private const string LastModifiedDateColumnName = "LastModifiedDate";
         private const string DeleteCommandName = "Delete";
         private const string OnDeletingClientScript = "return flDel();";
         private const string DeletingClientScript = "function flDel() {{ return window.confirm(\"{0}\"); }}\r\n";
@@ -44,7 +40,7 @@ namespace Micajah.AzureFileService.WebControls
         private DateTime m_UpdatedDate = DateTime.MinValue;
         private TimeZoneInfo m_TimeZone;
         private static ReadOnlyCollection<string> s_KnownFileExtensions;
-        private BlobClient m_Client;
+        private FileManager m_Manager;
 
         #endregion
 
@@ -69,7 +65,7 @@ namespace Micajah.AzureFileService.WebControls
             }
         }
 
-        private List<string> FileExtensionsFilterInternal
+        private string[] FileExtensionsFilterInternal
         {
             get
             {
@@ -86,7 +82,7 @@ namespace Micajah.AzureFileService.WebControls
                             break;
                     }
                 }
-                return extensions;
+                return extensions.ToArray();
             }
         }
 
@@ -99,13 +95,13 @@ namespace Micajah.AzureFileService.WebControls
             }
         }
 
-        private BlobClient Client
+        private FileManager Manager
         {
             get
             {
-                if (m_Client == null)
+                if (m_Manager == null)
                 {
-                    m_Client = new BlobClient()
+                    m_Manager = new FileManager()
                     {
                         ContainerName = this.ContainerName,
                         ObjectId = this.ObjectId,
@@ -113,59 +109,7 @@ namespace Micajah.AzureFileService.WebControls
                         StorageConnectionString = this.StorageConnectionString
                     };
                 }
-                return m_Client;
-            }
-        }
-
-        private DataTable DataSource
-        {
-            get
-            {
-                DataView view = null;
-                DataTable table = null;
-
-                try
-                {
-                    table = new DataTable();
-                    table.Locale = CultureInfo.CurrentCulture;
-                    table.Columns.Add(BlobNameColumnName, typeof(string));
-                    table.Columns.Add(ContentTypeColumnName, typeof(string));
-                    table.Columns.Add(FileNameColumnName, typeof(string));
-                    table.Columns.Add(UriColumnName, typeof(string));
-                    table.Columns.Add(LengthColumnName, typeof(long));
-                    table.Columns.Add(LastModifiedColumnName, typeof(DateTime));
-                    table.Columns.Add(LastModifiedDateColumnName, typeof(DateTime));
-                    table.Columns[5].DateTimeMode = DataSetDateTime.Utc;
-                    table.Columns[6].DateTimeMode = DataSetDateTime.Utc;
-                    table.Columns.Add(LengthInKBColumnName, typeof(long), string.Format(CultureInfo.InvariantCulture, "{0} / 1024", LengthColumnName));
-
-                    this.Client.FillFromContainer(table);
-
-                    view = table.DefaultView;
-                }
-                finally
-                {
-                    if (table != null)
-                    {
-                        table.Dispose();
-                    }
-                }
-
-                if (this.FileExtensionsFilter.Length > 0)
-                {
-                    StringBuilder sb = new StringBuilder();
-                    string format = string.Format(CultureInfo.InvariantCulture, (this.NegateFileExtensionsFilter ? " AND {0} NOT LIKE '%{{0}}'" : " OR {0} LIKE '%{{0}}'"), FileNameColumnName);
-                    foreach (string ext in this.FileExtensionsFilterInternal)
-                    {
-                        sb.AppendFormat(format, ext);
-                    }
-                    sb.Remove(0, 4);
-                    view.RowFilter = sb.ToString();
-                }
-
-                view.Sort = string.Format(CultureInfo.InvariantCulture, "{0}, {1}", LastModifiedDateColumnName, FileNameColumnName);
-
-                return view.ToTable();
+                return m_Manager;
             }
         }
 
@@ -621,7 +565,7 @@ namespace Micajah.AzureFileService.WebControls
             Grid = new GridView();
             Grid.ID = "Grid";
             Grid.CssClass = "flGrid";
-            Grid.DataKeyNames = new string[] { BlobNameColumnName };
+            Grid.DataKeyNames = new string[] { FileIdColumnName };
             Grid.AutoGenerateColumns = false;
             Grid.GridLines = GridLines.None;
             Grid.ShowHeader = false;
@@ -638,13 +582,13 @@ namespace Micajah.AzureFileService.WebControls
             if (this.ShowIcons)
             {
                 ImageField imageField = new ImageField();
-                imageField.DataImageUrlField = BlobNameColumnName;
+                imageField.DataImageUrlField = FileIdColumnName;
                 Grid.Columns.Add(imageField);
             }
 
             HyperLinkField linkField = new HyperLinkField();
             linkField.DataNavigateUrlFields = new string[] { UriColumnName };
-            linkField.DataTextField = FileNameColumnName;
+            linkField.DataTextField = NameColumnName;
             linkField.HeaderText = Resources.FileList_FileNameText;
             linkField.ItemStyle.HorizontalAlign = HorizontalAlign.Left;
             linkField.ControlStyle.CssClass = "flFileName";
@@ -680,7 +624,7 @@ namespace Micajah.AzureFileService.WebControls
             List.ID = "Grid";
             List.CellSpacing = 0;
             List.CellPadding = 0;
-            List.DataKeyField = BlobNameColumnName;
+            List.DataKeyField = FileIdColumnName;
             List.DeleteCommand += new DataListCommandEventHandler(DataList_DeleteCommand);
 
             switch (this.RenderingMode)
@@ -700,7 +644,7 @@ namespace Micajah.AzureFileService.WebControls
 
         private void DeleteFile(string blobName)
         {
-            this.Client.Delete(blobName);
+            this.Manager.DeleteFile(blobName);
 
             if (this.FileDeleted != null)
             {
@@ -768,20 +712,20 @@ namespace Micajah.AzureFileService.WebControls
         {
             this.FilesCount = 0;
 
-            DataTable dataSource = this.DataSource;
+            Collection<File> files = this.Manager.GetFiles(this.FileExtensionsFilterInternal, this.NegateFileExtensionsFilter);
 
             if (Grid != null)
             {
-                Grid.DataSource = dataSource;
+                Grid.DataSource = files;
                 Grid.DataBind();
             }
             else if (List != null)
             {
-                List.DataSource = dataSource;
+                List.DataSource = files;
                 List.DataBind();
             }
 
-            this.FilesCount = dataSource.Rows.Count;
+            this.FilesCount = files.Count;
         }
 
         private void DataList_DeleteCommand(object source, DataListCommandEventArgs e)
@@ -797,32 +741,30 @@ namespace Micajah.AzureFileService.WebControls
                 int count = e.Row.Cells.Count;
                 if (count > 0)
                 {
-                    DataRowView drv = (DataRowView)e.Row.DataItem;
-                    string fileName = (string)drv[FileNameColumnName];
+                    File file = (File)e.Row.DataItem;
 
                     if (this.ShowIcons)
                     {
                         Image img = e.Row.Cells[0].Controls[0] as Image;
                         if (img != null)
                         {
-                            img.ImageUrl = GetFileTypeIconUrl(fileName, this.IconSize);
+                            img.ImageUrl = GetFileTypeIconUrl(file.Name, this.IconSize);
                         }
                     }
 
                     HyperLink link = e.Row.Cells[this.ShowIcons ? 1 : 0].Controls[0] as HyperLink;
                     if (link != null)
                     {
-                        if (MimeType.IsImageType(MimeMapping.GetMimeMapping(fileName)))
+                        if (MimeType.IsImageType(MimeMapping.GetMimeMapping(file.Name)))
                         {
-                            string uri = (string)drv[UriColumnName];
-                            string thumbUri = FileHandler.GetThumbnailUrl(fileName, 600, 500, 1, this.PropertyTableId, true);
-                            string content = string.Format(CultureInfo.InvariantCulture, ToolTipBigHtml, uri, fileName, thumbUri);
+                            string thumbUri = this.Manager.GetThumbnailUrl(file.FileId, 600, 500, 1, this.PropertyTableId, true);
+                            string content = string.Format(CultureInfo.InvariantCulture, ToolTipBigHtml, file.Uri, file.Name, thumbUri);
 
                             link.Attributes["data-ot"] = content;
                         }
                     }
 
-                    DateTime updatedTime = (DateTime)drv[LastModifiedColumnName];
+                    DateTime updatedTime = file.LastModified;
                     updatedTime = TimeZoneInfo.ConvertTimeFromUtc(updatedTime, this.TimeZone);
 
                     TableCell cell = e.Row.Cells[((this.ShowIcons ? 4 : 3) + (!this.EnableDeleting ? -1 : 0))];
@@ -830,7 +772,7 @@ namespace Micajah.AzureFileService.WebControls
 
                     TableCell deleteCell = e.Row.Cells[count - 2];
 
-                    DateTime updatedDate = (DateTime)drv[LastModifiedDateColumnName];
+                    DateTime updatedDate = file.LastModified;
                     if (m_UpdatedDate == updatedDate)
                         cell.Text = string.Empty;
                     else
@@ -899,8 +841,8 @@ namespace Micajah.AzureFileService.WebControls
             this.ApplyStyle();
             this.GridDataBind();
 
-            Helper.RegisterControlStyleSheet(this.Page, "Styles.opentip.css");
-            Helper.RegisterControlStyleSheet(this.Page, "Styles.FileList.css");
+            this.RegisterStyleSheet("Styles.opentip.css");
+            this.RegisterStyleSheet("Styles.FileList.css");
 
             ScriptManager.RegisterClientScriptBlock(this.Page, this.Page.GetType(), "Scripts.FileList", ClientScript, true);
             ScriptManager.RegisterClientScriptInclude(this.Page, this.Page.GetType(), "Scripts.opentip.js", ResourceHandler.GetWebResourceUrl("Scripts.opentip.js", true));

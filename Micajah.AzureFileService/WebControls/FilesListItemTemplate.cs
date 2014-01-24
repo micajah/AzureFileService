@@ -1,7 +1,5 @@
 ﻿using Micajah.AzureFileService.Properties;
 using System;
-using System.Data;
-using System.IO;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
@@ -45,12 +43,12 @@ namespace Micajah.AzureFileService.WebControls
             private void Image_DataBinding(object sender, EventArgs e)
             {
                 Image img = (sender as Image);
-                DataRowView drv = (DataRowView)DataBinder.GetDataItem(img.NamingContainer);
+                File file = (File)DataBinder.GetDataItem(img.NamingContainer);
 
-                string uri = GetNonImageFileTypeIconUrl((string)drv[FileNameColumnName], IconSize.Bigger);
+                string uri = GetNonImageFileTypeIconUrl(file.Name, IconSize.Bigger);
                 if (uri == null)
                 {
-                    uri = (string)drv[UriColumnName];
+                    uri = file.Uri;
                 }
                 img.ImageUrl = uri;
             }
@@ -58,13 +56,12 @@ namespace Micajah.AzureFileService.WebControls
             private void HyperLink_DataBinding(object sender, EventArgs e)
             {
                 HyperLink link = (HyperLink)sender;
-                DataRowView drv = (DataRowView)DataBinder.GetDataItem(link.NamingContainer);
+                File file = (File)DataBinder.GetDataItem(link.NamingContainer);
 
-                string fileName = (string)drv[FileNameColumnName];
-                string extension = Path.GetExtension(fileName);
+                string extension = file.Extension;
 
-                link.Text = fileName;
-                link.NavigateUrl = (string)drv[UriColumnName];
+                link.Text = file.Name;
+                link.NavigateUrl = file.Uri;
                 if ((string.Compare(extension, MimeType.SwfExtension, StringComparison.OrdinalIgnoreCase) == 0) || MimeType.IsImageType(MimeMapping.GetMimeMapping(extension)))
                 {
                     link.Target = "_blank";

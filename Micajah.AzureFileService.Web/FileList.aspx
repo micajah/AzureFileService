@@ -36,9 +36,10 @@
         <tr>
             <td>
                 <asp:TextBox ID="FilterTextBox" runat="server" Text="" />&nbsp;
-                <asp:CheckBox ID="NegateCheckBox" runat="server" Text="Negate filter" />&nbsp;
                 <asp:HyperLink ID="VideoLink" runat="server" Text="Video only" NavigateUrl="javascript:void(0);"></asp:HyperLink>&nbsp;
                 <asp:HyperLink ID="ImageLink" runat="server" Text="Images only" NavigateUrl="javascript:void(0);"></asp:HyperLink>&nbsp;
+                <asp:CheckBox ID="NegateCheckBox" runat="server" Text="Negate" ToolTip="Negate filter" />&nbsp;
+                <asp:HyperLink ID="ResetLink" runat="server" Text="Reset" ToolTip="Reset filter" NavigateUrl="javascript:void(0);"></asp:HyperLink>&nbsp;
                 <asp:Button ID="SubmitButton" runat="server" Text="Submit" OnClick="SubmitButton_Click" />
             </td>
         </tr>

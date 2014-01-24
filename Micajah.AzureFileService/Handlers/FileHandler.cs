@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Globalization;
-using System.Reflection;
 using System.Text;
 using System.Web;
 using System.Web.SessionState;
@@ -56,7 +55,7 @@ namespace Micajah.AzureFileService
 
             string contentDisposition = string.Empty;
             if (context.Request.Browser.IsBrowser("IE") || context.Request.UserAgent.Contains("Chrome"))
-                contentDisposition = "filename=\"" + Helper.ToHexString(fileName) + "\";";
+                contentDisposition = "filename=\"" + fileName.ToHex() + "\";";
             else if (context.Request.UserAgent.Contains("Safari"))
                 contentDisposition = "filename=\"" + fileName + "\";";
             else
@@ -79,18 +78,6 @@ namespace Micajah.AzureFileService
 
         #endregion
 
-        #region Internal Methods
-
-        internal static string GetThumbnailUrl(string fileName, int width, int height, int align, string propertyTableId, bool createApplicationAbsoluteUrl)
-        {
-            return string.Format(CultureInfo.InvariantCulture
-                , ((createApplicationAbsoluteUrl ? VirtualPathUtility.ToAbsolute(VirtualPath) : VirtualPath) + "?d={0}")
-                , HttpServerUtility.UrlTokenEncode(Encoding.UTF8.GetBytes(string.Format(CultureInfo.InvariantCulture, "{0}|{1}|{2}|{3}|{4}|{5}"
-                    , fileName, width, height, align, propertyTableId, Assembly.GetExecutingAssembly().GetName().Version))));
-        }
-
-        #endregion
-
         #region Public Methods
 
         public void ProcessRequest(HttpContext context)
@@ -108,7 +95,8 @@ namespace Micajah.AzureFileService
                         Hashtable properties = context.Session[propertyTableId] as Hashtable;
                         if (properties != null)
                         {
-                            string fileName = parts[0];
+                            string fileId = parts[0];
+                            string fileName = FileManager.GetNameFromFileId(fileId);
                             int width = Convert.ToInt32(parts[1], CultureInfo.InvariantCulture);
                             int height = Convert.ToInt32(parts[2], CultureInfo.InvariantCulture);
                             int align = Convert.ToInt32(parts[3], CultureInfo.InvariantCulture);
@@ -118,7 +106,7 @@ namespace Micajah.AzureFileService
                             string objectType = (string)properties["ObjectType"];
                             string storageConnectionString = (string)properties["StorageConnectionString"];
 
-                            BlobClient client = new BlobClient()
+                            FileManager client = new FileManager()
                             {
                                 ContainerName = containerName,
                                 ObjectId = objectId,
@@ -126,7 +114,7 @@ namespace Micajah.AzureFileService
                                 StorageConnectionString = storageConnectionString
                             };
 
-                            byte[] bytes = client.GetThumbnail(fileName, width, height, align);
+                            byte[] bytes = client.GetThumbnail(fileId, fileName, width, height, align);
                             if (bytes != null)
                             {
                                 ConfigureResponse(context, fileName, MimeType.Jpeg);
