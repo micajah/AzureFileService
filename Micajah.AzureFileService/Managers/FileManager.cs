@@ -1,11 +1,11 @@
 ﻿using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Blob;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
-using System.Reflection;
 using System.Text;
 using System.Web;
 
@@ -15,12 +15,58 @@ namespace Micajah.AzureFileService
     {
         #region Members
 
-        private static SharedAccessBlobPolicy s_ReadAccessPolicy;
-        private static SharedAccessBlobPolicy s_WriteAccessPolicy;
-
-        private CloudBlobClient m_BlobClient;
+        private string m_ContainerName;
+        private string m_TemporaryContainerName;
+        private string m_StorageConnectionString;
+        private string m_ContainerSas;
+        private SharedAccessBlobPolicy m_ReadAccessPolicy;
+        private SharedAccessBlobPolicy m_WriteAccessPolicy;
+        private SharedAccessBlobPolicy m_ReadWriteAccessPolicy;
+        private CloudBlobClient m_ServiceClient;
         private CloudBlobContainer m_Container;
         private CloudBlobContainer m_TemporaryContainer;
+
+        #endregion
+
+        #region Constructors
+
+        internal FileManager(string fileId, string containerUriWithSas)
+        {
+            if ((!string.IsNullOrEmpty(fileId)) && (!string.IsNullOrEmpty(containerUriWithSas)))
+            {
+                string[] parts = fileId.Split('/');
+                int length = parts.Length;
+                this.ObjectId = parts[length - 2];
+                this.ObjectType = parts[length - 3];
+
+                parts = containerUriWithSas.Split('?');
+                Uri uri = new Uri(parts[0]);
+                m_ContainerSas = parts[1];
+                StorageCredentials credentials = new StorageCredentials(m_ContainerSas);
+                m_Container = new CloudBlobContainer(uri, credentials);
+                m_ContainerName = m_Container.Name;
+            }
+        }
+
+        public FileManager()
+        {
+
+        }
+
+        public FileManager(string containerName, string objectId, string objectType, string storageConnectionString)
+        {
+            this.ObjectId = objectId;
+            this.ObjectType = objectType;
+
+            m_ContainerName = containerName;
+            m_StorageConnectionString = storageConnectionString;
+        }
+
+        public FileManager(string containerName, string objectId, string objectType, string storageConnectionString, string temporaryContainerName) :
+            this(containerName, objectId, objectType, storageConnectionString)
+        {
+            m_TemporaryContainerName = temporaryContainerName;
+        }
 
         #endregion
 
@@ -49,7 +95,19 @@ namespace Micajah.AzureFileService
         /// <summary>
         /// Gets or sets the name of the container where the files are stored.
         /// </summary>
-        public string ContainerName { get; set; }
+        public string ContainerName
+        {
+            get
+            {
+                return m_ContainerName;
+            }
+            set
+            {
+                m_ContainerName = value;
+                m_Container = null;
+                m_ContainerSas = null;
+            }
+        }
 
         /// <summary>
         /// Gets or sets the type of the object which the files are associated with.
@@ -64,59 +122,99 @@ namespace Micajah.AzureFileService
         /// <summary>
         /// Gets or sets the connection string to the storage.
         /// </summary>
-        public string StorageConnectionString { get; set; }
+        public string StorageConnectionString
+        {
+            get
+            {
+                return m_StorageConnectionString;
+            }
+            set
+            {
+                m_StorageConnectionString = value;
+                m_ServiceClient = null;
+                m_Container = null;
+                m_ContainerSas = null;
+            }
+        }
 
         /// <summary>
         /// Gets or sets the name of the temporary container the files are uploaded to.
         /// </summary>
-        public string TemporaryContainerName { get; set; }
+        public string TemporaryContainerName
+        {
+            get
+            {
+                return m_TemporaryContainerName;
+            }
+            set
+            {
+                m_TemporaryContainerName = value;
+                m_TemporaryContainer = null;
+            }
+        }
 
         #endregion
 
         #region Internal Properties
 
-        internal static SharedAccessBlobPolicy ReadAccessPolicy
+        internal SharedAccessBlobPolicy ReadAccessPolicy
         {
             get
             {
-                if (s_ReadAccessPolicy == null)
+                if (m_ReadAccessPolicy == null)
                 {
-                    s_ReadAccessPolicy = new SharedAccessBlobPolicy
+                    m_ReadAccessPolicy = new SharedAccessBlobPolicy
                     {
                         Permissions = SharedAccessBlobPermissions.Read,
                         SharedAccessExpiryTime = DateTime.UtcNow.AddMinutes(Settings.SharedAccessExpiryTime)
                     };
                 }
-                return s_ReadAccessPolicy;
+                return m_ReadAccessPolicy;
             }
         }
 
-        internal static SharedAccessBlobPolicy WriteAccessPolicy
+        internal SharedAccessBlobPolicy WriteAccessPolicy
         {
             get
             {
-                if (s_WriteAccessPolicy == null)
+                if (m_WriteAccessPolicy == null)
                 {
-                    s_WriteAccessPolicy = new SharedAccessBlobPolicy
+                    m_WriteAccessPolicy = new SharedAccessBlobPolicy
                     {
                         Permissions = SharedAccessBlobPermissions.Write,
                         SharedAccessExpiryTime = DateTime.UtcNow.AddMinutes(Settings.SharedAccessExpiryTime)
                     };
                 }
-                return s_WriteAccessPolicy;
+                return m_WriteAccessPolicy;
             }
         }
 
-        internal CloudBlobClient Client
+        internal SharedAccessBlobPolicy ReadWriteAccessPolicy
         {
             get
             {
-                if (m_BlobClient == null)
+                if (m_ReadWriteAccessPolicy == null)
+                {
+                    m_ReadWriteAccessPolicy = new SharedAccessBlobPolicy
+                    {
+                        Permissions = SharedAccessBlobPermissions.Read | SharedAccessBlobPermissions.Write,
+                        SharedAccessExpiryTime = DateTime.UtcNow.AddMinutes(Settings.SharedAccessExpiryTime)
+                    };
+                }
+                return m_ReadWriteAccessPolicy;
+            }
+        }
+
+        internal CloudBlobClient ServiceClient
+        {
+            get
+            {
+                if (m_ServiceClient == null)
                 {
                     CloudStorageAccount storageAccount = CloudStorageAccount.Parse(this.StorageConnectionString);
-                    m_BlobClient = storageAccount.CreateCloudBlobClient();
+                    m_ServiceClient = storageAccount.CreateCloudBlobClient();
                 }
-                return m_BlobClient;
+                return m_ServiceClient;
             }
         }
 
@@ -126,7 +224,7 @@ namespace Micajah.AzureFileService
             {
                 if (m_Container == null)
                 {
-                    m_Container = this.Client.GetContainerReference(this.ContainerName);
+                    m_Container = this.ServiceClient.GetContainerReference(this.ContainerName);
                     m_Container.CreateIfNotExists();
                 }
                 return m_Container;
@@ -139,10 +237,22 @@ namespace Micajah.AzureFileService
             {
                 if (m_TemporaryContainer == null)
                 {
-                    m_TemporaryContainer = this.Client.GetContainerReference(this.TemporaryContainerName);
+                    m_TemporaryContainer = this.ServiceClient.GetContainerReference(this.TemporaryContainerName);
                     m_TemporaryContainer.CreateIfNotExists();
                 }
                 return m_TemporaryContainer;
+            }
+        }
+
+        internal string ContainerSas
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(m_ContainerSas))
+                {
+                    m_ContainerSas = this.Container.GetSharedAccessSignature(this.ReadWriteAccessPolicy);
+                }
+                return m_ContainerSas;
             }
         }
 
@@ -174,11 +284,11 @@ namespace Micajah.AzureFileService
             return result;
         }
 
-        private static File GetFileInfo(CloudBlockBlob blob)
+        private File GetFileInfo(CloudBlockBlob blob)
         {
             BlobProperties props = blob.Properties;
             string fileName = GetNameFromFileId(blob.Name);
-            string sas = blob.GetSharedAccessSignature(ReadAccessPolicy);
+            string sas = blob.GetSharedAccessSignature(this.ReadAccessPolicy);
             string uri = string.Format(CultureInfo.InvariantCulture, "{0}{1}", blob.Uri, sas);
 
             return new File()
@@ -425,13 +535,12 @@ namespace Micajah.AzureFileService
             return this.GetThumbnail(fileId, fileName, width, height, align);
         }
 
-        // TODO: Need think about removing propertyTableId.
-        public string GetThumbnailUrl(string fileId, int width, int height, int align, string propertyTableId, bool createApplicationAbsoluteUrl)
+        public string GetThumbnailUrl(string fileId, int width, int height, int align, bool createApplicationAbsoluteUrl)
         {
             return string.Format(CultureInfo.InvariantCulture
                 , ((createApplicationAbsoluteUrl ? VirtualPathUtility.ToAbsolute(FileHandler.VirtualPath) : FileHandler.VirtualPath) + "?d={0}")
-                , HttpServerUtility.UrlTokenEncode(Encoding.UTF8.GetBytes(string.Format(CultureInfo.InvariantCulture, "{0}|{1}|{2}|{3}|{4}|{5}"
-                    , fileId, width, height, align, propertyTableId, Assembly.GetExecutingAssembly().GetName().Version))));
+                , HttpServerUtility.UrlTokenEncode(Encoding.UTF8.GetBytes(string.Format(CultureInfo.InvariantCulture, "{0}|{1}|{2}|{3}|{4}{5}"
+                    , fileId, width, height, align, this.Container.Uri, this.ContainerSas))));
         }
 
         public string UploadFile(string fileName, string contentType, byte[] buffer)

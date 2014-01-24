@@ -101,13 +101,7 @@ namespace Micajah.AzureFileService.WebControls
             {
                 if (m_Manager == null)
                 {
-                    m_Manager = new FileManager()
-                    {
-                        ContainerName = this.ContainerName,
-                        ObjectId = this.ObjectId,
-                        ObjectType = this.ObjectType,
-                        StorageConnectionString = this.StorageConnectionString
-                    };
+                    m_Manager = new FileManager(this.ContainerName, this.ObjectId, this.ObjectType, this.StorageConnectionString);
                 }
                 return m_Manager;
             }
@@ -757,7 +751,7 @@ namespace Micajah.AzureFileService.WebControls
                     {
                         if (MimeType.IsImageType(MimeMapping.GetMimeMapping(file.Name)))
                         {
-                            string thumbUri = this.Manager.GetThumbnailUrl(file.FileId, 600, 500, 1, this.PropertyTableId, true);
+                            string thumbUri = this.Manager.GetThumbnailUrl(file.FileId, 600, 500, 1, true);
                             string content = string.Format(CultureInfo.InvariantCulture, ToolTipBigHtml, file.Uri, file.Name, thumbUri);
 
                             link.Attributes["data-ot"] = content;

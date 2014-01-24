@@ -197,14 +197,7 @@ namespace Micajah.AzureFileService.WebControls
             {
                 if (m_Manager == null)
                 {
-                    m_Manager = new FileManager()
-                    {
-                        ContainerName = this.ContainerName,
-                        ObjectId = this.ObjectId,
-                        ObjectType = this.ObjectType,
-                        StorageConnectionString = this.StorageConnectionString,
-                        TemporaryContainerName = this.TemporaryContainerName
-                    };
+                    m_Manager = new FileManager(this.ContainerName, this.ObjectId, this.ObjectType, this.StorageConnectionString, this.TemporaryContainerName);
                 }
                 return m_Manager;
             }
@@ -237,7 +230,7 @@ namespace Micajah.AzureFileService.WebControls
         {
             get
             {
-                string sas = this.Manager.TemporaryContainer.GetSharedAccessSignature(FileManager.WriteAccessPolicy);
+                string sas = this.Manager.TemporaryContainer.GetSharedAccessSignature(this.Manager.WriteAccessPolicy);
 
                 return string.Format(CultureInfo.InvariantCulture, "{0}/{1}/{{0}}{2}", this.Manager.TemporaryContainer.Uri.AbsoluteUri, this.TemporaryDirectoryName, sas);
             }

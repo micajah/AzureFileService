@@ -1,16 +1,14 @@
 ﻿using System;
-using System.Collections;
 using System.Globalization;
 using System.Text;
 using System.Web;
-using System.Web.SessionState;
 
 namespace Micajah.AzureFileService
 {
     /// <summary>
     /// Displays the file content.
     /// </summary>
-    public class FileHandler : IHttpHandler, IRequiresSessionState
+    public class FileHandler : IHttpHandler
     {
         #region Constants
 
@@ -90,36 +88,20 @@ namespace Micajah.AzureFileService
                     if (decodedVars != null)
                     {
                         string[] parts = Encoding.UTF8.GetString(decodedVars).Split('|');
-                        string propertyTableId = parts[4];
 
-                        Hashtable properties = context.Session[propertyTableId] as Hashtable;
-                        if (properties != null)
+                        string fileId = parts[0];
+                        string fileName = FileManager.GetNameFromFileId(fileId);
+                        int width = Convert.ToInt32(parts[1], CultureInfo.InvariantCulture);
+                        int height = Convert.ToInt32(parts[2], CultureInfo.InvariantCulture);
+                        int align = Convert.ToInt32(parts[3], CultureInfo.InvariantCulture);
+                        string containerUriWithSas = parts[4];
+
+                        FileManager manager = new FileManager(fileId, containerUriWithSas);
+                        byte[] bytes = manager.GetThumbnail(fileId, fileName, width, height, align);
+                        if (bytes != null)
                         {
-                            string fileId = parts[0];
-                            string fileName = FileManager.GetNameFromFileId(fileId);
-                            int width = Convert.ToInt32(parts[1], CultureInfo.InvariantCulture);
-                            int height = Convert.ToInt32(parts[2], CultureInfo.InvariantCulture);
-                            int align = Convert.ToInt32(parts[3], CultureInfo.InvariantCulture);
-
-                            string containerName = (string)properties["ContainerName"];
-                            string objectId = (string)properties["ObjectId"];
-                            string objectType = (string)properties["ObjectType"];
-                            string storageConnectionString = (string)properties["StorageConnectionString"];
-
-                            FileManager client = new FileManager()
-                            {
-                                ContainerName = containerName,
-                                ObjectId = objectId,
-                                ObjectType = objectType,
-                                StorageConnectionString = storageConnectionString
-                            };
-
-                            byte[] bytes = client.GetThumbnail(fileId, fileName, width, height, align);
-                            if (bytes != null)
-                            {
-                                ConfigureResponse(context, fileName, MimeType.Jpeg);
-                                context.Response.BinaryWrite(bytes);
-                            }
+                            ConfigureResponse(context, fileName, MimeType.Jpeg);
+                            context.Response.BinaryWrite(bytes);
                         }
                     }
                 }
