@@ -6,6 +6,7 @@ namespace Micajah.AzureFileService
     /// <summary>
     /// The information of the file.
     /// </summary>
+    [Serializable]
     public class File
     {
         #region Public Properties
@@ -33,7 +34,7 @@ namespace Micajah.AzureFileService
         /// <summary>
         /// Gets or sets the file's URI.
         /// </summary>
-        public string Uri { get; set; }
+        public string Url { get; set; }
 
         /// <summary>
         /// Gets or sets the time, in coordinated universal time (UTC), when the file was last modified.

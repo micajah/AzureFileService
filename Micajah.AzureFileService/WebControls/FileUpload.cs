@@ -14,7 +14,7 @@ namespace Micajah.AzureFileService.WebControls
     /// The control for single- and multi-file uploads.
     /// </summary>
     [ToolboxData("<{0}:FileUpload runat=server></{0}:FileUpload>")]
-    public class FileUpload : WebControl, IUploadControl, INamingContainer
+    public class FileUpload : WebControl, INamingContainer
     {
         #region Members
 
@@ -129,22 +129,6 @@ namespace Micajah.AzureFileService.WebControls
         }
 
         /// <summary>
-        /// Gets or sets the connection string to the storage.
-        /// </summary>
-        [Category("Data")]
-        [Description("The connection string to the storage.")]
-        [DefaultValue("")]
-        public string StorageConnectionString
-        {
-            get
-            {
-                object obj = this.ViewState["StorageConnectionString"];
-                return ((obj == null) ? Settings.StorageConnectionString : (string)obj);
-            }
-            set { this.ViewState["StorageConnectionString"] = value; }
-        }
-
-        /// <summary>
         /// Gets or set a value indicating whether the error message is displayed in the control.
         /// </summary>
         [Category("Appearance")]
@@ -197,7 +181,7 @@ namespace Micajah.AzureFileService.WebControls
             {
                 if (m_Manager == null)
                 {
-                    m_Manager = new FileManager(this.ContainerName, this.ObjectId, this.ObjectType, this.StorageConnectionString, this.TemporaryContainerName);
+                    m_Manager = new FileManager(this.ContainerName, this.ObjectType, this.ObjectId, this.TemporaryContainerName);
                 }
                 return m_Manager;
             }
@@ -226,16 +210,6 @@ namespace Micajah.AzureFileService.WebControls
             set { this.ViewState["TemporaryDirectoryName"] = value; }
         }
 
-        private string UploadUri
-        {
-            get
-            {
-                string sas = this.Manager.TemporaryContainer.GetSharedAccessSignature(this.Manager.WriteAccessPolicy);
-
-                return string.Format(CultureInfo.InvariantCulture, "{0}/{1}/{{0}}{2}", this.Manager.TemporaryContainer.Uri.AbsoluteUri, this.TemporaryDirectoryName, sas);
-            }
-        }
-
         private string ClientScript
         {
             get
@@ -246,7 +220,7 @@ namespace Micajah.AzureFileService.WebControls
                     , (char.ToLowerInvariant(this.ClientID[0]) + this.ClientID.Substring(1)).Replace("_", string.Empty)
                     , this.ClientID
                     , FileFromMyComputer.UniqueID
-                    , this.UploadUri);
+                    , this.Manager.GetTemporaryFilesUploadUrlFormat(this.TemporaryDirectoryName));
                 if (!string.IsNullOrWhiteSpace(this.Accept))
                 {
                     sb.AppendFormat(CultureInfo.InvariantCulture, ",acceptedFiles:\"{0}\"", this.Accept);

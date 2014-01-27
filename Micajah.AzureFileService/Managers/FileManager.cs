@@ -1,5 +1,4 @@
 ﻿using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Blob;
 using System;
 using System.Collections.Generic;
@@ -17,11 +16,8 @@ namespace Micajah.AzureFileService
 
         private string m_ContainerName;
         private string m_TemporaryContainerName;
-        private string m_StorageConnectionString;
-        private string m_ContainerSas;
         private SharedAccessBlobPolicy m_ReadAccessPolicy;
         private SharedAccessBlobPolicy m_WriteAccessPolicy;
-        private SharedAccessBlobPolicy m_ReadWriteAccessPolicy;
         private CloudBlobClient m_ServiceClient;
         private CloudBlobContainer m_Container;
         private CloudBlobContainer m_TemporaryContainer;
@@ -30,40 +26,21 @@ namespace Micajah.AzureFileService
 
         #region Constructors
 
-        internal FileManager(string fileId, string containerUriWithSas)
-        {
-            if ((!string.IsNullOrEmpty(fileId)) && (!string.IsNullOrEmpty(containerUriWithSas)))
-            {
-                string[] parts = fileId.Split('/');
-                int length = parts.Length;
-                this.ObjectId = parts[length - 2];
-                this.ObjectType = parts[length - 3];
-
-                parts = containerUriWithSas.Split('?');
-                Uri uri = new Uri(parts[0]);
-                m_ContainerSas = parts[1];
-                StorageCredentials credentials = new StorageCredentials(m_ContainerSas);
-                m_Container = new CloudBlobContainer(uri, credentials);
-                m_ContainerName = m_Container.Name;
-            }
-        }
-
         public FileManager()
         {
 
         }
 
-        public FileManager(string containerName, string objectId, string objectType, string storageConnectionString)
+        public FileManager(string containerName, string objectType, string objectId)
         {
-            this.ObjectId = objectId;
             this.ObjectType = objectType;
+            this.ObjectId = objectId;
 
             m_ContainerName = containerName;
-            m_StorageConnectionString = storageConnectionString;
         }
 
-        public FileManager(string containerName, string objectId, string objectType, string storageConnectionString, string temporaryContainerName) :
-            this(containerName, objectId, objectType, storageConnectionString)
+        public FileManager(string containerName, string objectType, string objectId, string temporaryContainerName) :
+            this(containerName, objectType, objectId)
         {
             m_TemporaryContainerName = temporaryContainerName;
         }
@@ -105,7 +82,6 @@ namespace Micajah.AzureFileService
             {
                 m_ContainerName = value;
                 m_Container = null;
-                m_ContainerSas = null;
             }
         }
 
@@ -118,24 +94,6 @@ namespace Micajah.AzureFileService
         /// Gets or sets the unique identifier of the object which the files are associated with.
         /// </summary>
         public string ObjectId { get; set; }
-
-        /// <summary>
-        /// Gets or sets the connection string to the storage.
-        /// </summary>
-        public string StorageConnectionString
-        {
-            get
-            {
-                return m_StorageConnectionString;
-            }
-            set
-            {
-                m_StorageConnectionString = value;
-                m_ServiceClient = null;
-                m_Container = null;
-                m_ContainerSas = null;
-            }
-        }
 
         /// <summary>
         /// Gets or sets the name of the temporary container the files are uploaded to.
@@ -189,29 +147,13 @@ namespace Micajah.AzureFileService
             }
         }
 
-        internal SharedAccessBlobPolicy ReadWriteAccessPolicy
-        {
-            get
-            {
-                if (m_ReadWriteAccessPolicy == null)
-                {
-                    m_ReadWriteAccessPolicy = new SharedAccessBlobPolicy
-                    {
-                        Permissions = SharedAccessBlobPermissions.Read | SharedAccessBlobPermissions.Write,
-                        SharedAccessExpiryTime = DateTime.UtcNow.AddMinutes(Settings.SharedAccessExpiryTime)
-                    };
-                }
-                return m_ReadWriteAccessPolicy;
-            }
-        }
-
         internal CloudBlobClient ServiceClient
         {
             get
             {
                 if (m_ServiceClient == null)
                 {
-                    CloudStorageAccount storageAccount = CloudStorageAccount.Parse(this.StorageConnectionString);
+                    CloudStorageAccount storageAccount = CloudStorageAccount.Parse(Settings.StorageConnectionString);
                     m_ServiceClient = storageAccount.CreateCloudBlobClient();
                 }
                 return m_ServiceClient;
@@ -241,18 +183,6 @@ namespace Micajah.AzureFileService
                     m_TemporaryContainer.CreateIfNotExists();
                 }
                 return m_TemporaryContainer;
-            }
-        }
-
-        internal string ContainerSas
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(m_ContainerSas))
-                {
-                    m_ContainerSas = this.Container.GetSharedAccessSignature(this.ReadWriteAccessPolicy);
-                }
-                return m_ContainerSas;
             }
         }
 
@@ -289,7 +219,7 @@ namespace Micajah.AzureFileService
             BlobProperties props = blob.Properties;
             string fileName = GetNameFromFileId(blob.Name);
             string sas = blob.GetSharedAccessSignature(this.ReadAccessPolicy);
-            string uri = string.Format(CultureInfo.InvariantCulture, "{0}{1}", blob.Uri, sas);
+            string url = string.Format(CultureInfo.InvariantCulture, "{0}{1}", blob.Uri, sas);
 
             return new File()
             {
@@ -298,7 +228,7 @@ namespace Micajah.AzureFileService
                 Length = props.Length,
                 ContentType = props.ContentType,
                 FullName = blob.Name,
-                Uri = uri,
+                Url = url,
                 LastModified = props.LastModified.Value.DateTime
             };
         }
@@ -332,9 +262,42 @@ namespace Micajah.AzureFileService
         internal static string GetNameFromFileId(string fileId)
         {
             string[] parts = fileId.Split('/');
-            string fileName = parts[parts.Length - 1];
+            int length = parts.Length;
+
+            string fileName = parts[length - 1];
 
             return fileName;
+        }
+
+        internal static byte[] GetThumbnail(string d, out string fileName)
+        {
+            fileName = null;
+
+            byte[] bytes = HttpServerUtility.UrlTokenDecode(d);
+            if (bytes != null)
+            {
+                string str = Encoding.UTF8.GetString(bytes);
+                string[] values = str.Split('|');
+
+                string fileId = values[0];
+                int width = Convert.ToInt32(values[1], CultureInfo.InvariantCulture);
+                int height = Convert.ToInt32(values[2], CultureInfo.InvariantCulture);
+                int align = Convert.ToInt32(values[3], CultureInfo.InvariantCulture);
+                string containerName = values[4];
+
+                values = fileId.Split('/');
+                int length = values.Length;
+
+                string objectType = values[length - 3];
+                string objectId = values[length - 2];
+                fileName = values[values.Length - 1];
+
+                FileManager manager = new FileManager(containerName, objectType, objectId);
+
+                return manager.GetThumbnail(fileId, fileName, width, height, align);
+            }
+
+            return null;
         }
 
         internal byte[] GetThumbnail(string fileId, string fileName, int width, int height, int align)
@@ -394,6 +357,13 @@ namespace Micajah.AzureFileService
             }
 
             return bytes;
+        }
+
+        internal string GetTemporaryFilesUploadUrlFormat(string directoryName)
+        {
+            string sas = this.TemporaryContainer.GetSharedAccessSignature(this.WriteAccessPolicy);
+
+            return string.Format(CultureInfo.InvariantCulture, "{0}/{1}/{{0}}{2}", this.TemporaryContainer.Uri.AbsoluteUri, directoryName, sas);
         }
 
         #endregion
@@ -539,8 +509,7 @@ namespace Micajah.AzureFileService
         {
             return string.Format(CultureInfo.InvariantCulture
                 , ((createApplicationAbsoluteUrl ? VirtualPathUtility.ToAbsolute(FileHandler.VirtualPath) : FileHandler.VirtualPath) + "?d={0}")
-                , HttpServerUtility.UrlTokenEncode(Encoding.UTF8.GetBytes(string.Format(CultureInfo.InvariantCulture, "{0}|{1}|{2}|{3}|{4}{5}"
-                    , fileId, width, height, align, this.Container.Uri, this.ContainerSas))));
+                , HttpServerUtility.UrlTokenEncode(Encoding.UTF8.GetBytes(string.Format(CultureInfo.InvariantCulture, "{0}|{1}|{2}|{3}|{4}", fileId, width, height, align, this.ContainerName))));
         }
 
         public string UploadFile(string fileName, string contentType, byte[] buffer)

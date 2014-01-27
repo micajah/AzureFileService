@@ -1,6 +1,5 @@
 ﻿using Micajah.AzureFileService.Properties;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -13,13 +12,13 @@ using System.Web.UI.WebControls;
 
 namespace Micajah.AzureFileService.WebControls
 {
-    public partial class FileList : Control, INamingContainer, IUploadControl
+    public partial class FileList : Control, INamingContainer
     {
         #region Constants
 
         private const string FileIdColumnName = "FileId";
         private const string NameColumnName = "Name";
-        private const string UriColumnName = "Uri";
+        private const string UrlColumnName = "Url";
         private const string LengthInKBColumnName = "LengthInKB";
         private const string LastModifiedColumnName = "LastModified";
         private const string DeleteCommandName = "Delete";
@@ -90,8 +89,10 @@ namespace Micajah.AzureFileService.WebControls
         {
             get
             {
+                string str = string.Format(CultureInfo.InvariantCulture, "{0}|{1}|{2}|{3}", this.ContainerName, this.ObjectType, this.ObjectId, this.NegateFileExtensionsFilter);
+
                 return ResourceVirtualPathProvider.VirtualPathToAbsolute(ResourceVirtualPathProvider.VirtualRootShortPath + "FileList.aspx")
-                    + "?d=" + HttpServerUtility.UrlTokenEncode(Encoding.UTF8.GetBytes(this.PropertyTableId));
+                    + "?d=" + HttpServerUtility.UrlTokenEncode(Encoding.UTF8.GetBytes(str));
             }
         }
 
@@ -101,7 +102,7 @@ namespace Micajah.AzureFileService.WebControls
             {
                 if (m_Manager == null)
                 {
-                    m_Manager = new FileManager(this.ContainerName, this.ObjectId, this.ObjectType, this.StorageConnectionString);
+                    m_Manager = new FileManager(this.ContainerName, this.ObjectType, this.ObjectId);
                 }
                 return m_Manager;
             }
@@ -110,25 +111,6 @@ namespace Micajah.AzureFileService.WebControls
         private static string ClientScript
         {
             get { return string.Format(CultureInfo.CurrentCulture, DeletingClientScript, Resources.FileList_DeletingConfirmationText); }
-        }
-
-        private string PropertyTableId
-        {
-            get
-            {
-                string value = (string)this.ViewState["PropertyTableId"];
-                if (string.IsNullOrWhiteSpace(value))
-                {
-                    value = string.Format(CultureInfo.InvariantCulture, "mafs:PropertyTableId:{0:N}", Guid.NewGuid());
-                    this.PropertyTableId = value;
-                }
-                return value;
-            }
-            set
-            {
-                this.ViewState["PropertyTableId"] = value;
-                this.EnsurePropertyTable(value);
-            }
         }
 
         private bool ShowVideoOnly
@@ -497,22 +479,6 @@ namespace Micajah.AzureFileService.WebControls
             set { this.ViewState["ObjectId"] = value; }
         }
 
-        /// <summary>
-        /// Gets or sets the connection string to the storage.
-        /// </summary>
-        [Category("Data")]
-        [Description("The connection string to the storage.")]
-        [DefaultValue("")]
-        public string StorageConnectionString
-        {
-            get
-            {
-                object obj = this.ViewState["StorageConnectionString"];
-                return ((obj == null) ? Settings.StorageConnectionString : (string)obj);
-            }
-            set { this.ViewState["StorageConnectionString"] = value; }
-        }
-
         #endregion
 
         #region Private Methods
@@ -581,7 +547,7 @@ namespace Micajah.AzureFileService.WebControls
             }
 
             HyperLinkField linkField = new HyperLinkField();
-            linkField.DataNavigateUrlFields = new string[] { UriColumnName };
+            linkField.DataNavigateUrlFields = new string[] { UrlColumnName };
             linkField.DataTextField = NameColumnName;
             linkField.HeaderText = Resources.FileList_FileNameText;
             linkField.ItemStyle.HorizontalAlign = HorizontalAlign.Left;
@@ -643,21 +609,6 @@ namespace Micajah.AzureFileService.WebControls
             if (this.FileDeleted != null)
             {
                 this.FileDeleted(this, new CommandEventArgs(DeleteCommandName, blobName));
-            }
-        }
-
-        private void EnsurePropertyTable(string propertyTableId)
-        {
-            if (this.Page.Session[propertyTableId] == null)
-            {
-                Hashtable properties = new Hashtable();
-                properties["NegateFileExtensionsFilter"] = this.NegateFileExtensionsFilter;
-                properties["ContainerName"] = this.ContainerName;
-                properties["ObjectId"] = this.ObjectId;
-                properties["ObjectType"] = this.ObjectType;
-                properties["StorageConnectionString"] = this.StorageConnectionString;
-
-                this.Page.Session[propertyTableId] = properties;
             }
         }
 
@@ -751,8 +702,8 @@ namespace Micajah.AzureFileService.WebControls
                     {
                         if (MimeType.IsImageType(MimeMapping.GetMimeMapping(file.Name)))
                         {
-                            string thumbUri = this.Manager.GetThumbnailUrl(file.FileId, 600, 500, 1, true);
-                            string content = string.Format(CultureInfo.InvariantCulture, ToolTipBigHtml, file.Uri, file.Name, thumbUri);
+                            string thumbUrl = this.Manager.GetThumbnailUrl(file.FileId, 600, 500, 1, true);
+                            string content = string.Format(CultureInfo.InvariantCulture, ToolTipBigHtml, file.Url, file.Name, thumbUrl);
 
                             link.Attributes["data-ot"] = content;
                         }
@@ -891,6 +842,26 @@ namespace Micajah.AzureFileService.WebControls
                     writer.RenderEndTag();
                     writer.RenderEndTag();
                 }
+            }
+        }
+
+        #endregion
+
+        #region Public Methods
+
+        public void InitializeFromRequest()
+        {
+            string d = this.Page.Request.QueryString["d"];
+            byte[] bytes = HttpServerUtility.UrlTokenDecode(d);
+            if (bytes != null)
+            {
+                string str = Encoding.UTF8.GetString(bytes);
+                string[] values = str.Split('|');
+
+                this.ContainerName = values[0];
+                this.ObjectType = values[1];
+                this.ObjectId = values[2];
+                this.NegateFileExtensionsFilter = Convert.ToBoolean(values[3], CultureInfo.InvariantCulture);
             }
         }
 

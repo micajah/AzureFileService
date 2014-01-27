@@ -1,14 +1,13 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" Inherits="System.Web.UI.Page" EnableViewState="false" EnableViewStateMac="false" EnableEventValidation="false" %>
 
 <%@ Register Assembly="Micajah.AzureFileService" Namespace="Micajah.AzureFileService.WebControls" TagPrefix="mafs" %>
-<%@ Import Namespace="Micajah.AzureFileService" %>
 
 <script runat="server" type="text/C#">
     private void Page_Load(object sender, EventArgs e)
     {
         if (!this.Page.IsPostBack)
         {
-            FileList1.LoadPropertiesFromRequest();
+            FileList1.InitializeFromRequest();
         }
     }
 </script>

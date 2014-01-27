@@ -10,10 +10,6 @@ namespace Micajah.AzureFileService.WebControls
     {
         private class ThumbnailsListItemTemplate : ITemplate, IDisposable
         {
-            #region Constants
-
-            #endregion
-
             #region Members
 
             private ListItemType m_ItemType;
@@ -43,12 +39,12 @@ namespace Micajah.AzureFileService.WebControls
                 Image img = (sender as Image);
                 File file = (File)DataBinder.GetDataItem(img.NamingContainer);
 
-                string uri = (m_FileList.ShowVideoOnly ? ResourceHandler.GetWebResourceUrl("Images.Video.gif", true) : GetNonImageFileTypeIconUrl(file.Name, IconSize.Bigger));
-                if (uri == null)
+                string url = (m_FileList.ShowVideoOnly ? ResourceHandler.GetWebResourceUrl("Images.Video.gif", true) : GetNonImageFileTypeIconUrl(file.Name, IconSize.Bigger));
+                if (url == null)
                 {
-                    uri = m_FileList.Manager.GetThumbnailUrl(file.FileId, (int)IconSize.Bigger, (int)IconSize.Bigger, 1, false);
+                    url = m_FileList.Manager.GetThumbnailUrl(file.FileId, (int)IconSize.Bigger, (int)IconSize.Bigger, 1, false);
                 }
-                img.ImageUrl = uri;
+                img.ImageUrl = url;
             }
 
             private void HyperLink_DataBinding(object sender, EventArgs e)
@@ -58,7 +54,7 @@ namespace Micajah.AzureFileService.WebControls
 
                 string extension = file.Extension;
 
-                link.NavigateUrl = file.Uri;
+                link.NavigateUrl = file.Url;
                 if ((string.Compare(extension, MimeType.SwfExtension, StringComparison.OrdinalIgnoreCase) == 0) || MimeType.IsImageType(MimeMapping.GetMimeMapping(extension)))
                 {
                     link.Target = "_blank";
@@ -73,7 +69,7 @@ namespace Micajah.AzureFileService.WebControls
                 string date = string.Format(m_FileList.Culture, m_FileList.DateTimeToolTipFormatString, TimeZoneInfo.ConvertTimeFromUtc(file.LastModified, m_FileList.TimeZone));
 
                 string content = string.Format(m_FileList.Culture, ToolTipSmallHtml,
-                    file.Uri, file.Name, date, file.LengthInKB, m_FileList.Page.ClientScript.GetPostBackClientHyperlink(DeleteLink, string.Empty), Resources.FileList_DeleteText,
+                    file.Url, file.Name, date, file.LengthInKB, m_FileList.Page.ClientScript.GetPostBackClientHyperlink(DeleteLink, string.Empty), Resources.FileList_DeleteText,
                     m_FileList.EnableDeletingConfirmation ? string.Format(m_FileList.Culture, " onclick='{0}'", OnDeletingClientScript) : string.Empty);
 
                 panel.Attributes["data-ot"] = content;

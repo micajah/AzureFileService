@@ -45,12 +45,12 @@ namespace Micajah.AzureFileService.WebControls
                 Image img = (sender as Image);
                 File file = (File)DataBinder.GetDataItem(img.NamingContainer);
 
-                string uri = GetNonImageFileTypeIconUrl(file.Name, IconSize.Bigger);
-                if (uri == null)
+                string url = GetNonImageFileTypeIconUrl(file.Name, IconSize.Bigger);
+                if (url == null)
                 {
-                    uri = file.Uri;
+                    url = file.Url;
                 }
-                img.ImageUrl = uri;
+                img.ImageUrl = url;
             }
 
             private void HyperLink_DataBinding(object sender, EventArgs e)
@@ -61,7 +61,7 @@ namespace Micajah.AzureFileService.WebControls
                 string extension = file.Extension;
 
                 link.Text = file.Name;
-                link.NavigateUrl = file.Uri;
+                link.NavigateUrl = file.Url;
                 if ((string.Compare(extension, MimeType.SwfExtension, StringComparison.OrdinalIgnoreCase) == 0) || MimeType.IsImageType(MimeMapping.GetMimeMapping(extension)))
                 {
                     link.Target = "_blank";

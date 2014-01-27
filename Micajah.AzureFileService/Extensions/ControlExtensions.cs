@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections;
 using System.Globalization;
-using System.Reflection;
-using System.Text;
-using System.Web;
 using System.Web.UI;
 using System.Web.UI.HtmlControls;
 
@@ -11,44 +7,13 @@ namespace Micajah.AzureFileService
 {
     public static class ControlExtensions
     {
+        #region Constants
+
+        private const string StyleSheetHtml = "<link type=\"text/css\" rel=\"stylesheet\" href=\"{0}\"></link>";
+
+        #endregion
+
         #region Public Methods
-
-        public static void LoadPropertiesFromRequest(this Control control)
-        {
-            if (control != null)
-            {
-                Page page = control.Page;
-                byte[] bytes = HttpServerUtility.UrlTokenDecode(page.Request.QueryString["d"]);
-                string key = Encoding.UTF8.GetString(bytes);
-                Hashtable table = page.Session[key] as Hashtable;
-                if (table != null)
-                {
-                    control.LoadProperties(table);
-                }
-            }
-        }
-
-        public static void LoadProperties(this Control control, Hashtable table)
-        {
-            if ((control != null) && (table != null))
-            {
-                foreach (PropertyInfo p in control.GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly))
-                {
-                    if (table.ContainsKey(p.Name) && p.CanWrite)
-                    {
-                        try
-                        {
-                            p.SetValue(control, table[p.Name], null);
-                        }
-                        catch (ArgumentException) { }
-                        catch (TargetException) { }
-                        catch (TargetParameterCountException) { }
-                        catch (MethodAccessException) { }
-                        catch (TargetInvocationException) { }
-                    }
-                }
-            }
-        }
 
         /// <summary>
         /// Registers the specified style sheet for the control.
@@ -67,7 +32,7 @@ namespace Micajah.AzureFileService
                     string script = string.Empty;
 
                     if (page.Header == null)
-                        script = string.Format(CultureInfo.InvariantCulture, "<link type=\"text/css\" rel=\"stylesheet\" href=\"{0}\"></link>", webResourceUrl);
+                        script = string.Format(CultureInfo.InvariantCulture, StyleSheetHtml, webResourceUrl);
                     else
                     {
                         using (HtmlLink link = new HtmlLink())

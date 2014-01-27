@@ -72,7 +72,6 @@
     <Compile Include="WebControls\Enums.cs" />
     <Compile Include="WebControls\FileList.cs" />
     <Compile Include="WebControls\FileUpload.cs" />
-    <Compile Include="WebControls\IUploadControl.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Resources.resx">
