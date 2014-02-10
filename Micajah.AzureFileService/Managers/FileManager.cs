@@ -531,6 +531,29 @@ namespace Micajah.AzureFileService
             return blob.Name;
         }
 
+        public Collection<File> GetTemporaryFiles(string directoryName)
+        {
+            List<File> files = new List<File>();
+
+            IEnumerable<IListBlobItem> blobList = this.TemporaryContainer.ListBlobs(directoryName);
+            foreach (IListBlobItem item in blobList)
+            {
+                CloudBlockBlob blob = item as CloudBlockBlob;
+                if (blob != null)
+                {
+                    if (blob.BlobType == BlobType.BlockBlob)
+                    {
+                        File file = GetFileInfo(blob);
+                        files.Add(file);
+                    }
+                }
+            }
+
+            files.Sort(CompareFilesByLastModifiedAndName);
+
+            return new Collection<File>(files);
+        }
+
         public string UploadTemporaryFile(string fileName, string contentType, byte[] buffer, string directoryName)
         {
             if (buffer != null)
