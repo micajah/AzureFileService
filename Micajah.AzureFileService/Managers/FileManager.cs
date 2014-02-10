@@ -26,11 +26,6 @@ namespace Micajah.AzureFileService
 
         #region Constructors
 
-        public FileManager()
-        {
-
-        }
-
         public FileManager(string containerName, string objectType, string objectId)
         {
             this.ObjectType = objectType;
