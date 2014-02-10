@@ -42,7 +42,7 @@ namespace Micajah.AzureFileService.WebControls
                 string url = (m_FileList.ShowVideoOnly ? ResourceHandler.GetWebResourceUrl("Images.Video.gif", true) : GetNonImageFileTypeIconUrl(file.Name, IconSize.Bigger));
                 if (url == null)
                 {
-                    url = m_FileList.Manager.GetThumbnailUrl(file.FileId, (int)IconSize.Bigger, (int)IconSize.Bigger, 1, false);
+                    url = m_FileList.FileManager.GetThumbnailUrl(file.FileId, (int)IconSize.Bigger, (int)IconSize.Bigger, 1, false);
                 }
                 img.ImageUrl = url;
             }

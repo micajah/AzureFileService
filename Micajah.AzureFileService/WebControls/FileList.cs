@@ -39,7 +39,7 @@ namespace Micajah.AzureFileService.WebControls
         private DateTime m_UpdatedDate = DateTime.MinValue;
         private TimeZoneInfo m_TimeZone;
         private static ReadOnlyCollection<string> s_KnownFileExtensions;
-        private FileManager m_Manager;
+        private FileManager m_FileManager;
 
         #endregion
 
@@ -93,18 +93,6 @@ namespace Micajah.AzureFileService.WebControls
 
                 return ResourceVirtualPathProvider.VirtualPathToAbsolute(ResourceVirtualPathProvider.VirtualRootShortPath + "FileList.aspx")
                     + "?d=" + HttpServerUtility.UrlTokenEncode(Encoding.UTF8.GetBytes(str));
-            }
-        }
-
-        private FileManager Manager
-        {
-            get
-            {
-                if (m_Manager == null)
-                {
-                    m_Manager = new FileManager(this.ContainerName, this.ObjectType, this.ObjectId);
-                }
-                return m_Manager;
             }
         }
 
@@ -479,6 +467,19 @@ namespace Micajah.AzureFileService.WebControls
             set { this.ViewState["ObjectId"] = value; }
         }
 
+        [Browsable(false)]
+        public FileManager FileManager
+        {
+            get
+            {
+                if (m_FileManager == null)
+                {
+                    m_FileManager = new FileManager(this.ContainerName, this.ObjectType, this.ObjectId);
+                }
+                return m_FileManager;
+            }
+        }
+
         #endregion
 
         #region Private Methods
@@ -604,7 +605,7 @@ namespace Micajah.AzureFileService.WebControls
 
         private void DeleteFile(string blobName)
         {
-            this.Manager.DeleteFile(blobName);
+            this.FileManager.DeleteFile(blobName);
 
             if (this.FileDeleted != null)
             {
@@ -657,7 +658,7 @@ namespace Micajah.AzureFileService.WebControls
         {
             this.FilesCount = 0;
 
-            Collection<File> files = this.Manager.GetFiles(this.FileExtensionsFilterInternal, this.NegateFileExtensionsFilter);
+            Collection<File> files = this.FileManager.GetFiles(this.FileExtensionsFilterInternal, this.NegateFileExtensionsFilter);
 
             if (Grid != null)
             {
@@ -702,7 +703,7 @@ namespace Micajah.AzureFileService.WebControls
                     {
                         if (MimeType.IsImageType(MimeMapping.GetMimeMapping(file.Name)))
                         {
-                            string thumbUrl = this.Manager.GetThumbnailUrl(file.FileId, 600, 500, 1, true);
+                            string thumbUrl = this.FileManager.GetThumbnailUrl(file.FileId, 600, 500, 1, true);
                             string content = string.Format(CultureInfo.InvariantCulture, ToolTipBigHtml, file.Url, file.Name, thumbUrl);
 
                             link.Attributes["data-ot"] = content;

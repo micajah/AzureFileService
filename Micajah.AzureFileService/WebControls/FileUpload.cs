@@ -22,7 +22,7 @@ namespace Micajah.AzureFileService.WebControls
         protected System.Web.UI.WebControls.FileUpload FileFromMyComputer;
         protected CustomValidator Validator;
 
-        private FileManager m_Manager;
+        private FileManager m_FileManager;
 
         #endregion
 
@@ -162,6 +162,19 @@ namespace Micajah.AzureFileService.WebControls
             }
         }
 
+        [Browsable(false)]
+        public FileManager FileManager
+        {
+            get
+            {
+                if (m_FileManager == null)
+                {
+                    m_FileManager = new FileManager(this.ContainerName, this.ObjectType, this.ObjectId, this.TemporaryContainerName);
+                }
+                return m_FileManager;
+            }
+        }
+
         #endregion
 
         #region Overriden Properties
@@ -174,18 +187,6 @@ namespace Micajah.AzureFileService.WebControls
         #endregion
 
         #region Private Properties
-
-        private FileManager Manager
-        {
-            get
-            {
-                if (m_Manager == null)
-                {
-                    m_Manager = new FileManager(this.ContainerName, this.ObjectType, this.ObjectId, this.TemporaryContainerName);
-                }
-                return m_Manager;
-            }
-        }
 
         private int MaxFileSizeInMB
         {
@@ -220,7 +221,7 @@ namespace Micajah.AzureFileService.WebControls
                     , (char.ToLowerInvariant(this.ClientID[0]) + this.ClientID.Substring(1)).Replace("_", string.Empty)
                     , this.ClientID
                     , FileFromMyComputer.UniqueID
-                    , this.Manager.GetTemporaryFilesUploadUrlFormat(this.TemporaryDirectoryName));
+                    , this.FileManager.GetTemporaryFilesUploadUrlFormat(this.TemporaryDirectoryName));
                 if (!string.IsNullOrWhiteSpace(this.Accept))
                 {
                     sb.AppendFormat(CultureInfo.InvariantCulture, ",acceptedFiles:\"{0}\"", this.Accept);
@@ -256,7 +257,7 @@ namespace Micajah.AzureFileService.WebControls
                         {
                             string fileName = Path.GetFileName(file.FileName);
 
-                            this.Manager.UploadTemporaryFile(fileName, file.ContentType, file.InputStream, this.TemporaryDirectoryName);
+                            this.FileManager.UploadTemporaryFile(fileName, file.ContentType, file.InputStream, this.TemporaryDirectoryName);
                         }
                         else
                             this.ErrorMessage = Resources.FileUpload_InvalidFileSize;
@@ -379,7 +380,7 @@ namespace Micajah.AzureFileService.WebControls
         /// </summary>
         public void AcceptChanges()
         {
-            this.Manager.MoveTemporaryFiles(this.TemporaryDirectoryName);
+            this.FileManager.MoveTemporaryFiles(this.TemporaryDirectoryName);
 
             this.TemporaryDirectoryName = null;
         }
@@ -389,7 +390,7 @@ namespace Micajah.AzureFileService.WebControls
         /// </summary>
         public void RejectChanges()
         {
-            this.Manager.DeleteTemporaryFiles(this.TemporaryDirectoryName);
+            this.FileManager.DeleteTemporaryFiles(this.TemporaryDirectoryName);
 
             this.TemporaryDirectoryName = null;
         }
