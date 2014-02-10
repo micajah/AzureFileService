@@ -163,6 +163,22 @@ namespace Micajah.AzureFileService.WebControls
         }
 
         [Browsable(false)]
+        public string TemporaryDirectoryName
+        {
+            get
+            {
+                string value = (string)this.ViewState["TemporaryDirectoryName"];
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    value = Guid.NewGuid().ToString("N");
+                    this.TemporaryDirectoryName = value;
+                }
+                return value;
+            }
+            set { this.ViewState["TemporaryDirectoryName"] = value; }
+        }
+
+        [Browsable(false)]
         public FileManager FileManager
         {
             get
@@ -194,21 +210,6 @@ namespace Micajah.AzureFileService.WebControls
             {
                 return this.MaxFileSize / 1024 / 1024;
             }
-        }
-
-        private string TemporaryDirectoryName
-        {
-            get
-            {
-                string value = (string)this.ViewState["TemporaryDirectoryName"];
-                if (string.IsNullOrWhiteSpace(value))
-                {
-                    value = Guid.NewGuid().ToString("N");
-                    this.TemporaryDirectoryName = value;
-                }
-                return value;
-            }
-            set { this.ViewState["TemporaryDirectoryName"] = value; }
         }
 
         private string ClientScript
