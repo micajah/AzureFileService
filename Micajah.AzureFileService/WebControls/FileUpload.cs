@@ -1,5 +1,6 @@
 ﻿using Micajah.AzureFileService.Properties;
 using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
 using System.IO;
@@ -163,22 +164,6 @@ namespace Micajah.AzureFileService.WebControls
         }
 
         [Browsable(false)]
-        public string TemporaryDirectoryName
-        {
-            get
-            {
-                string value = (string)this.ViewState["TemporaryDirectoryName"];
-                if (string.IsNullOrWhiteSpace(value))
-                {
-                    value = Guid.NewGuid().ToString("N");
-                    this.TemporaryDirectoryName = value;
-                }
-                return value;
-            }
-            set { this.ViewState["TemporaryDirectoryName"] = value; }
-        }
-
-        [Browsable(false)]
         public FileManager FileManager
         {
             get
@@ -188,6 +173,18 @@ namespace Micajah.AzureFileService.WebControls
                     m_FileManager = new FileManager(this.ContainerName, this.ObjectType, this.ObjectId, this.TemporaryContainerName);
                 }
                 return m_FileManager;
+            }
+        }
+
+        /// <summary>
+        /// Gets the names of the successfully uploaded files.
+        /// </summary>
+        [Browsable(false)]
+        public ReadOnlyCollection<string> UploadedFileNames
+        {
+            get
+            {
+                return new ReadOnlyCollection<string>(this.FileManager.GetTemporaryFileNames(this.TemporaryDirectoryName));
             }
         }
 
@@ -238,6 +235,21 @@ namespace Micajah.AzureFileService.WebControls
                 sb.AppendFormat(CultureInfo.InvariantCulture, ",cacheControl:\"{0}\",dictDefaultMessage:\"{1}\"}});\r\n", Settings.ClientCacheControl, Resources.FileUpload_DefaultMessage);
                 return sb.ToString();
             }
+        }
+
+        private string TemporaryDirectoryName
+        {
+            get
+            {
+                string value = (string)this.ViewState["TemporaryDirectoryName"];
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    value = Guid.NewGuid().ToString("N");
+                    this.TemporaryDirectoryName = value;
+                }
+                return value;
+            }
+            set { this.ViewState["TemporaryDirectoryName"] = value; }
         }
 
         #endregion

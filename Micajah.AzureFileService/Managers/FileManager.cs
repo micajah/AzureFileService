@@ -285,7 +285,7 @@ namespace Micajah.AzureFileService
 
                 string objectType = values[length - 3];
                 string objectId = values[length - 2];
-                fileName = values[values.Length - 1];
+                fileName = values[length - 1];
 
                 FileManager manager = new FileManager(containerName, objectType, objectId);
 
@@ -392,6 +392,28 @@ namespace Micajah.AzureFileService
             return bytes;
         }
 
+        public static byte[] GetFileByUrl(string url)
+        {
+            if (!string.IsNullOrEmpty(url))
+            {
+                string[] values = url.Split('?')[0].Split('/');
+                int length = values.Length;
+
+                string containerName = values[length - 4];
+                string objectType = values[length - 3];
+                string objectId = values[length - 2];
+                string fileName = values[length - 1];
+
+                FileManager manager = new FileManager(containerName, objectType, objectId);
+
+                string fileId = string.Format(CultureInfo.InvariantCulture, manager.BlobNameFormat, fileName);
+
+                return manager.GetFile(fileId);
+            }
+
+            return null;
+        }
+
         public Collection<File> GetFiles()
         {
             List<File> files = new List<File>();
@@ -461,6 +483,20 @@ namespace Micajah.AzureFileService
             return new Collection<File>(files);
         }
 
+        public string[] GetFileNames()
+        {
+            List<string> names = new List<string>();
+
+            Collection<File> files = this.GetFiles();
+
+            foreach (File file in files)
+            {
+                names.Add(file.Name);
+            }
+
+            return names.ToArray();
+        }
+
         public void DeleteFile(string fileId)
         {
             if (!string.IsNullOrEmpty(fileId))
@@ -489,6 +525,22 @@ namespace Micajah.AzureFileService
                 {
                     CloudBlockBlob blob = this.Container.GetBlockBlobReference(fileId);
                     blob.Delete();
+                }
+            }
+        }
+
+        public void DeleteFiles()
+        {
+            IEnumerable<IListBlobItem> blobList = this.Container.ListBlobs(this.BlobPath);
+            foreach (IListBlobItem item in blobList)
+            {
+                CloudBlockBlob blob = item as CloudBlockBlob;
+                if (blob != null)
+                {
+                    if (blob.BlobType == BlobType.BlockBlob)
+                    {
+                        this.DeleteFile(blob.Name);
+                    }
                 }
             }
         }
@@ -552,6 +604,21 @@ namespace Micajah.AzureFileService
             files.Sort(CompareFilesByLastModifiedAndName);
 
             return new Collection<File>(files);
+        }
+
+        internal string[] GetTemporaryFileNames(string directoryName)
+        {
+            List<string> names = new List<string>();
+
+            Collection<File> files = this.GetTemporaryFiles(directoryName);
+
+            foreach (File file in files)
+            {
+                string fileName = file.Name;
+                names.Add(fileName);
+            }
+
+            return names.ToArray();
         }
 
         public string UploadTemporaryFile(string fileName, string contentType, byte[] buffer, string directoryName)
