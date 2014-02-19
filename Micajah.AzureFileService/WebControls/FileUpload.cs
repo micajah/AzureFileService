@@ -74,62 +74,6 @@ namespace Micajah.AzureFileService.WebControls
         }
 
         /// <summary>
-        /// Gets or sets the name of the temporary container the files are uploaded to.
-        /// </summary>
-        [Category("Data")]
-        [Description("The name of the temporary container the files are uploaded to.")]
-        [DefaultValue("")]
-        public string TemporaryContainerName
-        {
-            get
-            {
-                string value = (string)this.ViewState["TemporaryContainerName"];
-                if (string.IsNullOrWhiteSpace(value))
-                {
-                    value = Settings.TemporaryContainerName;
-                }
-                return value;
-            }
-            set { this.ViewState["TemporaryContainerName"] = value; }
-        }
-
-        /// <summary>
-        /// Gets or sets the name of the container the files are uploaded to.
-        /// </summary>
-        [Category("Data")]
-        [Description("The name of the container the files are uploaded to.")]
-        [DefaultValue("")]
-        public string ContainerName
-        {
-            get { return (string)this.ViewState["ContainerName"]; }
-            set { this.ViewState["ContainerName"] = value; }
-        }
-
-        /// <summary>
-        /// Gets or sets the type of the object which the files are associated with.
-        /// </summary>
-        [Category("Data")]
-        [Description("The type of the object which the files are associated with.")]
-        [DefaultValue("")]
-        public string ObjectType
-        {
-            get { return (string)this.ViewState["ObjectType"]; }
-            set { this.ViewState["ObjectType"] = value; }
-        }
-
-        /// <summary>
-        /// Gets or sets the unique identifier of the object which the files are associated with.
-        /// </summary>
-        [Category("Data")]
-        [Description("The unique identifier of the object which the files are associated with.")]
-        [DefaultValue("")]
-        public string ObjectId
-        {
-            get { return (string)this.ViewState["ObjectId"]; }
-            set { this.ViewState["ObjectId"] = value; }
-        }
-
-        /// <summary>
         /// Gets or set a value indicating whether the error message is displayed in the control.
         /// </summary>
         [Category("Appearance")]
@@ -163,19 +107,6 @@ namespace Micajah.AzureFileService.WebControls
             }
         }
 
-        [Browsable(false)]
-        public FileManager FileManager
-        {
-            get
-            {
-                if (m_FileManager == null)
-                {
-                    m_FileManager = new FileManager(this.ContainerName, this.ObjectType, this.ObjectId, this.TemporaryContainerName);
-                }
-                return m_FileManager;
-            }
-        }
-
         /// <summary>
         /// Gets the names of the successfully uploaded files.
         /// </summary>
@@ -185,6 +116,91 @@ namespace Micajah.AzureFileService.WebControls
             get
             {
                 return new ReadOnlyCollection<string>(this.FileManager.GetTemporaryFileNames(this.TemporaryDirectoryName));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the name of the temporary container the files are uploaded to.
+        /// </summary>
+        [Category("Data")]
+        [Description("The name of the temporary container the files are uploaded to.")]
+        [DefaultValue("")]
+        public string TemporaryContainerName
+        {
+            get
+            {
+                string value = (string)this.ViewState["TemporaryContainerName"];
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    value = Settings.TemporaryContainerName;
+                }
+                return value;
+            }
+            set { this.ViewState["TemporaryContainerName"] = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the name of the container the files are uploaded to.
+        /// </summary>
+        [Category("Data")]
+        [Description("The name of the container the files are uploaded to.")]
+        [DefaultValue("")]
+        public string ContainerName
+        {
+            get { return (string)this.ViewState["ContainerName"]; }
+            set { this.ViewState["ContainerName"] = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the public access to the files is allowed in the container.
+        /// </summary>
+        [Category("Behavior")]
+        [Description("Whether the public access to the files is allowed in the container.")]
+        [DefaultValue(false)]
+        public bool ContainerPublicAccess
+        {
+            get
+            {
+                object obj = this.ViewState["ContainerPublicAccess"];
+                return ((obj == null) ? false : (bool)obj);
+            }
+            set { this.ViewState["ContainerPublicAccess"] = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the type of the object which the files are associated with.
+        /// </summary>
+        [Category("Data")]
+        [Description("The type of the object which the files are associated with.")]
+        [DefaultValue("")]
+        public string ObjectType
+        {
+            get { return (string)this.ViewState["ObjectType"]; }
+            set { this.ViewState["ObjectType"] = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the unique identifier of the object which the files are associated with.
+        /// </summary>
+        [Category("Data")]
+        [Description("The unique identifier of the object which the files are associated with.")]
+        [DefaultValue("")]
+        public string ObjectId
+        {
+            get { return (string)this.ViewState["ObjectId"]; }
+            set { this.ViewState["ObjectId"] = value; }
+        }
+
+        [Browsable(false)]
+        public FileManager FileManager
+        {
+            get
+            {
+                if (m_FileManager == null)
+                {
+                    m_FileManager = new FileManager(this.ContainerName, this.ContainerPublicAccess, this.ObjectType, this.ObjectId, this.TemporaryContainerName);
+                }
+                return m_FileManager;
             }
         }
 

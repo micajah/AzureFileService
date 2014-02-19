@@ -444,6 +444,22 @@ namespace Micajah.AzureFileService.WebControls
         }
 
         /// <summary>
+        /// Gets or sets a value indicating whether the public access to the files is allowed in the container.
+        /// </summary>
+        [Category("Behavior")]
+        [Description("Whether the public access to the files is allowed in the container.")]
+        [DefaultValue(false)]
+        public bool ContainerPublicAccess
+        {
+            get
+            {
+                object obj = this.ViewState["ContainerPublicAccess"];
+                return ((obj == null) ? false : (bool)obj);
+            }
+            set { this.ViewState["ContainerPublicAccess"] = value; }
+        }
+
+        /// <summary>
         /// Gets or sets the type of the object which the files are associated with.
         /// </summary>
         [Category("Data")]
@@ -474,7 +490,7 @@ namespace Micajah.AzureFileService.WebControls
             {
                 if (m_FileManager == null)
                 {
-                    m_FileManager = new FileManager(this.ContainerName, this.ObjectType, this.ObjectId);
+                    m_FileManager = new FileManager(this.ContainerName, this.ContainerPublicAccess, this.ObjectType, this.ObjectId);
                 }
                 return m_FileManager;
             }

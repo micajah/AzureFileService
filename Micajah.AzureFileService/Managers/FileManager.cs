@@ -40,6 +40,18 @@ namespace Micajah.AzureFileService
             m_TemporaryContainerName = temporaryContainerName;
         }
 
+        public FileManager(string containerName, bool containerPublicAccess, string objectType, string objectId) :
+            this(containerName, objectType, objectId)
+        {
+            this.ContainerPublicAccess = containerPublicAccess;
+        }
+
+        public FileManager(string containerName, bool containerPublicAccess, string objectType, string objectId, string temporaryContainerName) :
+            this(containerName, objectType, objectId, temporaryContainerName)
+        {
+            this.ContainerPublicAccess = containerPublicAccess;
+        }
+
         #endregion
 
         #region Private Properties
@@ -57,6 +69,87 @@ namespace Micajah.AzureFileService
             get
             {
                 return string.Format(CultureInfo.InvariantCulture, "{0}{{0}}", this.BlobPath);
+            }
+        }
+
+        private SharedAccessBlobPolicy ReadAccessPolicy
+        {
+            get
+            {
+                if (m_ReadAccessPolicy == null)
+                {
+                    m_ReadAccessPolicy = new SharedAccessBlobPolicy
+                    {
+                        Permissions = SharedAccessBlobPermissions.Read,
+                        SharedAccessExpiryTime = DateTime.UtcNow.AddMinutes(Settings.SharedAccessExpiryTime)
+                    };
+                }
+                return m_ReadAccessPolicy;
+            }
+        }
+
+        private SharedAccessBlobPolicy WriteAccessPolicy
+        {
+            get
+            {
+                if (m_WriteAccessPolicy == null)
+                {
+                    m_WriteAccessPolicy = new SharedAccessBlobPolicy
+                    {
+                        Permissions = SharedAccessBlobPermissions.Write,
+                        SharedAccessExpiryTime = DateTime.UtcNow.AddMinutes(Settings.SharedAccessExpiryTime)
+                    };
+                }
+                return m_WriteAccessPolicy;
+            }
+        }
+
+        private CloudBlobClient ServiceClient
+        {
+            get
+            {
+                if (m_ServiceClient == null)
+                {
+                    CloudStorageAccount storageAccount = CloudStorageAccount.Parse(Settings.StorageConnectionString);
+                    m_ServiceClient = storageAccount.CreateCloudBlobClient();
+                }
+                return m_ServiceClient;
+            }
+        }
+
+        private CloudBlobContainer Container
+        {
+            get
+            {
+                if (m_Container == null)
+                {
+                    m_Container = this.ServiceClient.GetContainerReference(this.ContainerName);
+                    m_Container.CreateIfNotExists();
+
+                    if (this.ContainerPublicAccess)
+                    {
+                        BlobContainerPermissions p = new BlobContainerPermissions()
+                        {
+                            PublicAccess = BlobContainerPublicAccessType.Blob
+                        };
+
+                        m_Container.SetPermissions(p);
+                    }
+                }
+                return m_Container;
+            }
+        }
+
+        private CloudBlobContainer TemporaryContainer
+        {
+            get
+            {
+                if (m_TemporaryContainer == null)
+                {
+                    m_TemporaryContainer = this.ServiceClient.GetContainerReference(this.TemporaryContainerName);
+                    m_TemporaryContainer.CreateIfNotExists();
+                }
+                return m_TemporaryContainer;
             }
         }
 
@@ -81,6 +174,11 @@ namespace Micajah.AzureFileService
         }
 
         /// <summary>
+        /// Gets or sets a value indicating whether the public access to the files is allowed in the container.
+        /// </summary>
+        public bool ContainerPublicAccess { get; set; }
+
+        /// <summary>
         /// Gets or sets the type of the object which the files are associated with.
         /// </summary>
         public string ObjectType { get; set; }
@@ -103,81 +201,6 @@ namespace Micajah.AzureFileService
             {
                 m_TemporaryContainerName = value;
                 m_TemporaryContainer = null;
-            }
-        }
-
-        #endregion
-
-        #region Internal Properties
-
-        internal SharedAccessBlobPolicy ReadAccessPolicy
-        {
-            get
-            {
-                if (m_ReadAccessPolicy == null)
-                {
-                    m_ReadAccessPolicy = new SharedAccessBlobPolicy
-                    {
-                        Permissions = SharedAccessBlobPermissions.Read,
-                        SharedAccessExpiryTime = DateTime.UtcNow.AddMinutes(Settings.SharedAccessExpiryTime)
-                    };
-                }
-                return m_ReadAccessPolicy;
-            }
-        }
-
-        internal SharedAccessBlobPolicy WriteAccessPolicy
-        {
-            get
-            {
-                if (m_WriteAccessPolicy == null)
-                {
-                    m_WriteAccessPolicy = new SharedAccessBlobPolicy
-                    {
-                        Permissions = SharedAccessBlobPermissions.Write,
-                        SharedAccessExpiryTime = DateTime.UtcNow.AddMinutes(Settings.SharedAccessExpiryTime)
-                    };
-                }
-                return m_WriteAccessPolicy;
-            }
-        }
-
-        internal CloudBlobClient ServiceClient
-        {
-            get
-            {
-                if (m_ServiceClient == null)
-                {
-                    CloudStorageAccount storageAccount = CloudStorageAccount.Parse(Settings.StorageConnectionString);
-                    m_ServiceClient = storageAccount.CreateCloudBlobClient();
-                }
-                return m_ServiceClient;
-            }
-        }
-
-        internal CloudBlobContainer Container
-        {
-            get
-            {
-                if (m_Container == null)
-                {
-                    m_Container = this.ServiceClient.GetContainerReference(this.ContainerName);
-                    m_Container.CreateIfNotExists();
-                }
-                return m_Container;
-            }
-        }
-
-        internal CloudBlobContainer TemporaryContainer
-        {
-            get
-            {
-                if (m_TemporaryContainer == null)
-                {
-                    m_TemporaryContainer = this.ServiceClient.GetContainerReference(this.TemporaryContainerName);
-                    m_TemporaryContainer.CreateIfNotExists();
-                }
-                return m_TemporaryContainer;
             }
         }
 
@@ -212,9 +235,19 @@ namespace Micajah.AzureFileService
         private File GetFileInfo(CloudBlockBlob blob)
         {
             BlobProperties props = blob.Properties;
+
             string fileName = GetNameFromFileId(blob.Name);
-            string sas = blob.GetSharedAccessSignature(this.ReadAccessPolicy);
-            string url = string.Format(CultureInfo.InvariantCulture, "{0}{1}", blob.Uri, sas);
+
+            string url = null;
+            if (this.ContainerPublicAccess)
+            {
+                url = blob.Uri.ToString();
+            }
+            else
+            {
+                string sas = blob.GetSharedAccessSignature(this.ReadAccessPolicy);
+                url = string.Format(CultureInfo.InvariantCulture, "{0}{1}", blob.Uri, sas);
+            }
 
             return new File()
             {
