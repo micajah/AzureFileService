@@ -60,7 +60,7 @@ namespace Micajah.AzureFileService
         {
             get
             {
-                return string.Format(CultureInfo.InvariantCulture, "{0}/{1}/", this.ObjectType, this.ObjectId);
+                return GetBlobPath(this.ObjectType, this.ObjectId);
             }
         }
 
@@ -68,7 +68,7 @@ namespace Micajah.AzureFileService
         {
             get
             {
-                return string.Format(CultureInfo.InvariantCulture, "{0}{{0}}", this.BlobPath);
+                return GetBlobNameFormat(this.ObjectType, this.ObjectId);
             }
         }
 
@@ -230,6 +230,16 @@ namespace Micajah.AzureFileService
                 }
             }
             return result;
+        }
+
+        private static string GetBlobPath(string objectType, string objectId)
+        {
+            return string.Format(CultureInfo.InvariantCulture, "{0}/{1}/", objectType, objectId);
+        }
+
+        private static string GetBlobNameFormat(string objectType, string objectId)
+        {
+            return string.Format(CultureInfo.InvariantCulture, "{0}{{0}}", GetBlobPath(objectType, objectId));
         }
 
         private File GetFileInfo(CloudBlockBlob blob)
@@ -713,6 +723,30 @@ namespace Micajah.AzureFileService
                         blob.StartCopyFromBlob(tempBlob);
 
                         tempBlob.Delete();
+                    }
+                }
+            }
+        }
+
+        public void MoveFiles(string objectId)
+        {
+            string newBlobNameFormat = GetBlobNameFormat(this.ObjectType, objectId);
+
+            IEnumerable<IListBlobItem> blobList = this.Container.ListBlobs(this.BlobPath);
+            foreach (IListBlobItem item in blobList)
+            {
+                CloudBlockBlob blob = item as CloudBlockBlob;
+                if (blob != null)
+                {
+                    if (blob.BlobType == BlobType.BlockBlob)
+                    {
+                        string fileName = GetNameFromFileId(blob.Name);
+                        string newBlobName = string.Format(CultureInfo.InvariantCulture, newBlobNameFormat, fileName);
+
+                        CloudBlockBlob newBlob = this.Container.GetBlockBlobReference(newBlobName);
+                        newBlob.StartCopyFromBlob(blob);
+
+                        this.DeleteFile(blob.Name);
                     }
                 }
             }
