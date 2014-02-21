@@ -619,13 +619,16 @@ namespace Micajah.AzureFileService.WebControls
             }
         }
 
-        private void DeleteFile(string blobName)
+        private void DeleteFile(string fileId)
         {
-            this.FileManager.DeleteFile(blobName);
+            this.FileManager.DeleteFile(fileId);
 
             if (this.FileDeleted != null)
             {
-                this.FileDeleted(this, new CommandEventArgs(DeleteCommandName, blobName));
+                string name = FileManager.GetNameFromFileId(fileId);
+                string[] argument = new string[2] { fileId, name };
+
+                this.FileDeleted(this, new CommandEventArgs(DeleteCommandName, argument));
             }
         }
 
