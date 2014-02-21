@@ -626,9 +626,14 @@ namespace Micajah.AzureFileService.WebControls
             if (this.FileDeleted != null)
             {
                 string name = FileManager.GetNameFromFileId(fileId);
-                string[] argument = new string[2] { fileId, name };
 
-                this.FileDeleted(this, new CommandEventArgs(DeleteCommandName, argument));
+                File file = new File()
+                {
+                    FileId = fileId,
+                    Name = name
+                };
+
+                this.FileDeleted(this, new CommandEventArgs(DeleteCommandName, file));
             }
         }
 
