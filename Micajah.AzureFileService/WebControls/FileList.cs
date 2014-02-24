@@ -920,7 +920,7 @@ namespace Micajah.AzureFileService.WebControls
                 this.ContainerPublicAccess = Convert.ToBoolean(values[1], CultureInfo.InvariantCulture);
                 this.ObjectType = values[2];
                 this.ObjectId = values[3];
-                this.NegateFileExtensionsFilter = Convert.ToBoolean(values[3], CultureInfo.InvariantCulture);
+                this.NegateFileExtensionsFilter = Convert.ToBoolean(values[4], CultureInfo.InvariantCulture);
             }
         }
 
