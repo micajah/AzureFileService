@@ -440,7 +440,15 @@ namespace Micajah.AzureFileService.WebControls
         public string ContainerName
         {
             get { return (string)this.ViewState["ContainerName"]; }
-            set { this.ViewState["ContainerName"] = value; }
+            set
+            {
+                this.ViewState["ContainerName"] = value;
+
+                if (m_FileManager != null)
+                {
+                    m_FileManager.ContainerName = value;
+                }
+            }
         }
 
         /// <summary>
@@ -456,7 +464,15 @@ namespace Micajah.AzureFileService.WebControls
                 object obj = this.ViewState["ContainerPublicAccess"];
                 return ((obj == null) ? false : (bool)obj);
             }
-            set { this.ViewState["ContainerPublicAccess"] = value; }
+            set
+            {
+                this.ViewState["ContainerPublicAccess"] = value;
+
+                if (m_FileManager != null)
+                {
+                    m_FileManager.ContainerPublicAccess = value;
+                }
+            }
         }
 
         /// <summary>
@@ -468,7 +484,15 @@ namespace Micajah.AzureFileService.WebControls
         public string ObjectType
         {
             get { return (string)this.ViewState["ObjectType"]; }
-            set { this.ViewState["ObjectType"] = value; }
+            set
+            {
+                this.ViewState["ObjectType"] = value;
+
+                if (m_FileManager != null)
+                {
+                    m_FileManager.ObjectType = value;
+                }
+            }
         }
 
         /// <summary>
@@ -480,7 +504,15 @@ namespace Micajah.AzureFileService.WebControls
         public string ObjectId
         {
             get { return (string)this.ViewState["ObjectId"]; }
-            set { this.ViewState["ObjectId"] = value; }
+            set
+            {
+                this.ViewState["ObjectId"] = value;
+
+                if (m_FileManager != null)
+                {
+                    m_FileManager.ObjectId = value;
+                }
+            }
         }
 
         [Browsable(false)]
