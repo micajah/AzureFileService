@@ -153,22 +153,15 @@
 /* Overrides */
 .dropzone {
     font-size: 14px;
+    min-height: 170px;
 }
 
-.dropzone.dz-clickable .dz-message{
-  position: absolute;
+.dropzone .dz-message {
+  position: relative;
   text-align: center;
   font-size: 30px;
-  top: 34%;
-  left: 42%;
-}
-
-.dropzone.dz-browser-not-supported .dz-message {
-  position: absolute;
-  text-align: center;
-  font-size: 30px;
-  top: 45%;
-  left: 20%;
+  padding-top: 20px;
+  padding-bottom: 20px;
 }
 
 .dropzone.dz-browser-not-supported .dz-error-message {
