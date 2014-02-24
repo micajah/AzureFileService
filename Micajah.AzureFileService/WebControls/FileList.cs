@@ -89,7 +89,7 @@ namespace Micajah.AzureFileService.WebControls
         {
             get
             {
-                string str = string.Format(CultureInfo.InvariantCulture, "{0}|{1}|{2}|{3}", this.ContainerName, this.ObjectType, this.ObjectId, this.NegateFileExtensionsFilter);
+                string str = string.Format(CultureInfo.InvariantCulture, "{0}|{1}|{2}|{3}|{4}", this.ContainerName, this.ContainerPublicAccess, this.ObjectType, this.ObjectId, this.NegateFileExtensionsFilter);
 
                 return ResourceVirtualPathProvider.VirtualPathToAbsolute(ResourceVirtualPathProvider.VirtualRootShortPath + "FileList.aspx")
                     + "?d=" + HttpServerUtility.UrlTokenEncode(Encoding.UTF8.GetBytes(str));
@@ -917,8 +917,9 @@ namespace Micajah.AzureFileService.WebControls
                 string[] values = str.Split('|');
 
                 this.ContainerName = values[0];
-                this.ObjectType = values[1];
-                this.ObjectId = values[2];
+                this.ContainerPublicAccess = Convert.ToBoolean(values[1], CultureInfo.InvariantCulture);
+                this.ObjectType = values[2];
+                this.ObjectId = values[3];
                 this.NegateFileExtensionsFilter = Convert.ToBoolean(values[3], CultureInfo.InvariantCulture);
             }
         }
