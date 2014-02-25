@@ -696,7 +696,7 @@ require.register("dropzone/lib/dropzone.js", function(exports, require, module){
       }
       this.options.method = this.options.method.toUpperCase();
       if ((fallback = this.getExistingFallback()) && fallback.parentNode) {
-        fallback.parentNode.removeChild(fallback);
+          fallback.style.display = "none";
       }
       if (this.options.previewsContainer) {
         this.previewsContainer = Dropzone.getElement(this.options.previewsContainer, "previewsContainer");
