@@ -25,7 +25,8 @@ namespace Micajah.AzureFileService.WebControls
         private const string OnDeletingClientScript = "return flDel();";
         private const string DeletingClientScript = "function flDel() {{ return window.confirm(\"{0}\"); }}\r\n";
         private const string ToolTipBigHtml = "<div class=\"flToolTip s600x500\"><a class=\"flFileName\" target=\"_blank\" href=\"{0}\"><img alt=\"{1}\" src=\"{2}\"></a></div>";
-        private const string ToolTipSmallHtml = "<div class=\"flToolTip s250\"><a class=\"flFileName\" href=\"{0}\" target=\"_blank\">{1}</a><span class=\"flFileInfo\">{2}, {3:N0} KB</span><a class=\"flRemove\" href=\"{4}\"{6}>{5}</a></div>";
+        private const string ToolTipSmallHtml = "<div class=\"flToolTip s250\"><a class=\"flFileName\" href=\"{0}\" target=\"_blank\">{1}</a><span class=\"flFileInfo\">{2}, {3:N0} KB</span>{4}</div>";
+        private const string DeleteLinkHtml = "<a class=\"flRemove\" href=\"{0}\"{1}>{2}</a>";
 
         #endregion
 

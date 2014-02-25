@@ -1,5 +1,6 @@
 ﻿using Micajah.AzureFileService.Properties;
 using System;
+using System.Globalization;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
@@ -68,9 +69,21 @@ namespace Micajah.AzureFileService.WebControls
 
                 string date = string.Format(m_FileList.Culture, m_FileList.DateTimeToolTipFormatString, TimeZoneInfo.ConvertTimeFromUtc(file.LastModified, m_FileList.TimeZone));
 
-                string content = string.Format(m_FileList.Culture, ToolTipSmallHtml,
-                    file.Url, file.Name, date, file.LengthInKB, m_FileList.Page.ClientScript.GetPostBackClientHyperlink(DeleteLink, string.Empty), Resources.FileList_DeleteText,
-                    m_FileList.EnableDeletingConfirmation ? string.Format(m_FileList.Culture, " onclick='{0}'", OnDeletingClientScript) : string.Empty);
+                string delete = string.Empty;
+                if (m_FileList.EnableDeleting)
+                {
+                    string deletingConfirmation = string.Empty;
+                    if (m_FileList.EnableDeletingConfirmation)
+                    {
+                        deletingConfirmation = string.Format(CultureInfo.InvariantCulture, " onclick='{0}'", OnDeletingClientScript);
+                    }
+
+                    string postBackClientHyperlink = m_FileList.Page.ClientScript.GetPostBackClientHyperlink(DeleteLink, string.Empty);
+
+                    delete = string.Format(CultureInfo.InvariantCulture, DeleteLinkHtml, postBackClientHyperlink, deletingConfirmation, Resources.FileList_DeleteText);
+                }
+
+                string content = string.Format(m_FileList.Culture, ToolTipSmallHtml, file.Url, file.Name, date, file.LengthInKB, delete);
 
                 panel.Attributes["data-ot"] = content;
             }
