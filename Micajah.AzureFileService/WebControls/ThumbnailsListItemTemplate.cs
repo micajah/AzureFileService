@@ -104,25 +104,37 @@ namespace Micajah.AzureFileService.WebControls
                     return;
                 }
 
+                int width = (m_FileList.ShowVideoOnly ? 148 : 128);
+                int height = width;
+
                 Picture = new Image();
                 Picture.DataBinding += new EventHandler(Image_DataBinding);
-                Picture.Width = Picture.Height = Unit.Pixel(m_FileList.ShowVideoOnly ? 148 : 128);
+                Picture.Width = Unit.Pixel(width);
+                Picture.Height = Unit.Pixel(height);
 
                 PictureLink = new HyperLink();
                 PictureLink.DataBinding += new EventHandler(HyperLink_DataBinding);
                 PictureLink.Controls.Add(Picture);
 
+                if (m_FileList.EnableDeleting && (!m_FileList.ShowFileToolTip))
+                {
+                    height += 17;
+                }
+
                 PicturePanel = new Panel();
                 PicturePanel.ID = "ThumbPanel";
-                PicturePanel.Width = PicturePanel.Height = Unit.Pixel(m_FileList.ShowVideoOnly ? 148 : 128);
+                PicturePanel.Width = Unit.Pixel(width);
+                PicturePanel.Height = Unit.Pixel(height);
                 PicturePanel.Style[HtmlTextWriterStyle.BackgroundColor] = "White";
+
                 if (m_FileList.ShowFileToolTip)
                 {
                     PicturePanel.DataBinding += new EventHandler(Panel_DataBinding);
                 }
+
                 PicturePanel.Controls.Add(PictureLink);
 
-                if (m_FileList.EnableDeleting && m_FileList.ShowFileToolTip)
+                if (m_FileList.EnableDeleting)
                 {
                     DeleteLink = new LinkButton();
                     DeleteLink.ID = "DeleteLink";
@@ -130,11 +142,17 @@ namespace Micajah.AzureFileService.WebControls
                     DeleteLink.CausesValidation = false;
                     DeleteLink.CssClass = "flRemove";
                     DeleteLink.Text = Resources.FileList_DeleteText;
-                    DeleteLink.Style[HtmlTextWriterStyle.Display] = "none";
+
+                    if (m_FileList.ShowFileToolTip)
+                    {
+                        DeleteLink.Style[HtmlTextWriterStyle.Display] = "none";
+                    }
+
                     if (m_FileList.EnableDeletingConfirmation)
                     {
                         DeleteLink.OnClientClick = OnDeletingClientScript;
                     }
+
                     PicturePanel.Controls.Add(DeleteLink);
                 }
 
