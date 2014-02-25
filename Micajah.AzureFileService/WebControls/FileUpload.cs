@@ -2,6 +2,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -395,6 +396,7 @@ namespace Micajah.AzureFileService.WebControls
             Validator.ID = "Validator";
             Validator.Display = ValidatorDisplay.Dynamic;
             Validator.CssClass = "dz-error-message";
+            Validator.ForeColor = Color.Empty;
             Validator.ServerValidate += new ServerValidateEventHandler(Validator_ServerValidate);
             FallbackPanel.Controls.Add(Validator);
         }
