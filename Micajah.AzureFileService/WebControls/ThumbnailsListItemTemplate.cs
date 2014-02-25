@@ -98,6 +98,7 @@ namespace Micajah.AzureFileService.WebControls
                 {
                     return;
                 }
+
                 if ((m_ItemType != ListItemType.Item) && (m_ItemType != ListItemType.AlternatingItem))
                 {
                     return;
@@ -115,10 +116,13 @@ namespace Micajah.AzureFileService.WebControls
                 PicturePanel.ID = "ThumbPanel";
                 PicturePanel.Width = PicturePanel.Height = Unit.Pixel(m_FileList.ShowVideoOnly ? 148 : 128);
                 PicturePanel.Style[HtmlTextWriterStyle.BackgroundColor] = "White";
-                PicturePanel.DataBinding += new EventHandler(Panel_DataBinding);
+                if (m_FileList.ShowFileToolTip)
+                {
+                    PicturePanel.DataBinding += new EventHandler(Panel_DataBinding);
+                }
                 PicturePanel.Controls.Add(PictureLink);
 
-                if (m_FileList.EnableDeleting)
+                if (m_FileList.EnableDeleting && m_FileList.ShowFileToolTip)
                 {
                     DeleteLink = new LinkButton();
                     DeleteLink.ID = "DeleteLink";

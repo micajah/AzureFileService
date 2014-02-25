@@ -756,15 +756,18 @@ namespace Micajah.AzureFileService.WebControls
                         }
                     }
 
-                    HyperLink link = e.Row.Cells[this.ShowIcons ? 1 : 0].Controls[0] as HyperLink;
-                    if (link != null)
+                    if (this.ShowFileToolTip)
                     {
-                        if (MimeType.IsImageType(MimeMapping.GetMimeMapping(file.Name)))
+                        HyperLink link = e.Row.Cells[this.ShowIcons ? 1 : 0].Controls[0] as HyperLink;
+                        if (link != null)
                         {
-                            string thumbUrl = this.FileManager.GetThumbnailUrl(file.FileId, 600, 500, 1, true);
-                            string content = string.Format(CultureInfo.InvariantCulture, ToolTipBigHtml, file.Url, file.Name, thumbUrl);
+                            if (MimeType.IsImageType(MimeMapping.GetMimeMapping(file.Name)))
+                            {
+                                string thumbUrl = this.FileManager.GetThumbnailUrl(file.FileId, 600, 500, 1, true);
+                                string content = string.Format(CultureInfo.InvariantCulture, ToolTipBigHtml, file.Url, file.Name, thumbUrl);
 
-                            link.Attributes["data-ot"] = content;
+                                link.Attributes["data-ot"] = content;
+                            }
                         }
                     }
 
@@ -845,12 +848,17 @@ namespace Micajah.AzureFileService.WebControls
             this.ApplyStyle();
             this.GridDataBind();
 
-            this.RegisterStyleSheet("Styles.opentip.css");
+            if (this.ShowFileToolTip)
+            {
+                this.RegisterStyleSheet("Styles.opentip.css");
+
+                ScriptManager.RegisterClientScriptInclude(this.Page, this.Page.GetType(), "Scripts.opentip.js", ResourceHandler.GetWebResourceUrl("Scripts.opentip.js", true));
+                ScriptManager.RegisterClientScriptInclude(this.Page, this.Page.GetType(), "Scripts.FileList.js", ResourceHandler.GetWebResourceUrl("Scripts.FileList.js", true));
+            }
+
             this.RegisterStyleSheet("Styles.FileList.css");
 
             ScriptManager.RegisterClientScriptBlock(this.Page, this.Page.GetType(), "Scripts.FileList", ClientScript, true);
-            ScriptManager.RegisterClientScriptInclude(this.Page, this.Page.GetType(), "Scripts.opentip.js", ResourceHandler.GetWebResourceUrl("Scripts.opentip.js", true));
-            ScriptManager.RegisterClientScriptInclude(this.Page, this.Page.GetType(), "Scripts.FileList.js", ResourceHandler.GetWebResourceUrl("Scripts.FileList.js", true));
         }
 
         /// <summary>
