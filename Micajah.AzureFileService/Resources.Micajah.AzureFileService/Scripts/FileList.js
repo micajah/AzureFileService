@@ -12,3 +12,5 @@ Opentip.styles.mafs.borderColor = "#cccccc";
 Opentip.styles.mafs.shadowColor = "#cccccc";
 
 Opentip.defaultStyle = "mafs";
+
+Opentip.lastZIndex = 3001;
