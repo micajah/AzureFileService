@@ -63,13 +63,13 @@ namespace Micajah.AzureFileService.WebControls
         /// </summary>
         [Description("Gets or sets the maximum file size allowed for uploading in bytes. Set to 0 for unlimited size.")]
         [Category("Behavior")]
-        [DefaultValue(0)]
+        [DefaultValue(Settings.DefaultMaxFileSize)]
         public int MaxFileSize
         {
             get
             {
                 object obj = this.ViewState["MaxFileSize"];
-                return ((obj == null) ? 0 : (int)obj);
+                return ((obj == null) ? Settings.MaxFileSize : (int)obj);
             }
             set { this.ViewState["MaxFileSize"] = value; }
         }
