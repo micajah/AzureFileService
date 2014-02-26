@@ -100,8 +100,12 @@ namespace Micajah.AzureFileService.WebControls
                     DeleteLink.CommandName = DataList.DeleteCommandName;
                     DeleteLink.CausesValidation = false;
                     DeleteLink.CssClass = "flRemove";
-                    DeleteLink.Text = Resources.FileList_DeleteText;
-                    if (m_FileList.EnableDeletingConfirmation) DeleteLink.OnClientClick = OnDeletingClientScript;
+                    DeleteLink.Text = m_FileList.DeleteButtonText;
+                    if (m_FileList.EnableDeletingConfirmation)
+                    {
+                        DeleteLink.OnClientClick = OnDeletingClientScript;
+                        DeleteLink.ToolTip = Resources.FileList_DeleteText;
+                    }
                     PicturePanel.Controls.Add(DeleteLink);
                 }
 

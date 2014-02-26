@@ -420,9 +420,11 @@ namespace Micajah.AzureFileService.WebControls
 
             this.RegisterStyleSheet("Styles.dropzone.css");
 
-            ScriptManager.RegisterClientScriptInclude(this.Page, this.Page.GetType(), "Scripts.dropzone.js", ResourceHandler.GetWebResourceUrl("Scripts.dropzone.js", true));
+            Page p = this.Page;
+            Type t = p.GetType();
 
-            ScriptManager.RegisterStartupScript(this.Page, this.Page.GetType(), this.ClientID, this.ClientScript, true);
+            ScriptManager.RegisterClientScriptInclude(p, t, "Scripts.dropzone.js", ResourceHandler.GetWebResourceUrl("Scripts.dropzone.js", true));
+            ScriptManager.RegisterStartupScript(p, t, this.ClientID, this.ClientScript, true);
         }
 
         /// <summary>

@@ -26,7 +26,7 @@ namespace Micajah.AzureFileService.WebControls
         private const string DeletingClientScript = "function flDel() {{ return window.confirm(\"{0}\"); }}\r\n";
         private const string ToolTipBigHtml = "<div class=\"flToolTip s600x500\"><a class=\"flFileName\" target=\"_blank\" href=\"{0}\"><img alt=\"{1}\" src=\"{2}\"></a></div>";
         private const string ToolTipSmallHtml = "<div class=\"flToolTip s250\"><a class=\"flFileName\" href=\"{0}\" target=\"_blank\">{1}</a><span class=\"flFileInfo\">{2}, {3:N0} KB</span>{4}</div>";
-        private const string DeleteLinkHtml = "<a class=\"flRemove\" href=\"{0}\"{1}>{2}</a>";
+        private const string DeleteLinkHtml = "<a class=\"flRemove\" href=\"{0}\" title=\"{1}\"{2}>{3}</a>";
 
         #endregion
 
@@ -191,6 +191,22 @@ namespace Micajah.AzureFileService.WebControls
                 return ((obj == null) ? "{0:d-MMM-yyyy}" : (string)obj);
             }
             set { this.ViewState["DateTimeFormatString"] = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the text of the delete button.
+        /// </summary>
+        [Category("Appearance")]
+        [Description("The text of the delete button.")]
+        [DefaultValue("delete")] // Must be sync with Resources.FileList_DeleteText.
+        public string DeleteButtonText
+        {
+            get
+            {
+                object obj = this.ViewState["DeleteButtonText"];
+                return ((obj == null) ? Resources.FileList_DeleteText : (string)obj);
+            }
+            set { this.ViewState["DeleteButtonText"] = value; }
         }
 
         /// <summary>
@@ -620,7 +636,7 @@ namespace Micajah.AzureFileService.WebControls
                 ButtonField buttonField = new ButtonField();
                 buttonField.CausesValidation = false;
                 buttonField.CommandName = DataList.DeleteCommandName;
-                buttonField.Text = Resources.FileList_DeleteText;
+                buttonField.Text = this.DeleteButtonText;
                 buttonField.ControlStyle.CssClass = "flRemove";
                 buttonField.ItemStyle.Wrap = false;
                 Grid.Columns.Add(buttonField);
@@ -796,7 +812,11 @@ namespace Micajah.AzureFileService.WebControls
                         if (deleteCell.Controls.Count > 0)
                         {
                             WebControl control = e.Row.Cells[count - 2].Controls[0] as WebControl;
-                            if (control != null) control.Attributes.Add("onclick", OnDeletingClientScript);
+                            if (control != null)
+                            {
+                                control.Attributes.Add("onclick", OnDeletingClientScript);
+                                control.ToolTip = Resources.FileList_DeleteText;
+                            }
                         }
                     }
                 }
@@ -848,17 +868,20 @@ namespace Micajah.AzureFileService.WebControls
             this.ApplyStyle();
             this.GridDataBind();
 
+            Page p = this.Page;
+            Type t = p.GetType();
+
             if (this.ShowFileToolTip)
             {
                 this.RegisterStyleSheet("Styles.opentip.css");
 
-                ScriptManager.RegisterClientScriptInclude(this.Page, this.Page.GetType(), "Scripts.opentip.js", ResourceHandler.GetWebResourceUrl("Scripts.opentip.js", true));
-                ScriptManager.RegisterClientScriptInclude(this.Page, this.Page.GetType(), "Scripts.FileList.js", ResourceHandler.GetWebResourceUrl("Scripts.FileList.js", true));
+                ScriptManager.RegisterClientScriptInclude(p, t, "Scripts.opentip.js", ResourceHandler.GetWebResourceUrl("Scripts.opentip.js", true));
+                ScriptManager.RegisterClientScriptInclude(p, t, "Scripts.FileList.js", ResourceHandler.GetWebResourceUrl("Scripts.FileList.js", true));
             }
 
             this.RegisterStyleSheet("Styles.FileList.css");
 
-            ScriptManager.RegisterClientScriptBlock(this.Page, this.Page.GetType(), "Scripts.FileList", ClientScript, true);
+            ScriptManager.RegisterClientScriptBlock(p, t, "Scripts.FileList", ClientScript, true);
         }
 
         /// <summary>

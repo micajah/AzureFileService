@@ -80,7 +80,7 @@ namespace Micajah.AzureFileService.WebControls
 
                     string postBackClientHyperlink = m_FileList.Page.ClientScript.GetPostBackClientHyperlink(DeleteLink, string.Empty);
 
-                    delete = string.Format(CultureInfo.InvariantCulture, DeleteLinkHtml, postBackClientHyperlink, deletingConfirmation, Resources.FileList_DeleteText);
+                    delete = string.Format(CultureInfo.InvariantCulture, DeleteLinkHtml, postBackClientHyperlink, Resources.FileList_DeleteText, deletingConfirmation, m_FileList.DeleteButtonText);
                 }
 
                 string content = string.Format(m_FileList.Culture, ToolTipSmallHtml, file.Url, file.Name, date, file.LengthInKB, delete);
@@ -141,7 +141,7 @@ namespace Micajah.AzureFileService.WebControls
                     DeleteLink.CommandName = DataList.DeleteCommandName;
                     DeleteLink.CausesValidation = false;
                     DeleteLink.CssClass = "flRemove";
-                    DeleteLink.Text = Resources.FileList_DeleteText;
+                    DeleteLink.Text = m_FileList.DeleteButtonText;
 
                     if (m_FileList.ShowFileToolTip)
                     {
@@ -151,6 +151,7 @@ namespace Micajah.AzureFileService.WebControls
                     if (m_FileList.EnableDeletingConfirmation)
                     {
                         DeleteLink.OnClientClick = OnDeletingClientScript;
+                        DeleteLink.ToolTip = Resources.FileList_DeleteText;
                     }
 
                     PicturePanel.Controls.Add(DeleteLink);
