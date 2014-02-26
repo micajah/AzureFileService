@@ -649,7 +649,7 @@ namespace Micajah.AzureFileService
             return new Collection<File>(files);
         }
 
-        internal string[] GetTemporaryFileNames(string directoryName)
+        public string[] GetTemporaryFileNames(string directoryName)
         {
             List<string> names = new List<string>();
 
