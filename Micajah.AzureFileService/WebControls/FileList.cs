@@ -779,7 +779,7 @@ namespace Micajah.AzureFileService.WebControls
 
                     TableCell deleteCell = e.Row.Cells[count - 2];
 
-                    DateTime updatedDate = file.LastModified;
+                    DateTime updatedDate = file.LastModified.Date;
                     if (m_UpdatedDate == updatedDate)
                         cell.Text = string.Empty;
                     else
