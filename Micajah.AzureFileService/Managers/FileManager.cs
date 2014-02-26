@@ -628,6 +628,8 @@ namespace Micajah.AzureFileService
 
         public Collection<File> GetTemporaryFiles(string directoryName)
         {
+            directoryName += "/";
+
             List<File> files = new List<File>();
 
             IEnumerable<IListBlobItem> blobList = this.TemporaryContainer.ListBlobs(directoryName);
