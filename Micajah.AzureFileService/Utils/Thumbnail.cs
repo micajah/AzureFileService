@@ -80,6 +80,11 @@ namespace Micajah.AzureFileService
 
         private static void GetProportionalSize(int originalWidth, int originalHeight, ref int width, ref int height)
         {
+            if ((originalWidth == width) && (originalHeight == height))
+            {
+                return;
+            }
+
             double multiplier = (double)originalHeight / (double)originalWidth;
 
             if (height <= 0)
@@ -129,18 +134,22 @@ namespace Micajah.AzureFileService
             {
                 sourceImage = Image.FromStream(source);
 
+                int sourceWidth = sourceImage.Width;
+                int sourceHeight = sourceImage.Height;
+                int outputWidth = width;
+                int outputHeight = height;
+
                 if (align == 0)
                 {
-                    if ((((width > 0) && (sourceImage.Width <= width)) || (width <= 0))
-                        && (((height > 0) && (sourceImage.Height <= height)) || (height <= 0)))
+                    if ((((width > 0) && (sourceWidth <= width)) || (width <= 0))
+                        && (((height > 0) && (sourceHeight <= height)) || (height <= 0)))
                     {
-                        return;
+                        outputWidth = sourceWidth;
+                        outputHeight = sourceHeight;
                     }
                 }
 
-                int outputWidth = width;
-                int outputHeight = height;
-                GetProportionalSize(sourceImage.Width, sourceImage.Height, ref outputWidth, ref outputHeight);
+                GetProportionalSize(sourceWidth, sourceHeight, ref outputWidth, ref outputHeight);
 
                 scaledImage = new Bitmap(outputWidth, outputHeight);
                 DrawImage(sourceImage, 0, 0, outputWidth, outputHeight, scaledImage);
