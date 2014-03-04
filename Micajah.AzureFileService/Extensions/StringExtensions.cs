@@ -41,6 +41,7 @@ namespace Micajah.AzureFileService
 
             UTF8Encoding utf8 = new UTF8Encoding();
             StringBuilder sb = new StringBuilder();
+
             foreach (char chr in value)
             {
                 if (NeedToEncode(chr))
@@ -54,7 +55,37 @@ namespace Micajah.AzureFileService
                 else
                     sb.Append(chr);
             }
+
             return sb.ToString();
+        }
+
+        /// <summary>
+        /// Converts each word in the the specified string to titlecase.
+        /// </summary>
+        /// <param name="value">The string to convert to titlecase.</param>
+        /// <param name="separator">The string that delimit the substrings in this string.</param>
+        /// <returns>The string converted to titlecase.</returns>
+        public static string ToTitleCase(this string value, string separator)
+        {
+            // This method should be synchronized with camelize function from dropzone.js file.
+            if (string.IsNullOrEmpty(value))
+            {
+                return value;
+            }
+
+            string[] parts = value.Split(new string[] { separator }, StringSplitOptions.None);
+
+            for (int x = 0; x < parts.Length; x++)
+            {
+                string p = parts[x];
+                char first = char.ToUpperInvariant(p[0]);
+                string rest = p.Substring(1);
+                parts[x] = first + rest;
+            }
+
+            string result = string.Join(string.Empty, parts);
+
+            return result;
         }
 
         #endregion

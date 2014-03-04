@@ -271,26 +271,35 @@ namespace Micajah.AzureFileService.WebControls
         {
             get
             {
+                string camelizedId = this.ClientID.ToTitleCase(this.ClientIDSeparator.ToString());
+                string variableName = (char.ToLowerInvariant(camelizedId[0]) + camelizedId.Substring(1));
+
                 StringBuilder sb = new StringBuilder();
+
                 sb.AppendFormat(CultureInfo.InvariantCulture, "Dropzone.options.{0} = false;\r\nvar {1} = new Dropzone(\"#{2}\",{{method:\"Put\",createImageThumbnails:false,paramName:\"{3}\",url:\"{4}\""
-                    , this.ClientID.Replace("_", string.Empty)
-                    , (char.ToLowerInvariant(this.ClientID[0]) + this.ClientID.Substring(1)).Replace("_", string.Empty)
+                    , camelizedId
+                    , variableName
                     , this.ClientID
                     , FileFromMyComputer.UniqueID
                     , this.FileManager.GetTemporaryFilesUploadUrlFormat(this.TemporaryDirectoryName));
+
                 if (!string.IsNullOrWhiteSpace(this.Accept))
                 {
                     sb.AppendFormat(CultureInfo.InvariantCulture, ",acceptedFiles:\"{0}\"", this.Accept);
                 }
+
                 if (this.MaxFilesCount > 0)
                 {
                     sb.AppendFormat(CultureInfo.InvariantCulture, ",maxFiles:{0}", this.MaxFilesCount);
                 }
+
                 if (this.MaxFileSize > 0)
                 {
                     sb.AppendFormat(CultureInfo.InvariantCulture, ",maxFilesize:{0}", this.MaxFileSizeInMB);
                 }
+
                 sb.AppendFormat(CultureInfo.InvariantCulture, ",cacheControl:\"{0}\",dictDefaultMessage:\"{1}\"}});\r\n", Settings.ClientCacheControl, Resources.FileUpload_DefaultMessage);
+
                 return sb.ToString();
             }
         }
