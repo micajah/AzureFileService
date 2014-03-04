@@ -271,7 +271,7 @@ namespace Micajah.AzureFileService.WebControls
         {
             get
             {
-                string camelizedId = this.ClientID.ToTitleCase(this.ClientIDSeparator.ToString());
+                string camelizedId = Camelize(this.ClientID, this.ClientIDSeparator.ToString());
                 string variableName = (char.ToLowerInvariant(camelizedId[0]) + camelizedId.Substring(1));
 
                 StringBuilder sb = new StringBuilder();
@@ -322,6 +322,29 @@ namespace Micajah.AzureFileService.WebControls
         #endregion
 
         #region Private Methods
+
+        // This method should be synchronized with camelize function from dropzone.js file.
+        private static string Camelize(string value, string separator)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return value;
+            }
+
+            string[] parts = value.Split(new string[] { separator }, StringSplitOptions.None);
+
+            for (int x = 1; x < parts.Length; x++)
+            {
+                string p = parts[x];
+                char first = char.ToUpperInvariant(p[0]);
+                string rest = p.Substring(1);
+                parts[x] = first + rest;
+            }
+
+            string result = string.Join(string.Empty, parts);
+
+            return result;
+        }
 
         private void UploadFile()
         {
