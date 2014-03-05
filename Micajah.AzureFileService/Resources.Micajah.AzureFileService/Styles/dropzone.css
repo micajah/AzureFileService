@@ -154,6 +154,7 @@
 .dropzone {
     font-size: 14px;
     min-height: 170px;
+    line-height: normal;
 }
 
 .dropzone .dz-message {
@@ -174,9 +175,11 @@
     text-align: center;
 }
 
-.dropzone .dz-remove {
+.dropzone a.dz-remove {
     font-size: 11px;
     cursor: pointer;
+    color: black;
+    text-decoration: underline;
 }
 
 .dropzone a.dz-remove:hover {
