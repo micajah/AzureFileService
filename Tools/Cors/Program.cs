@@ -16,7 +16,7 @@ namespace Micajah.AzureFileService.Tools.Cors
             ServiceProperties serviceProperties = client.GetServiceProperties();
             CorsProperties corsSettings = serviceProperties.Cors;
 
-            AddRule(corsSettings);
+            //AddRule(corsSettings);
 
             //corsSettings.CorsRules.RemoveAt(0);
 
@@ -32,7 +32,7 @@ namespace Micajah.AzureFileService.Tools.Cors
             CorsRule corsRule = new CorsRule()
             {
                 AllowedHeaders = new List<string> { "x-ms-*" },
-                AllowedMethods = CorsHttpMethods.Put | CorsHttpMethods.Get,
+                AllowedMethods = CorsHttpMethods.Put | CorsHttpMethods.Delete,
                 AllowedOrigins = new List<string>(ConfigurationManager.AppSettings["mafs:AllowedOrigins"].Split(',')),
                 MaxAgeInSeconds = int.MaxValue,
             };
