@@ -160,8 +160,8 @@
     position: relative;
     text-align: center;
     font-size: 30px;
-    padding-top: 20px;
-    padding-bottom: 20px;
+    padding-top: 15px;
+    padding-bottom: 15px;
 }
 
 .dropzone.dz-browser-not-supported .dz-error-message {
