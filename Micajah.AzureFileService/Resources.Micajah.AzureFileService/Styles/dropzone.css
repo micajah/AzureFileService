@@ -9,7 +9,7 @@
 }
 .dropzone {
   position: relative;
-  border: 5px dashed #ccc;
+  border: 2px dashed #ccc;
   padding: 1em;
   min-height: 360px;
   font-family: Arial;
@@ -168,58 +168,4 @@
     color: #800;
     display: block;
     padding-top: 10px;
-}
-
-/* Buttons */
-.dropzone input[type=button], .dropzone input[type=button]:focus, .dropzone input[type=button]:hover {
-    cursor: pointer;
-    outline: none !important;
-    font-weight: bold;
-    margin: 0;
-    padding: 8.84px 29.46px;
-    cursor: pointer;
-    -webkit-border-radius: 5px;
-    -moz-border-radius: 5px;
-    border-radius: 5px 5px 5px 5px;
-    width: auto;
-    text-decoration: none;
-    font-family: Sans-Serif;
-    font-size: 14.7px;
-    text-decoration: none;
-    white-space: nowrap;
-    vertical-align: baseline;
-    line-height: normal;
-    color: #444444;
-    background-color: White;
-    border: 1px solid #acacac;
-    *vertical-align: middle;
-    *overflow: visible;
-}
-
-.dropzone input[type=button] {
-    color: #333;
-    border: 1px solid #d4d4d4;
-    background-color: #d3d3d3;
-}
-
-.dropzone input[type=button]:focus, .dropzone input[type=button]:hover {
-	color: #fff;
-	border-left-color: #3072b3;
-    border-right-color: #3072b3;
-    border-top-color: #3072b3;
-    border-bottom-color: #2a65a0;
-	background-color: #3072b3;
-}
-
-/* Blue Button */
-.dropzone input[type=button].Blue {
-    color: White;
-    border: 1px solid #058dc7;
-    background-color: #058dc7;
-}
-
-.dropzone input[type=button].Blue:focus, .dropzone input[type=button].Blue:hover, .dropzone input[type=button].Blue:active {
-    color: White;
-    background-color: #09a0e1;
-    border: 1px solid #09a0e1;
 }
