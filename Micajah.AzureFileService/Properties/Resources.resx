@@ -121,7 +121,7 @@
     <value>delete</value>
   </data>
   <data name="FileList_DeletingConfirmationText" xml:space="preserve">
-    <value>Do you really want to delete it?</value>
+    <value>Are you sure you want to delete it?</value>
   </data>
   <data name="FileList_EmptyDataText" xml:space="preserve">
     <value>No files found.</value>
@@ -137,6 +137,9 @@
   </data>
   <data name="FileList_ViewAllAtOnceLink_Text" xml:space="preserve">
     <value>View all of these images at once</value>
+  </data>
+  <data name="FileUpload_CancelText" xml:space="preserve">
+    <value>cancel</value>
   </data>
   <data name="FileUpload_DefaultMessage" xml:space="preserve">
     <value>Drop files here&lt;br /&gt;or&lt;br /&gt;Click here to select files</value>

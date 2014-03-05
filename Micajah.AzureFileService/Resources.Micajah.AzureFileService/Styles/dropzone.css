@@ -157,15 +157,28 @@
 }
 
 .dropzone .dz-message {
-  position: relative;
-  text-align: center;
-  font-size: 30px;
-  padding-top: 20px;
-  padding-bottom: 20px;
+    position: relative;
+    text-align: center;
+    font-size: 30px;
+    padding-top: 20px;
+    padding-bottom: 20px;
 }
 
 .dropzone.dz-browser-not-supported .dz-error-message {
     color: #800;
     display: block;
     padding-top: 10px;
+}
+
+.dropzone .dz-preview {
+    text-align: center;
+}
+
+.dropzone .dz-remove {
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.dropzone a.dz-remove:hover {
+    color: red;
 }

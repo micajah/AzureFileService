@@ -1172,6 +1172,15 @@ require.register("dropzone/lib/dropzone.js", function(exports, require, module){
       }
       this.files = without(this.files, file);
       this.emit("removedfile", file);
+      if (file.status !== Dropzone.CANCELED) {
+          if ((!this.options.forceFallback) && Dropzone.isBrowserSupported()) {
+              var xhr = new XMLHttpRequest();
+              var url = this.options.url.replace("{0}", file.name);
+              xhr.open("Delete", url, true);
+              xhr.withCredentials = !!this.options.withCredentials;
+              xhr.send();
+          }
+      }
       if (this.files.length === 0) {
         return this.emit("reset");
       }
@@ -1455,7 +1464,7 @@ require.register("dropzone/lib/dropzone.js", function(exports, require, module){
       xhr = new XMLHttpRequest();
       for (_i = 0, _len = files.length; _i < _len; _i++) {
         file = files[_i];
-        xhr.open(this.options.method, this.options.url.replace("{0}", file.name), true);
+        xhr.open("Put", this.options.url.replace("{0}", file.name), true);
         xhr.withCredentials = !!this.options.withCredentials;
         file.xhr = xhr;
       }

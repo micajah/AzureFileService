@@ -17,7 +17,7 @@ namespace Micajah.AzureFileService
         private string m_ContainerName;
         private string m_TemporaryContainerName;
         private SharedAccessBlobPolicy m_ReadAccessPolicy;
-        private SharedAccessBlobPolicy m_WriteAccessPolicy;
+        private SharedAccessBlobPolicy m_WriteDeleteAccessPolicy;
         private CloudBlobClient m_ServiceClient;
         private CloudBlobContainer m_Container;
         private CloudBlobContainer m_TemporaryContainer;
@@ -88,19 +88,19 @@ namespace Micajah.AzureFileService
             }
         }
 
-        private SharedAccessBlobPolicy WriteAccessPolicy
+        private SharedAccessBlobPolicy WriteDeleteAccessPolicy
         {
             get
             {
-                if (m_WriteAccessPolicy == null)
+                if (m_WriteDeleteAccessPolicy == null)
                 {
-                    m_WriteAccessPolicy = new SharedAccessBlobPolicy
+                    m_WriteDeleteAccessPolicy = new SharedAccessBlobPolicy
                     {
-                        Permissions = SharedAccessBlobPermissions.Write,
+                        Permissions = SharedAccessBlobPermissions.Write | SharedAccessBlobPermissions.Delete,
                         SharedAccessExpiryTime = DateTime.UtcNow.AddMinutes(Settings.SharedAccessExpiryTime)
                     };
                 }
-                return m_WriteAccessPolicy;
+                return m_WriteDeleteAccessPolicy;
             }
         }
 
@@ -397,9 +397,9 @@ namespace Micajah.AzureFileService
             return bytes;
         }
 
-        internal string GetTemporaryFilesUploadUrlFormat(string directoryName)
+        internal string GetTemporaryFilesUrlFormat(string directoryName)
         {
-            string sas = this.TemporaryContainer.GetSharedAccessSignature(this.WriteAccessPolicy);
+            string sas = this.TemporaryContainer.GetSharedAccessSignature(this.WriteDeleteAccessPolicy);
 
             return string.Format(CultureInfo.InvariantCulture, "{0}/{1}/{{0}}{2}", this.TemporaryContainer.Uri.AbsoluteUri, directoryName, sas);
         }

@@ -70,7 +70,7 @@ namespace Micajah.AzureFileService.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Do you really want to delete it?.
+        ///   Looks up a localized string similar to Are you sure you want to delete it?.
         /// </summary>
         internal static string FileList_DeletingConfirmationText {
             get {
@@ -120,6 +120,15 @@ namespace Micajah.AzureFileService.Properties {
         internal static string FileList_ViewAllAtOnceLink_Text {
             get {
                 return ResourceManager.GetString("FileList_ViewAllAtOnceLink_Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to cancel.
+        /// </summary>
+        internal static string FileUpload_CancelText {
+            get {
+                return ResourceManager.GetString("FileUpload_CancelText", resourceCulture);
             }
         }
         
