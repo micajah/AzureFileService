@@ -133,7 +133,7 @@ namespace Micajah.AzureFileService.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Drop files here&lt;br /&gt;or&lt;br /&gt;Click here to select files.
+        ///   Looks up a localized string similar to Click or Drag files here to attach.
         /// </summary>
         internal static string FileUpload_DefaultMessage {
             get {

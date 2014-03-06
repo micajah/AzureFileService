@@ -153,16 +153,17 @@
 /* Overrides */
 .dropzone {
     font-size: 14px;
-    min-height: 170px;
+    min-height: 70px;
     line-height: normal;
 }
 
 .dropzone .dz-message {
     position: relative;
     text-align: center;
-    font-size: 30px;
-    padding-top: 15px;
-    padding-bottom: 15px;
+    font-size: 22px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+    color: gray;
 }
 
 .dropzone.dz-browser-not-supported .dz-error-message {
