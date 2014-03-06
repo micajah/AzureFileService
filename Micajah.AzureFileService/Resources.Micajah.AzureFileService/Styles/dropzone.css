@@ -13,7 +13,7 @@
   padding: 1em;
   min-height: 360px;
   font-family: Arial;
-  color: #ccc;
+  color: gray;
 }
 .dropzone.dz-clickable {
   cursor: pointer;
@@ -52,13 +52,13 @@
   min-height: 30px;
   position: relative;
   background: #ebebeb;
-  padding: 5px;
-  margin-bottom: 22px;
 }
 .dropzone .dz-preview .dz-details .dz-filename,
 .dropzone-previews .dz-preview .dz-details .dz-filename {
   overflow: hidden;
   height: 100%;
+  height: 28px;
+  line-height: 28px;
 }
 .dropzone .dz-preview .dz-details img,
 .dropzone-previews .dz-preview .dz-details img {
@@ -70,11 +70,9 @@
 }
 .dropzone .dz-preview .dz-details .dz-size,
 .dropzone-previews .dz-preview .dz-details .dz-size {
-  position: absolute;
-  bottom: -28px;
-  left: 3px;
   height: 28px;
   line-height: 28px;
+  background-color: white;
 }
 .dropzone .dz-preview.dz-error .dz-error-mark,
 .dropzone-previews .dz-preview.dz-error .dz-error-mark {
@@ -163,7 +161,6 @@
     font-size: 22px;
     padding-top: 6px;
     padding-bottom: 6px;
-    color: gray;
 }
 
 .dropzone.dz-browser-not-supported .dz-error-message {
