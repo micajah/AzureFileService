@@ -577,7 +577,10 @@ require.register("dropzone/lib/dropzone.js", function(exports, require, module){
       removedfile: function(file) {
         var _ref;
         if ((_ref = file.previewElement) != null) {
-          _ref.parentNode.removeChild(file.previewElement);
+          var _p = _ref.parentNode;
+          if (_p != null) {
+            _p.removeChild(file.previewElement);
+          }
         }
         return this._updateMaxFilesReachedClass();
       },
