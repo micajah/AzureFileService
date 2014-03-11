@@ -569,7 +569,7 @@ namespace Micajah.AzureFileService.WebControls
                 if (!this.Width.IsEmpty)
                 {
                     Grid.Width = this.Width;
-                    Grid.Columns[(this.ShowIcons ? 2 : 1)].ItemStyle.Width = Unit.Percentage(100);
+                    Grid.Columns[(this.ShowIcons ? 1 : 0)].ItemStyle.Width = Unit.Percentage(100);
                 }
 
                 Grid.CellPadding = -1;
