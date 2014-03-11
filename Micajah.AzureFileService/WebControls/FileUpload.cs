@@ -267,7 +267,6 @@ namespace Micajah.AzureFileService.WebControls
             }
         }
 
-        //TODO: Rewrite client script to use inheritance of dropzone.
         private string ClientScript
         {
             get
@@ -277,7 +276,13 @@ namespace Micajah.AzureFileService.WebControls
 
                 StringBuilder sb = new StringBuilder();
 
-                sb.AppendFormat(CultureInfo.InvariantCulture, "if (typeof({1}) === \"undefined\") {{\r\nDropzone.options.{0} = false;\r\n{1} = new Dropzone(\"#{2}\",{{createImageThumbnails:false,paramName:\"{3}\",url:\"{4}\",addRemoveLinks:true"
+                sb.AppendFormat(CultureInfo.InvariantCulture, @"if (typeof({1}) !== ""undefined"") {{
+    {1}.destroy();
+}}
+else {{
+    Dropzone.options.{0} = false;
+}}
+{1} = new Dropzone(""#{2}"",{{createImageThumbnails:false,paramName:""{3}"",url:""{4}"",addRemoveLinks:true"
                     , camelizedId
                     , variableName
                     , this.ClientID
@@ -299,7 +304,7 @@ namespace Micajah.AzureFileService.WebControls
                     sb.AppendFormat(CultureInfo.InvariantCulture, ",maxFilesize:{0}", this.MaxFileSizeInMB);
                 }
 
-                sb.AppendFormat(CultureInfo.InvariantCulture, ",cacheControl:\"{0}\",dictDefaultMessage:\"{1}\",dictCancelUpload:\"{2}\",dictRemoveFile:\"{3}\",dictRemoveFileConfirmation:\"{4}\"}});\r\n}}\r\n"
+                sb.AppendFormat(CultureInfo.InvariantCulture, ",cacheControl:\"{0}\",dictDefaultMessage:\"{1}\",dictCancelUpload:\"{2}\",dictRemoveFile:\"{3}\",dictRemoveFileConfirmation:\"{4}\"}});\r\n"
                     , Settings.ClientCacheControl
                     , Resources.FileUpload_DefaultMessage
                     , Resources.FileUpload_CancelText
