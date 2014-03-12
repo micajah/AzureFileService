@@ -10,7 +10,7 @@ Opentip.styles.mafs.group = "mafs";
 Opentip.styles.mafs.background = "white";
 Opentip.styles.mafs.borderColor = "#cccccc";
 Opentip.styles.mafs.shadowColor = "#cccccc";
+Opentip.styles.mafs.removeElementsOnHide = true;
 
 Opentip.defaultStyle = "mafs";
-
 Opentip.lastZIndex = 3001;

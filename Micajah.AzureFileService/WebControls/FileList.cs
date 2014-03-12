@@ -24,6 +24,7 @@ namespace Micajah.AzureFileService.WebControls
         private const string DeleteCommandName = "Delete";
         private const string OnDeletingClientScript = "return flDel();";
         private const string DeletingClientScript = "function flDel() {{ return window.confirm(\"{0}\"); }}\r\n";
+        private const string AdapterClientScript = "Opentip.adapters = {}; Opentip.adapter = null; firstAdapter = true; Opentip.addAdapter(new Adapter);";
         private const string ToolTipBigHtml = "<div class=\"flToolTip s600x500\"><a class=\"flFileName\" target=\"_blank\" href=\"{0}\"><img alt=\"{1}\" src=\"{2}\"></a></div>";
         private const string ToolTipSmallHtml = "<div class=\"flToolTip s250\"><a class=\"flFileName\" href=\"{0}\" target=\"_blank\">{1}</a><span class=\"flFileInfo\">{2}, {3:N0} KB</span>{4}</div>";
         private const string DeleteLinkHtml = "<a class=\"flRemove\" href=\"{0}\" title=\"{1}\"{2}>{3}</a>";
@@ -95,11 +96,6 @@ namespace Micajah.AzureFileService.WebControls
                 return ResourceVirtualPathProvider.VirtualPathToAbsolute(ResourceVirtualPathProvider.VirtualRootShortPath + "FileList.aspx")
                     + "?d=" + HttpServerUtility.UrlTokenEncode(Encoding.UTF8.GetBytes(str));
             }
-        }
-
-        private static string ClientScript
-        {
-            get { return string.Format(CultureInfo.CurrentCulture, DeletingClientScript, Resources.FileList_DeletingConfirmationText); }
         }
 
         private bool ShowVideoOnly
@@ -881,7 +877,17 @@ namespace Micajah.AzureFileService.WebControls
 
             this.RegisterStyleSheet("Styles.FileList.css");
 
-            ScriptManager.RegisterClientScriptBlock(p, t, "Scripts.FileList", ClientScript, true);
+            string deletingScript = string.Format(CultureInfo.CurrentCulture, DeletingClientScript, Resources.FileList_DeletingConfirmationText);
+            ScriptManager.RegisterClientScriptBlock(p, t, "Scripts.FileList.Deleting", deletingScript, true);
+
+            ScriptManager sm = ScriptManager.GetCurrent(p);
+            if (sm != null)
+            {
+                if (sm.IsInAsyncPostBack)
+                {
+                    ScriptManager.RegisterStartupScript(p, t, "Scripts.FileList.Adapter", AdapterClientScript, true);
+                }
+            }
         }
 
         /// <summary>
