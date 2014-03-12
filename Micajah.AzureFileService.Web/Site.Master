@@ -11,10 +11,10 @@
 </head>
 <body>
     <form id="form1" runat="server">
-        <%--<asp:ScriptManager ID="ScriptManager1" runat="server">
-        </asp:ScriptManager>--%>
         <div class="menu">
-            <asp:HyperLink ID="HyperLink1" runat="server" NavigateUrl="~/Default.aspx">File Upload</asp:HyperLink>&nbsp;|&nbsp;<asp:HyperLink ID="HyperLink2" runat="server" NavigateUrl="~/FileList.aspx">File List</asp:HyperLink>
+            <asp:HyperLink ID="HyperLink1" runat="server" NavigateUrl="~/Default.aspx">File Upload</asp:HyperLink>&nbsp;|&nbsp;<asp:HyperLink
+                ID="HyperLink2" runat="server" NavigateUrl="~/FileList.aspx">File List</asp:HyperLink>&nbsp;|&nbsp;<asp:HyperLink
+                    ID="HyperLink3" runat="server" NavigateUrl="~/SimpleUpload.aspx">Simple Upload</asp:HyperLink>
         </div>
         <hr />
         <div>
