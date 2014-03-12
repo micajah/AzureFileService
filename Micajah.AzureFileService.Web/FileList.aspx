@@ -3,9 +3,18 @@
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
-    <p>
-        The files list with the deleting function and thumbnails
-    </p>
+    <div class="size">
+        <p title="Including all thumbnails">
+            Total fizes size:
+        <asp:Label ID="ContainerLengthLabel" runat="server"></asp:Label>
+        </p>
+    </div>
+    <div class="left">
+        <p>
+            The files list with the deleting function and thumbnails
+        </p>
+    </div>
+    <div class="clear"></div>
     <table>
         <tr>
             <td>Please select the icon size:

@@ -25,6 +25,24 @@ namespace Micajah.AzureFileService.Web
             }
         }
 
+        protected override void OnPreRenderComplete(EventArgs e)
+        {
+            base.OnPreRenderComplete(e);
+
+            long size = FileList2.FileManager.ContainerLength;
+            long sizeInKB = size / 1024;
+            long sizeInMB = sizeInKB / 1024;
+
+            if (sizeInMB > 1)
+            {
+                ContainerLengthLabel.Text = string.Format(CultureInfo.CurrentCulture, "{0:N0} MB", sizeInMB);
+            }
+            else
+            {
+                ContainerLengthLabel.Text = string.Format(CultureInfo.CurrentCulture, "{0:N0} KB", sizeInKB);
+            }
+        }
+
         protected void SubmitButton_Click(object sender, EventArgs e)
         {
             FileList3.FileExtensionsFilter = (string.IsNullOrWhiteSpace(FilterTextBox.Text) ? null : FilterTextBox.Text.Split(','));

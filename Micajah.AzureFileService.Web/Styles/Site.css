@@ -34,3 +34,17 @@ p {
         .menu a:visited {
             color: blue;
         }
+
+.left {
+    float: left;
+}
+
+.size {
+    float: right;
+    border: solid 1px gray;
+    padding: 0 10px;
+}
+
+.clear {
+    clear: both;
+}
