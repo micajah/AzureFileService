@@ -274,15 +274,11 @@ namespace Micajah.AzureFileService
 
             string fileName = GetNameFromFileId(blob.Name);
 
-            string url = null;
-            if (this.ContainerPublicAccess)
-            {
-                url = blob.Uri.ToString();
-            }
-            else
+            string url = Uri.EscapeUriString(blob.Uri.ToString());
+            if (!this.ContainerPublicAccess)
             {
                 string sas = blob.GetSharedAccessSignature(this.ReadAccessPolicy);
-                url = string.Format(CultureInfo.InvariantCulture, "{0}{1}", blob.Uri, sas);
+                url = string.Format(CultureInfo.InvariantCulture, "{0}{1}", url, sas);
             }
 
             return new File()
