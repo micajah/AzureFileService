@@ -4,6 +4,10 @@
     color: Black;
 }
 
+.flThumbs a {
+    display: block;
+}
+
 .flGrid td {
     padding-right: 10px;
 }
@@ -112,5 +116,5 @@ a.flLink {
 
 /* opentip */
 .style-mafs.opentip-container .opentip {
-   padding: 15px 25px;
+    padding: 15px 25px;
 }

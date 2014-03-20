@@ -21,6 +21,7 @@
 .dropzone.dz-clickable .dz-message,
 .dropzone.dz-clickable .dz-message span {
   cursor: pointer;
+  white-space: normal;
 }
 .dropzone.dz-clickable * {
   cursor: default;
