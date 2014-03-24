@@ -1180,7 +1180,6 @@ require.register("dropzone/lib/dropzone.js", function(exports, require, module){
               var xhr = new XMLHttpRequest();
               var url = this.options.url.replace("{0}", file.name);
               xhr.open("Delete", url, true);
-              xhr.withCredentials = !!this.options.withCredentials;
               xhr.send();
           }
       }
@@ -1339,7 +1338,6 @@ require.register("dropzone/lib/dropzone.js", function(exports, require, module){
         file.xhr = xhr;
       }
       xhr.open(this.options.method, this.options.url, true);
-      xhr.withCredentials = !!this.options.withCredentials;
       response = null;
       handleError = function() {
         var _j, _len1, _results;
