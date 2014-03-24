@@ -31,8 +31,8 @@ namespace Micajah.AzureFileService.Tools.Cors
         {
             CorsRule corsRule = new CorsRule()
             {
-                AllowedHeaders = new List<string> { "x-ms-*" },
-                AllowedMethods = CorsHttpMethods.Put | CorsHttpMethods.Delete,
+                AllowedHeaders = new List<string> { "*" },
+                AllowedMethods = CorsHttpMethods.Put | CorsHttpMethods.Delete | CorsHttpMethods.Options,
                 AllowedOrigins = new List<string>(ConfigurationManager.AppSettings["mafs:AllowedOrigins"].Split(',')),
                 MaxAgeInSeconds = int.MaxValue,
             };
