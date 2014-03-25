@@ -1,4 +1,10 @@
-﻿body {
+﻿html, body, form {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
     font-family: Arial;
     color: black;
     font-size: 12px;
@@ -22,9 +28,8 @@ p {
 }
 
 .menu {
-    padding-bottom: 5px;
+    padding: 5px;
     text-align: right;
-    width: 100%;
 }
 
     .menu a {
@@ -34,6 +39,10 @@ p {
         .menu a:visited {
             color: blue;
         }
+
+.content {
+    padding: 5px;
+}
 
 .left {
     float: left;

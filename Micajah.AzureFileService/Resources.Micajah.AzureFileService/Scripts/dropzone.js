@@ -456,8 +456,8 @@ require.register("dropzone/lib/dropzone.js", function(exports, require, module){
       forceFallback: false,
       fallback: function() {
         var child, messageElement, span, _i, _len, _ref;
-        this.element.className = "" + this.element.className + " dz-browser-not-supported";
-        _ref = this.element.getElementsByTagName("div");
+        this.previewsContainer.className = "" + this.previewsContainer.className + " dz-browser-not-supported";
+        _ref = this.previewsContainer.getElementsByTagName("div");
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           child = _ref[_i];
           if (/(^| )dz-message($| )/.test(child.className)) {
@@ -468,13 +468,13 @@ require.register("dropzone/lib/dropzone.js", function(exports, require, module){
         }
         if (!messageElement) {
           messageElement = Dropzone.createElement("<div class=\"dz-message\"><span></span></div>");
-          this.element.appendChild(messageElement);
+          this.previewsContainer.appendChild(messageElement);
         }
         span = messageElement.getElementsByTagName("span")[0];
         if (span) {
           span.textContent = this.options.dictFallbackMessage;
         }
-        return this.element.appendChild(this.getFallbackForm());
+        return this.previewsContainer.appendChild(this.getFallbackForm());
       },
       resize: function(file) {
         var info, srcRatio, trgRatio;
@@ -512,28 +512,26 @@ require.register("dropzone/lib/dropzone.js", function(exports, require, module){
       */
 
       drop: function(e) {
-        return this.element.classList.remove("dz-drag-hover");
+        return this.previewsContainer.classList.remove("dz-drag-hover");
       },
       dragstart: noop,
       dragend: function(e) {
-        return this.element.classList.remove("dz-drag-hover");
+        return this.previewsContainer.classList.remove("dz-drag-hover");
       },
       dragenter: function(e) {
-        return this.element.classList.add("dz-drag-hover");
+        return this.previewsContainer.classList.add("dz-drag-hover");
       },
       dragover: function(e) {
-        return this.element.classList.add("dz-drag-hover");
+        return this.previewsContainer.classList.add("dz-drag-hover");
       },
       dragleave: function(e) {
-        return this.element.classList.remove("dz-drag-hover");
+        return this.previewsContainer.classList.remove("dz-drag-hover");
       },
       selectedfiles: function(files) {
-        if (this.element === this.previewsContainer) {
-          return this.element.classList.add("dz-started");
-        }
+        return this.previewsContainer.classList.add("dz-started");
       },
       reset: function() {
-        return this.element.classList.remove("dz-started");
+        return this.previewsContainer.classList.remove("dz-started");
       },
       addedfile: function(file) {
         var node, _i, _j, _len, _len1, _ref, _ref1,
@@ -681,6 +679,11 @@ require.register("dropzone/lib/dropzone.js", function(exports, require, module){
       this.element.dropzone = this;
       elementOptions = (_ref = Dropzone.optionsForElement(this.element)) != null ? _ref : {};
       this.options = extend({}, this.defaultOptions, elementOptions, options != null ? options : {});
+      if (this.options.previewsContainer) {
+          this.previewsContainer = Dropzone.getElement(this.options.previewsContainer, "previewsContainer");
+      } else {
+          this.previewsContainer = this.element;
+      }
       if (this.options.forceFallback || !Dropzone.isBrowserSupported()) {
         return this.options.fallback.call(this);
       }
@@ -701,14 +704,9 @@ require.register("dropzone/lib/dropzone.js", function(exports, require, module){
       if ((fallback = this.getExistingFallback()) && fallback.parentNode) {
           fallback.style.display = "none";
       }
-      if (this.options.previewsContainer) {
-        this.previewsContainer = Dropzone.getElement(this.options.previewsContainer, "previewsContainer");
-      } else {
-        this.previewsContainer = this.element;
-      }
       if (this.options.clickable) {
         if (this.options.clickable === true) {
-          this.clickableElements = [this.element];
+          this.clickableElements = [this.previewsContainer];
         } else {
           this.clickableElements = Dropzone.getElements(this.options.clickable, "clickable");
         }
@@ -774,8 +772,8 @@ require.register("dropzone/lib/dropzone.js", function(exports, require, module){
       if (this.element.tagName === "form") {
         this.element.setAttribute("enctype", "multipart/form-data");
       }
-      if (this.element.classList.contains("dropzone") && !this.element.querySelector(".dz-message")) {
-        this.element.appendChild(Dropzone.createElement("<div class=\"dz-default dz-message\"><span>" + this.options.dictDefaultMessage + "</span></div>"));
+      if (this.previewsContainer.classList.contains("dropzone") && !this.previewsContainer.querySelector(".dz-message")) {
+          this.previewsContainer.appendChild(Dropzone.createElement("<div class=\"dz-default dz-message\"><span>" + this.options.dictDefaultMessage + "</span></div>"));
       }
       if (this.clickableElements.length) {
         setupHiddenFileInput = function() {
@@ -941,7 +939,7 @@ require.register("dropzone/lib/dropzone.js", function(exports, require, module){
       _ref = ["div", "form"];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         tagName = _ref[_i];
-        if (fallback = getFallback(this.element.getElementsByTagName(tagName))) {
+        if (fallback = getFallback(this.previewsContainer.getElementsByTagName(tagName))) {
           return fallback;
         }
       }
@@ -1032,9 +1030,9 @@ require.register("dropzone/lib/dropzone.js", function(exports, require, module){
 
     Dropzone.prototype._updateMaxFilesReachedClass = function() {
       if (this.options.maxFiles && this.getAcceptedFiles().length >= this.options.maxFiles) {
-        return this.element.classList.add("dz-max-files-reached");
+        return this.previewsContainer.classList.add("dz-max-files-reached");
       } else {
-        return this.element.classList.remove("dz-max-files-reached");
+        return this.previewsContainer.classList.remove("dz-max-files-reached");
       }
     };
 

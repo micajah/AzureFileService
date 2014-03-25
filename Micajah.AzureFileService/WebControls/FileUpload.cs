@@ -42,6 +42,22 @@ namespace Micajah.AzureFileService.WebControls
         }
 
         /// <summary>
+        /// Gets or set a value indicating whether the dropping to whole page is enabled.
+        /// </summary>
+        [Category("Behavior")]
+        [Description("Whether the dropping to whole page is enabled.")]
+        [DefaultValue(false)]
+        public bool EnableDropToPage
+        {
+            get
+            {
+                object obj = ViewState["EnableDropToPage"];
+                return ((obj == null) ? false : (bool)obj);
+            }
+            set { ViewState["EnableDropToPage"] = value; }
+        }
+
+        /// <summary>
         /// Gets or sets the maximum files count that can be selected by user in the control.
         /// The default value is 0 that indicates the maximum files count is not set.
         /// </summary>
@@ -273,6 +289,7 @@ namespace Micajah.AzureFileService.WebControls
             {
                 string camelizedId = Camelize(this.ClientID, this.ClientIDSeparator.ToString());
                 string variableName = (char.ToLowerInvariant(camelizedId[0]) + camelizedId.Substring(1));
+                string element = (this.EnableDropToPage ? "document.body" : string.Format(CultureInfo.InvariantCulture, "\"#{0}\"", this.ClientID));
 
                 StringBuilder sb = new StringBuilder();
 
@@ -282,12 +299,20 @@ namespace Micajah.AzureFileService.WebControls
 else {{
     Dropzone.options.{0} = false;
 }}
-{1} = new Dropzone(""#{2}"",{{createImageThumbnails:false,paramName:""{3}"",url:""{4}"",addRemoveLinks:true"
+"
                     , camelizedId
+                    , variableName);
+
+                sb.AppendFormat(CultureInfo.InvariantCulture, "{0} = new Dropzone({1},{{addRemoveLinks:true,createImageThumbnails:false,paramName:\"{2}\",url:\"{3}\""
                     , variableName
-                    , this.ClientID
+                    , element
                     , FileFromMyComputer.UniqueID
                     , this.FileManager.GetTemporaryFilesUrlFormat(this.TemporaryDirectoryName));
+
+                if (this.EnableDropToPage)
+                {
+                    sb.AppendFormat(CultureInfo.InvariantCulture, ",previewsContainer:\"#{0}\"", this.ClientID);
+                }
 
                 if (!string.IsNullOrWhiteSpace(this.Accept))
                 {

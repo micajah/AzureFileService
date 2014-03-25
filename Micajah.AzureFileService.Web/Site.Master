@@ -17,7 +17,7 @@
                     ID="HyperLink3" runat="server" NavigateUrl="~/SimpleUpload.aspx">Simple Upload</asp:HyperLink>
         </div>
         <hr />
-        <div>
+        <div class="content">
             <asp:ContentPlaceHolder ID="ContentPlaceHolder1" runat="server">
             </asp:ContentPlaceHolder>
         </div>
