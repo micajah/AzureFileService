@@ -830,30 +830,58 @@ require.register("dropzone/lib/dropzone.js", function(exports, require, module){
           return e.returnValue = false;
         }
       };
+      getEventTarget = function (e) {
+        var target = null;
+        if (e) {
+          target = (e.target ? e.target : e.srcElement);
+          if (target.nodeType == 3) {
+              target = target.parentNode;
+          }
+        }
+        return target;
+      };
       this.listeners = [
         {
           element: this.element,
           events: {
             "dragstart": function(e) {
-              return _this.emit("dragstart", e);
+              var t = getEventTarget(e);
+              if (!t.classList.contains("dz-drop-disabled")) {
+                return _this.emit("dragstart", e);
+              }
             },
-            "dragenter": function(e) {
+            "dragenter": function (e) {
               noPropagation(e);
-              return _this.emit("dragenter", e);
+              var t = getEventTarget(e);
+              if (!t.classList.contains("dz-drop-disabled")) {
+                return _this.emit("dragenter", e);
+              }
             },
             "dragover": function(e) {
               noPropagation(e);
-              return _this.emit("dragover", e);
+              var t = getEventTarget(e);
+              if (!t.classList.contains("dz-drop-disabled")) {
+                return _this.emit("dragover", e);
+              }
             },
             "dragleave": function(e) {
-              return _this.emit("dragleave", e);
+              var t = getEventTarget(e);
+              if (!t.classList.contains("dz-drop-disabled")) {
+                return _this.emit("dragleave", e);
+              }
             },
             "drop": function(e) {
               noPropagation(e);
-              return _this.drop(e);
+              var t = getEventTarget(e);
+              if (!t.classList.contains("dz-drop-disabled")) {
+                return _this.drop(e);
+              }
             },
-            "dragend": function(e) {
-              return _this.emit("dragend", e);
+            "dragend": function (e) {
+              var t = getEventTarget(e);
+              if (!t.classList.contains("dz-drop-disabled")) {
+                return _this.emit("dragend", e);
+              }
             }
           }
         }
@@ -1042,6 +1070,9 @@ require.register("dropzone/lib/dropzone.js", function(exports, require, module){
         return;
       }
       this.emit("drop", e);
+      if (e.returnValue == false) {
+          return;
+      }
       files = e.dataTransfer.files;
       this.emit("selectedfiles", files);
       if (files.length) {

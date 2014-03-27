@@ -57,3 +57,14 @@ p {
 .clear {
     clear: both;
 }
+
+.panel {
+    border: 1px solid lightgray;
+    width: 390px;
+    height: 30px;
+    line-height: 30px;
+    padding: 15px;
+    margin-top: 15px;
+    font-size: 20px;
+    color: lightgray;
+}
