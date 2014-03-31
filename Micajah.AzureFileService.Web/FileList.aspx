@@ -17,13 +17,12 @@
     <div class="clear"></div>
     <table>
         <tr>
-            <td>Please select the icon size:
-            </td>
-            <td>
-                <asp:DropDownList ID="IconSizeList" runat="server">
-                </asp:DropDownList>
-            </td>
-            <td>
+            <td>Please configure the list:</td>
+        </tr>
+        <tr>
+            <td>Icon size&nbsp;<asp:DropDownList ID="IconSizeList" runat="server">
+            </asp:DropDownList>&nbsp;
+                <asp:CheckBox ID="ThumbnailsCheckBox" runat="server" Text="Thumbnails" ToolTip="Whether the tool tip for a file displays the thumbnail or the file itself" Checked="true" />&nbsp;
                 <asp:Button ID="Button1" runat="server" Text="Submit" OnClick="Button1_Click" />
             </td>
         </tr>

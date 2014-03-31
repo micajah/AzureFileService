@@ -25,7 +25,7 @@ namespace Micajah.AzureFileService.WebControls
         private const string OnDeletingClientScript = "return flDel();";
         private const string DeletingClientScript = "function flDel() {{ return window.confirm(\"{0}\"); }}\r\n";
         private const string AdapterClientScript = "Opentip.adapters = {}; Opentip.adapter = null; firstAdapter = true; Opentip.addAdapter(new Adapter);";
-        private const string ToolTipBigHtml = "<div class=\"flToolTip s600x500\"><a class=\"flFileName\" target=\"_blank\" href=\"{0}\"><img alt=\"{1}\" src=\"{2}\"></a></div>";
+        private const string ToolTipBigHtml = "<div class=\"flToolTip s600x500\"><span></span><a class=\"flFileName\" target=\"_blank\" href=\"{0}\"><img alt=\"{1}\" src=\"{2}\"></a></div>";
         private const string ToolTipSmallHtml = "<div class=\"flToolTip s250\"><a class=\"flFileName\" href=\"{0}\" target=\"_blank\">{1}</a><span class=\"flFileInfo\">{2}, {3:N0} KB</span>{4}</div>";
         private const string DeleteLinkHtml = "<a class=\"flRemove\" href=\"{0}\" title=\"{1}\"{2}>{3}</a>";
 
@@ -275,6 +275,22 @@ namespace Micajah.AzureFileService.WebControls
                 return ((obj == null) ? true : (bool)obj);
             }
             set { ViewState["EnableDeletingConfirmation"] = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the tool tip for a file displays the thumbnail or the file itself.
+        /// </summary>
+        [Category("Appearance")]
+        [Description("Whether the tool tip for a file displays the thumbnail or the file itself.")]
+        [DefaultValue(true)]
+        public bool EnableThumbnails
+        {
+            get
+            {
+                object obj = this.ViewState["EnableThumbnails"];
+                return ((obj == null) ? true : (bool)obj);
+            }
+            set { this.ViewState["EnableThumbnails"] = value; }
         }
 
         /// <summary>
@@ -775,7 +791,7 @@ namespace Micajah.AzureFileService.WebControls
                         {
                             if (MimeType.IsImageType(MimeMapping.GetMimeMapping(file.Name)))
                             {
-                                string thumbUrl = this.FileManager.GetThumbnailUrl(file.FileId, 600, 500, 1, true);
+                                string thumbUrl = (this.EnableThumbnails ? this.FileManager.GetThumbnailUrl(file.FileId, 600, 500, 1, true) : file.Url);
                                 string content = string.Format(CultureInfo.InvariantCulture, ToolTipBigHtml, file.Url, file.Name, thumbUrl);
 
                                 link.Attributes["data-ot"] = content;
