@@ -1070,7 +1070,7 @@ require.register("dropzone/lib/dropzone.js", function(exports, require, module){
         return;
       }
       this.emit("drop", e);
-      if (e.returnValue == false) {
+      if (e.cancel == true) {
           return;
       }
       files = e.dataTransfer.files;
