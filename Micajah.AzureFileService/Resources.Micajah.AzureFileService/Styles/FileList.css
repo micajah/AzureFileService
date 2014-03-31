@@ -1,6 +1,6 @@
 .flGrid td, .flGrid a, .flThumbs td, .flThumbs a, .flToolTip, .flToolTip a, .flFiles {
     font-family: Arial;
-    font-size: 11px;
+    font-size: 14px;
     color: Black;
 }
 
@@ -10,10 +10,6 @@
 
 .flGrid td {
     padding-right: 10px;
-}
-
-.flGrid a.flFileName, .flGrid a.flFileName:hover {
-    font-size: 12px;
 }
 
 .flGrid a:hover, .flThumbs a:hover {
@@ -38,7 +34,6 @@
 
 .flGrid td.flDate {
     color: #6c6c6c;
-    font-size: 12px;
 }
 
 .flThumbs div {
@@ -68,12 +63,11 @@
 }
 
     .flToolTip a.flFileName, .flToolTip a.flFileName:hover {
-        font-size: 12px;
         font-weight: bold;
     }
 
     .flToolTip .flFileInfo {
-        font-size: 10px;
+        font-size: 12px;
         color: #666666;
         display: block;
     }
@@ -88,14 +82,13 @@
     }
 
 a.flUploadFiles, a.flUploadFiles:hover, a.flCptCtrl, a.flCptCtrl:hover {
-    font-size: 13px;
     color: Black;
     padding-bottom: 3px;
     display: inline-block;
 }
 
     a.flCptCtrl, a.flCptCtrl:hover {
-        font-size: 11px;
+        font-size: 12px;
     }
 
         a.flUploadFiles:hover, a.flCptCtrl:hover {
