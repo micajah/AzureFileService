@@ -799,20 +799,23 @@ namespace Micajah.AzureFileService.WebControls
                         }
                     }
 
-                    DateTime updatedTime = file.LastModified;
-                    updatedTime = TimeZoneInfo.ConvertTimeFromUtc(updatedTime, this.TimeZone);
+                    DateTime updatedTime = TimeZoneInfo.ConvertTimeFromUtc(file.LastModified, this.TimeZone);
+                    DateTime updatedDate = file.LastModified.Date;
 
                     TableCell cell = e.Row.Cells[((this.ShowIcons ? 4 : 3) + (!this.EnableDeleting ? -1 : 0))];
                     cell.Text = string.Format(this.Culture, this.DateTimeFormatString, updatedTime);
 
-                    TableCell deleteCell = e.Row.Cells[count - 2];
-
-                    DateTime updatedDate = file.LastModified.Date;
                     if (m_UpdatedDate == updatedDate)
+                    {
                         cell.Text = string.Empty;
+                    }
                     else
                     {
-                        if (m_UpdatedDate != DateTime.MinValue) e.Row.CssClass += " flPt";
+                        if (m_UpdatedDate != DateTime.MinValue)
+                        {
+                            e.Row.CssClass += " flPt";
+                        }
+
                         cell.CssClass = "flDate";
                     }
                     m_UpdatedDate = updatedDate;
@@ -821,6 +824,8 @@ namespace Micajah.AzureFileService.WebControls
 
                     if (this.EnableDeleting && this.EnableDeletingConfirmation)
                     {
+                        TableCell deleteCell = e.Row.Cells[count - 2];
+
                         if (deleteCell.Controls.Count > 0)
                         {
                             WebControl control = e.Row.Cells[count - 2].Controls[0] as WebControl;
