@@ -40,6 +40,15 @@ namespace Micajah.AzureFileService.Web {
         protected global::System.Web.UI.WebControls.CheckBox ThumbnailsCheckBox;
         
         /// <summary>
+        /// IconsCheckBox control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.CheckBox IconsCheckBox;
+        
+        /// <summary>
         /// Button1 control.
         /// </summary>
         /// <remarks>

@@ -8,6 +8,7 @@ using System.IO;
 using System.Text;
 using System.Web;
 using System.Web.UI;
+using System.Web.UI.HtmlControls;
 using System.Web.UI.WebControls;
 
 namespace Micajah.AzureFileService.WebControls
@@ -413,10 +414,10 @@ namespace Micajah.AzureFileService.WebControls
         }
 
         /// <summary>
-        /// Gets or sets a value indicating whether the icons column are displayed in control.
+        /// Gets or sets a value indicating whether the icons column is displayed in control.
         /// </summary>
         [Category("Appearance")]
-        [Description("Whether the icons column are displayed in control.")]
+        [Description("Whether the icons column is displayed in control.")]
         [DefaultValue(false)]
         public bool ShowIcons
         {
@@ -611,27 +612,25 @@ namespace Micajah.AzureFileService.WebControls
             Grid.RowDataBound += new GridViewRowEventHandler(Grid_RowDataBound);
             Grid.RowDeleting += new GridViewDeleteEventHandler(Grid_RowDeleting);
 
-            BoundField updatedTimeField = new BoundField();
-            updatedTimeField.DataField = LastModifiedColumnName;
-            updatedTimeField.HeaderStyle.Wrap = false;
-            updatedTimeField.HeaderText = Resources.FileList_UpdatedWhenText;
-            updatedTimeField.ItemStyle.HorizontalAlign = HorizontalAlign.Center;
-            updatedTimeField.ItemStyle.Wrap = false;
-
-            if (this.ShowIcons)
-            {
-                ImageField imageField = new ImageField();
-                imageField.DataImageUrlField = FileIdColumnName;
-                Grid.Columns.Add(imageField);
-            }
-
             HyperLinkField linkField = new HyperLinkField();
             linkField.DataNavigateUrlFields = new string[] { UrlColumnName };
             linkField.DataTextField = NameColumnName;
             linkField.HeaderText = Resources.FileList_FileNameText;
             linkField.ItemStyle.HorizontalAlign = HorizontalAlign.Left;
-            linkField.ControlStyle.CssClass = "flFileName";
             linkField.Target = "_blank";
+
+            if (this.ShowIcons)
+            {
+                ImageField imageField = new ImageField();
+                imageField.DataImageUrlField = FileIdColumnName;
+                imageField.ItemStyle.CssClass = "flFirst";
+                Grid.Columns.Add(imageField);
+            }
+            else
+            {
+                linkField.ItemStyle.CssClass = "flFirst";
+            }
+
             Grid.Columns.Add(linkField);
 
             BoundField boundField = new BoundField();
@@ -653,8 +652,6 @@ namespace Micajah.AzureFileService.WebControls
                 buttonField.ItemStyle.Wrap = false;
                 Grid.Columns.Add(buttonField);
             }
-
-            Grid.Columns.Add(updatedTimeField);
         }
 
         private void CreateDataList()
@@ -719,24 +716,12 @@ namespace Micajah.AzureFileService.WebControls
             {
                 ViewAllAtOnceLink = new HyperLink();
                 ViewAllAtOnceLink.ID = "ViewAllAtOnceLink";
-                ViewAllAtOnceLink.CssClass = "flCptCtrl";
+                ViewAllAtOnceLink.CssClass = "flCptCtrl flLink";
                 ViewAllAtOnceLink.Text = Resources.FileList_ViewAllAtOnceLink_Text;
                 ViewAllAtOnceLink.Target = "_blank";
                 ViewAllAtOnceLink.NavigateUrl = "#";
 
-                if (this.RenderingMode == FileListRenderingMode.Grid)
-                    ViewAllAtOnceLink.CssClass += " flLink";
-            }
-
-            if (ViewAllAtOnceLink != null)
-            {
-                if (this.RenderingMode == FileListRenderingMode.Grid)
-                    CaptionPanel.Controls.Add(ViewAllAtOnceLink);
-            }
-
-            if (CaptionPanel.HasControls())
-            {
-                this.Controls.Add(CaptionPanel);
+                CaptionPanel.Controls.Add(ViewAllAtOnceLink);
             }
         }
 
@@ -774,21 +759,37 @@ namespace Micajah.AzureFileService.WebControls
                 if (count > 0)
                 {
                     File file = (File)e.Row.DataItem;
+                    TableCell fileNameCell = null;
+                    string dateCssClass = "flDate";
 
                     if (this.ShowIcons)
                     {
+                        fileNameCell = e.Row.Cells[1];
+                        dateCssClass += " flIcons";
+
                         Image img = e.Row.Cells[0].Controls[0] as Image;
                         if (img != null)
                         {
                             img.ImageUrl = GetFileTypeIconUrl(file.Name, this.IconSize);
                         }
                     }
+                    else
+                    {
+                        fileNameCell = e.Row.Cells[0];
+                    }
 
                     if (this.ShowFileToolTip)
                     {
-                        HyperLink link = e.Row.Cells[this.ShowIcons ? 1 : 0].Controls[0] as HyperLink;
+                        HyperLink link = fileNameCell.Controls[0] as HyperLink;
+                        if (link == null)
+                        {
+                            link = fileNameCell.Controls[1] as HyperLink;
+                        }
+
                         if (link != null)
                         {
+                            link.CssClass = "flFileName";
+
                             if (MimeType.IsImageType(MimeMapping.GetMimeMapping(file.Name)))
                             {
                                 string thumbUrl = (this.EnableThumbnails ? this.FileManager.GetThumbnailUrl(file.FileId, 600, 500, 1, true) : file.Url);
@@ -802,33 +803,30 @@ namespace Micajah.AzureFileService.WebControls
                     DateTime updatedTime = TimeZoneInfo.ConvertTimeFromUtc(file.LastModified, this.TimeZone);
                     DateTime updatedDate = file.LastModified.Date;
 
-                    TableCell cell = e.Row.Cells[((this.ShowIcons ? 4 : 3) + (!this.EnableDeleting ? -1 : 0))];
-                    cell.Text = string.Format(this.Culture, this.DateTimeFormatString, updatedTime);
-
-                    if (m_UpdatedDate == updatedDate)
-                    {
-                        cell.Text = string.Empty;
-                    }
-                    else
+                    if (m_UpdatedDate != updatedDate)
                     {
                         if (m_UpdatedDate != DateTime.MinValue)
                         {
                             e.Row.CssClass += " flPt";
                         }
 
-                        cell.CssClass = "flDate";
+                        using (HtmlGenericControl panel = new HtmlGenericControl("div"))
+                        {
+                            panel.InnerHtml = string.Format(this.Culture, this.DateTimeFormatString, updatedTime);
+                            panel.Attributes["class"] = dateCssClass;
+
+                            fileNameCell.Controls.AddAt(0, panel);
+                        }
                     }
                     m_UpdatedDate = updatedDate;
 
-                    cell.ToolTip = string.Format(this.Culture, this.DateTimeToolTipFormatString, updatedTime);
-
                     if (this.EnableDeleting && this.EnableDeletingConfirmation)
                     {
-                        TableCell deleteCell = e.Row.Cells[count - 2];
+                        TableCell deleteCell = e.Row.Cells[count - 1];
 
                         if (deleteCell.Controls.Count > 0)
                         {
-                            WebControl control = e.Row.Cells[count - 2].Controls[0] as WebControl;
+                            WebControl control = deleteCell.Controls[0] as WebControl;
                             if (control != null)
                             {
                                 control.Attributes.Add("onclick", OnDeletingClientScript);
@@ -861,17 +859,35 @@ namespace Micajah.AzureFileService.WebControls
         {
             base.CreateChildControls();
 
-            if (this.RenderingMode != FileListRenderingMode.Grid)
-                this.EnsureGridCaptionPanel();
-
+            this.EnsureGridCaptionPanel();
             this.EnsureGrid();
+
+            if (this.RenderingMode != FileListRenderingMode.Grid)
+            {
+                if (CaptionPanel.HasControls())
+                {
+                    this.Controls.Add(CaptionPanel);
+                }
+            }
+
             if (Grid != null)
+            {
                 this.Controls.Add(Grid);
+            }
             else if (List != null)
+            {
                 this.Controls.Add(List);
+            }
 
             if (this.RenderingMode == FileListRenderingMode.Grid)
-                this.EnsureGridCaptionPanel();
+            {
+                if (CaptionPanel.HasControls())
+                {
+                    CaptionPanel.CssClass = "flCpt";
+
+                    this.Controls.Add(CaptionPanel);
+                }
+            }
         }
 
         /// <summary>

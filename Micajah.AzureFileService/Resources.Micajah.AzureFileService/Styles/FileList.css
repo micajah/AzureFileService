@@ -12,6 +12,14 @@
     padding-right: 10px;
 }
 
+    .flGrid td img {
+        vertical-align: bottom;
+    }
+
+    .flGrid td.flFirst, .flCpt {
+        padding-left: 22px;
+    }
+
 .flGrid a:hover, .flThumbs a:hover {
     color: Blue;
 }
@@ -20,21 +28,32 @@
     color: Red;
 }
 
-.flGrid tr a.flRemove {
-    visibility: hidden;
+.flGrid tr {
+    vertical-align: bottom;
 }
 
-.flGrid tr:hover a.flRemove {
-    visibility: visible;
-}
+    .flGrid tr a.flRemove {
+        visibility: hidden;
+    }
 
-.flGrid tr.flPt td {
-    padding-top: 10px;
-}
+    .flGrid tr:hover a.flRemove {
+        visibility: visible;
+    }
 
-.flGrid td.flDate {
+    .flGrid tr.flPt td {
+        padding-top: 10px;
+    }
+
+.flGrid .flDate {
     color: #6c6c6c;
+    padding-bottom: 5px;
+    position: relative;
+    left: -19px;
 }
+
+    .flGrid .flDate.flIcons {
+        left: -50px;
+    }
 
 .flThumbs div {
     border: solid 1px #cccccc !important;
@@ -72,6 +91,10 @@
         display: block;
     }
 
+    .flToolTip.s250 {
+        width: 250px;
+    }
+
     .flToolTip.s600x500 {
         width: 600px;
         height: 500px;
@@ -90,28 +113,12 @@
             border: 0 none;
         }
 
-    .flToolTip.s250 {
-        width: 250px;
-    }
-
-a.flUploadFiles, a.flUploadFiles:hover, a.flCptCtrl, a.flCptCtrl:hover {
-    color: Black;
-    padding-bottom: 3px;
-    display: inline-block;
-}
-
-    a.flCptCtrl, a.flCptCtrl:hover {
-        font-size: 12px;
-    }
-
-        a.flUploadFiles:hover, a.flCptCtrl:hover {
-            color: Blue;
-        }
-
 a.flLink {
     font-family: Arial;
-    padding: 1px 2px 2px 2px;
+    padding: 1px 2px 3px 2px;
     color: Gray;
+    display: inline-block;
+    font-size: 12px;
 }
 
     a.flLink:hover {

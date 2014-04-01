@@ -55,6 +55,7 @@ namespace Micajah.AzureFileService.Web
             FileList2.IconSize = (IconSize)Enum.Parse(typeof(IconSize), IconSizeList.SelectedValue);
             IconSizeList.SelectedValue = FileList2.IconSize.ToString();
             FileList2.EnableThumbnails = ThumbnailsCheckBox.Checked;
+            FileList2.ShowIcons = IconsCheckBox.Checked;
             FileList2.DataBind();
         }
     }
