@@ -26,7 +26,7 @@
 .dropzone.dz-clickable * {
   cursor: default;
 }
-.dropzone.dz-drag-hover {
+.dz-drag-hover {
   border-color: rgba(0,0,0,0.15);
   background: rgba(0,0,0,0.04);
 }

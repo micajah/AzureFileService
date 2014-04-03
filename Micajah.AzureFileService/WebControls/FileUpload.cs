@@ -23,6 +23,7 @@ namespace Micajah.AzureFileService.WebControls
         protected Panel FallbackPanel;
         protected System.Web.UI.WebControls.FileUpload FileFromMyComputer;
         protected CustomValidator Validator;
+        protected Button AcceptChangesButton;
 
         private FileManager m_FileManager;
 
@@ -34,6 +35,7 @@ namespace Micajah.AzureFileService.WebControls
         /// Gets or sets a comma-separated list of MIME encodings used to constrain the file types the user can select.
         /// </summary>
         [Category("Behavior")]
+        [Description("A comma-separated list of MIME encodings used to constrain the file types the user can select.")]
         [DefaultValue("")]
         public string Accept
         {
@@ -42,19 +44,59 @@ namespace Micajah.AzureFileService.WebControls
         }
 
         /// <summary>
-        /// Gets or set a value indicating whether the dropping to whole page is enabled.
+        /// Gets or set a value indicating whether accept changes is called automatically after file uploading.
         /// </summary>
         [Category("Behavior")]
-        [Description("Whether the dropping to whole page is enabled.")]
+        [Description("Whether accept changes is called automatically after file uploading.")]
         [DefaultValue(false)]
-        public bool EnableDropToPage
+        public bool AutoAcceptChanges
         {
             get
             {
-                object obj = ViewState["EnableDropToPage"];
+                object obj = ViewState["AutoAcceptChanges"];
                 return ((obj == null) ? false : (bool)obj);
             }
-            set { ViewState["EnableDropToPage"] = value; }
+            set { ViewState["AutoAcceptChanges"] = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the HTML DOM element that is used as target for dropping.
+        /// </summary>
+        [Category("Behavior")]
+        [Description("HTML DOM element that is used as target for dropping.")]
+        [DefaultValue("")]
+        public string DropElement
+        {
+            get { return (string)this.ViewState["DropElement"]; }
+            set { this.ViewState["DropElement"] = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the HTML DOM element of container that displays the file preview.
+        /// </summary>
+        [Category("Appearance")]
+        [Description("HTML DOM element of container that displays the file preview.")]
+        [DefaultValue("")]
+        public string PreviewElement
+        {
+            get { return (string)this.ViewState["PreviewElement"]; }
+            set { this.ViewState["PreviewElement"] = value; }
+        }
+
+        /// <summary>
+        /// Gets or set a value indicating whether the file preview is enabled.
+        /// </summary>
+        [Category("Appearance")]
+        [Description("Whether the file preview is enabled.")]
+        [DefaultValue(true)]
+        public bool EnablePreview
+        {
+            get
+            {
+                object obj = ViewState["EnablePreview"];
+                return ((obj == null) ? true : (bool)obj);
+            }
+            set { ViewState["EnablePreview"] = value; }
         }
 
         /// <summary>
@@ -287,32 +329,32 @@ namespace Micajah.AzureFileService.WebControls
         {
             get
             {
-                string camelizedId = Camelize(this.ClientID, this.ClientIDSeparator.ToString());
-                string variableName = (char.ToLowerInvariant(camelizedId[0]) + camelizedId.Substring(1));
-                string element = (this.EnableDropToPage ? "document.body" : string.Format(CultureInfo.InvariantCulture, "\"#{0}\"", this.ClientID));
+                string variableName = (char.ToLowerInvariant(this.ClientID[0]) + this.ClientID.Substring(1));
+                string element = (string.IsNullOrEmpty(this.DropElement) ? string.Format(CultureInfo.InvariantCulture, "\"#{0}\"", this.ClientID) : this.DropElement);
+
+                string previewsContainer = null;
+                if (string.IsNullOrEmpty(this.PreviewElement))
+                {
+                    if (this.EnablePreview)
+                    {
+                        previewsContainer = string.Format(CultureInfo.InvariantCulture, "\"#{0}\"", this.ClientID);
+                    }
+                }
+                else
+                {
+                    previewsContainer = this.PreviewElement;
+                }
 
                 StringBuilder sb = new StringBuilder();
 
-                sb.AppendFormat(CultureInfo.InvariantCulture, @"if (typeof({1}) !== ""undefined"") {{
-    {1}.destroy();
+                sb.AppendFormat(CultureInfo.InvariantCulture, @"if (typeof({0}) !== ""undefined"") {{
+    {0}.destroy();
 }}
-else {{
-    Dropzone.options.{0} = false;
-}}
-"
-                    , camelizedId
-                    , variableName);
-
-                sb.AppendFormat(CultureInfo.InvariantCulture, "{0} = new Dropzone({1},{{addRemoveLinks:true,createImageThumbnails:false,paramName:\"{2}\",url:\"{3}\""
+{0} = new Dropzone({1},{{paramName:""{2}"",url:""{3}"""
                     , variableName
                     , element
                     , FileFromMyComputer.UniqueID
                     , this.FileManager.GetTemporaryFilesUrlFormat(this.TemporaryDirectoryName));
-
-                if (this.EnableDropToPage)
-                {
-                    sb.AppendFormat(CultureInfo.InvariantCulture, ",previewsContainer:\"#{0}\"", this.ClientID);
-                }
 
                 if (!string.IsNullOrWhiteSpace(this.Accept))
                 {
@@ -329,12 +371,35 @@ else {{
                     sb.AppendFormat(CultureInfo.InvariantCulture, ",maxFilesize:{0}", this.MaxFileSizeInMB);
                 }
 
+                if (!string.IsNullOrEmpty(previewsContainer))
+                {
+                    sb.AppendFormat(CultureInfo.InvariantCulture, ",previewsContainer:{0}", previewsContainer);
+                }
+
+                if (!this.EnablePreview)
+                {
+                    sb.Append(",previewTemplate:\"\"");
+                }
+
                 sb.AppendFormat(CultureInfo.InvariantCulture, ",cacheControl:\"{0}\",dictDefaultMessage:\"{1}\",dictCancelUpload:\"{2}\",dictRemoveFile:\"{3}\",dictRemoveFileConfirmation:\"{4}\"}});\r\n"
                     , Settings.ClientCacheControl
                     , Resources.FileUpload_DefaultMessage
                     , Resources.FileUpload_CancelText
                     , Resources.FileList_DeleteText
                     , Resources.FileList_DeletingConfirmationText);
+
+                if (this.AutoAcceptChanges)
+                {
+                    sb.AppendFormat(CultureInfo.InvariantCulture, @"{0}.on(""success"", function () {{
+    var files = this.getQueuedFiles();
+    if (files.length == 0) {{
+        {1};
+    }}
+}});
+"
+                        , variableName
+                        , this.Page.ClientScript.GetPostBackEventReference(AcceptChangesButton, null));
+                }
 
                 return sb.ToString();
             }
@@ -358,29 +423,6 @@ else {{
         #endregion
 
         #region Private Methods
-
-        // This method should be synchronized with camelize function from dropzone.js file.
-        private static string Camelize(string value, string separator)
-        {
-            if (string.IsNullOrEmpty(value))
-            {
-                return value;
-            }
-
-            string[] parts = value.Split(new string[] { separator }, StringSplitOptions.None);
-
-            for (int x = 1; x < parts.Length; x++)
-            {
-                string p = parts[x];
-                char first = char.ToUpperInvariant(p[0]);
-                string rest = p.Substring(1);
-                parts[x] = first + rest;
-            }
-
-            string result = string.Join(string.Empty, parts);
-
-            return result;
-        }
 
         private void UploadFile()
         {
@@ -441,6 +483,11 @@ else {{
             }
         }
 
+        private void AcceptChangesButton_Click(object sender, EventArgs e)
+        {
+            this.AcceptChanges();
+        }
+
         #endregion
 
         #region Overriden Methods
@@ -467,6 +514,14 @@ else {{
             Validator.ForeColor = Color.Empty;
             Validator.ServerValidate += new ServerValidateEventHandler(Validator_ServerValidate);
             FallbackPanel.Controls.Add(Validator);
+
+            AcceptChangesButton = new Button();
+            AcceptChangesButton.ID = "AcceptChangesButton";
+            AcceptChangesButton.CausesValidation = false;
+            AcceptChangesButton.UseSubmitBehavior = false;
+            AcceptChangesButton.Style[HtmlTextWriterStyle.Display] = "none";
+            AcceptChangesButton.Click += AcceptChangesButton_Click;
+            this.Controls.Add(AcceptChangesButton);
         }
 
         protected override void OnLoad(EventArgs e)
@@ -485,6 +540,11 @@ else {{
         protected override void OnPreRender(EventArgs e)
         {
             this.CssClass = "dropzone";
+
+            if (!this.EnablePreview)
+            {
+                this.Style[HtmlTextWriterStyle.Display] = "none";
+            }
 
             this.RegisterStyleSheet("Styles.dropzone.css");
 

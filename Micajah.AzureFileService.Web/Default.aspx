@@ -10,6 +10,6 @@
     <asp:Button ID="RejectButton" runat="server" Text="Reject Changes" OnClick="RejectButton_Click" />&nbsp;
     <asp:Button ID="SubmitButton" runat="server" Text="Just Do Postback" Style="margin-left: 45px;" />
     <div id="DropDisabledPanel" class="panel dz-drop-disabled">
-        If you drop the files there - it will be rejected
+        If you drop the files here - it will be rejected
     </div>
 </asp:Content>
