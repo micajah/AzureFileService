@@ -36,6 +36,11 @@ namespace Micajah.AzureFileService.WebControls
         /// </summary>
         public event EventHandler AcceptingChanges;
 
+        /// <summary>
+        /// Occurs after all the changes are committed.
+        /// </summary>
+        public event EventHandler AcceptedChanges;
+
         #endregion
 
         #region Public Properties
@@ -599,6 +604,11 @@ namespace Micajah.AzureFileService.WebControls
             this.FileManager.MoveTemporaryFiles(this.TemporaryDirectoryName);
 
             this.TemporaryDirectoryName = null;
+
+            if (this.AcceptedChanges != null)
+            {
+                this.AcceptedChanges(this, EventArgs.Empty);
+            }
         }
 
         /// <summary>
