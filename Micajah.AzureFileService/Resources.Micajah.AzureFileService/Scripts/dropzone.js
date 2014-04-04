@@ -389,7 +389,7 @@ require.register("dropzone/lib/dropzone.js", function(exports, require, module){
 
 
 (function() {
-  var Dropzone, Em, camelize, contentLoaded, noop, without,
+  var Dropzone, Em, noop, without,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     __slice = [].slice;
@@ -693,7 +693,7 @@ require.register("dropzone/lib/dropzone.js", function(exports, require, module){
       }
       Dropzone.instances.push(this);
       this.element.dropzone = this;
-      elementOptions = (_ref = Dropzone.optionsForElement(this.element)) != null ? _ref : {};
+      elementOptions = {};
       this.options = extend({}, this.defaultOptions, elementOptions, options != null ? options : {});
       if (this.options.previewsContainer) {
           this.previewsContainer = Dropzone.getElement(this.options.previewsContainer, "previewsContainer");
@@ -1648,14 +1648,6 @@ require.register("dropzone/lib/dropzone.js", function(exports, require, module){
 
   Dropzone.options = {};
 
-  Dropzone.optionsForElement = function(element) {
-    if (element.id) {
-      return Dropzone.options[camelize(element.id)];
-    } else {
-      return void 0;
-    }
-  };
-
   Dropzone.instances = [];
 
   Dropzone.forElement = function(element) {
@@ -1702,12 +1694,6 @@ require.register("dropzone/lib/dropzone.js", function(exports, require, module){
       }
     }
     return _results;
-  };
-
-  camelize = function(str) {
-    return str.replace(/[\-_](\w)/g, function(match) {
-      return match[1].toUpperCase();
-    });
   };
 
   Dropzone.createElement = function(string) {
@@ -1836,65 +1822,6 @@ require.register("dropzone/lib/dropzone.js", function(exports, require, module){
   Dropzone.ERROR = "error";
 
   Dropzone.SUCCESS = "success";
-
-  /*
-  # contentloaded.js
-  #
-  # Author: Diego Perini (diego.perini at gmail.com)
-  # Summary: cross-browser wrapper for DOMContentLoaded
-  # Updated: 20101020
-  # License: MIT
-  # Version: 1.2
-  #
-  # URL:
-  # http://javascript.nwbox.com/ContentLoaded/
-  # http://javascript.nwbox.com/ContentLoaded/MIT-LICENSE
-  */
-
-
-  contentLoaded = function(win, fn) {
-    var add, doc, done, init, poll, pre, rem, root, top;
-    done = false;
-    top = true;
-    doc = win.document;
-    root = doc.documentElement;
-    add = (doc.addEventListener ? "addEventListener" : "attachEvent");
-    rem = (doc.addEventListener ? "removeEventListener" : "detachEvent");
-    pre = (doc.addEventListener ? "" : "on");
-    init = function(e) {
-      if (e.type === "readystatechange" && doc.readyState !== "complete") {
-        return;
-      }
-      (e.type === "load" ? win : doc)[rem](pre + e.type, init, false);
-      if (!done && (done = true)) {
-        return fn.call(win, e.type || e);
-      }
-    };
-    poll = function() {
-      var e;
-      try {
-        root.doScroll("left");
-      } catch (_error) {
-        e = _error;
-        setTimeout(poll, 50);
-        return;
-      }
-      return init("poll");
-    };
-    if (doc.readyState !== "complete") {
-      if (doc.createEventObject && root.doScroll) {
-        try {
-          top = !win.frameElement;
-        } catch (_error) {}
-        if (top) {
-          poll();
-        }
-      }
-      doc[add](pre + "DOMContentLoaded", init, false);
-      doc[add](pre + "readystatechange", init, false);
-      return win[add](pre + "load", init, false);
-    }
-  };
 
 }).call(this);
 
