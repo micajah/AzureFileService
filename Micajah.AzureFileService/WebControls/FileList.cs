@@ -917,12 +917,15 @@ namespace Micajah.AzureFileService.WebControls
             string deletingScript = string.Format(CultureInfo.CurrentCulture, DeletingClientScript, Resources.FileList_DeletingConfirmationText);
             ScriptManager.RegisterClientScriptBlock(p, t, "Scripts.FileList.Deleting", deletingScript, true);
 
-            ScriptManager sm = ScriptManager.GetCurrent(p);
-            if (sm != null)
+            if (this.ShowFileToolTip)
             {
-                if (sm.IsInAsyncPostBack)
+                ScriptManager sm = ScriptManager.GetCurrent(p);
+                if (sm != null)
                 {
-                    ScriptManager.RegisterStartupScript(p, t, "Scripts.FileList.Adapter", AdapterClientScript, true);
+                    if (sm.IsInAsyncPostBack)
+                    {
+                        ScriptManager.RegisterStartupScript(p, t, "Scripts.FileList.Adapter", AdapterClientScript, true);
+                    }
                 }
             }
         }
