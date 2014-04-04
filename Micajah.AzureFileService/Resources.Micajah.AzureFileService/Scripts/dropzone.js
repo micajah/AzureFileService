@@ -639,7 +639,11 @@ require.register("dropzone/lib/dropzone.js", function(exports, require, module){
         return _results;
       },
       totaluploadprogress: noop,
-      sending: noop,
+      sending: function (file) {
+        if (!file.previewElement) {
+          this.previewsContainer.style.cursor = "wait";
+        }
+      },
       sendingmultiple: noop,
       success: function (file) {
         if (file.previewElement) {
@@ -651,7 +655,10 @@ require.register("dropzone/lib/dropzone.js", function(exports, require, module){
         return this.emit("error", file, "Upload canceled.");
       },
       canceledmultiple: noop,
-      complete: function(file) {
+      complete: function (file) {
+        if (!file.previewElement) {
+          this.previewsContainer.style.cursor = "default";
+        }
         if (file._removeLink) {
           return file._removeLink.textContent = this.options.dictRemoveFile;
         }
