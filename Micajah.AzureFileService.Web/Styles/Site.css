@@ -46,15 +46,17 @@ p {
 
 .left {
     float: left;
+    padding-bottom: 5px;
 }
 
 .right {
     float: right;
+    padding-bottom: 5px;
 }
 
 .size {
-    border: solid 1px gray;
-    padding: 0 10px;
+    position: absolute;
+    top: -7px;
 }
 
 .clear {
