@@ -14,7 +14,8 @@
         <div class="menu">
             <asp:HyperLink ID="HyperLink1" runat="server" NavigateUrl="~/Default.aspx">File Upload</asp:HyperLink>&nbsp;|&nbsp;<asp:HyperLink
                 ID="HyperLink2" runat="server" NavigateUrl="~/FileList.aspx">File List</asp:HyperLink>&nbsp;|&nbsp;<asp:HyperLink
-                    ID="HyperLink3" runat="server" NavigateUrl="~/SimpleUpload.aspx">Simple Upload</asp:HyperLink>
+                    ID="HyperLink3" runat="server" NavigateUrl="~/SimpleUpload.aspx">Simple Upload</asp:HyperLink>&nbsp;|&nbsp;<asp:HyperLink
+                        ID="HyperLink4" runat="server" NavigateUrl="~/AutoAcceptChanges.aspx">Auto Upload</asp:HyperLink>
         </div>
         <hr />
         <div class="content">

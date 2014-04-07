@@ -59,9 +59,11 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Controls\SimpleUpload.ascx" />
+    <Content Include="AutoAcceptChanges.aspx" />
     <Content Include="Default.aspx" />
     <Content Include="FileList.aspx" />
     <Content Include="Global.asax" />
+    <Content Include="Scripts\Site.js" />
     <Content Include="SimpleUpload.aspx" />
     <Content Include="Styles\Site.css" />
     <Content Include="Web.config" />
@@ -73,6 +75,13 @@
     </Compile>
     <Compile Include="Controls\SimpleUpload.ascx.designer.cs">
       <DependentUpon>SimpleUpload.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="AutoAcceptChanges.aspx.cs">
+      <DependentUpon>AutoAcceptChanges.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="AutoAcceptChanges.aspx.designer.cs">
+      <DependentUpon>AutoAcceptChanges.aspx</DependentUpon>
     </Compile>
     <Compile Include="Default.aspx.cs">
       <DependentUpon>Default.aspx</DependentUpon>
