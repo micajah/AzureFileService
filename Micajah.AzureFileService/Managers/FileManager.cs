@@ -339,22 +339,25 @@ namespace Micajah.AzureFileService
                 string str = Encoding.UTF8.GetString(bytes);
                 string[] values = str.Split('|');
 
-                string fileId = values[0];
-                int width = Convert.ToInt32(values[1], CultureInfo.InvariantCulture);
-                int height = Convert.ToInt32(values[2], CultureInfo.InvariantCulture);
-                int align = Convert.ToInt32(values[3], CultureInfo.InvariantCulture);
-                string containerName = values[4];
+                if (values.Length > 4)
+                {
+                    string fileId = values[0];
+                    int width = Convert.ToInt32(values[1], CultureInfo.InvariantCulture);
+                    int height = Convert.ToInt32(values[2], CultureInfo.InvariantCulture);
+                    int align = Convert.ToInt32(values[3], CultureInfo.InvariantCulture);
+                    string containerName = values[4];
 
-                values = fileId.Split('/');
-                int length = values.Length;
+                    values = fileId.Split('/');
+                    int length = values.Length;
 
-                string objectType = values[length - 3];
-                string objectId = values[length - 2];
-                fileName = values[length - 1];
+                    string objectType = values[length - 3];
+                    string objectId = values[length - 2];
+                    fileName = values[length - 1];
 
-                FileManager manager = new FileManager(containerName, objectType, objectId);
+                    FileManager manager = new FileManager(containerName, objectType, objectId);
 
-                return manager.GetThumbnail(fileId, fileName, width, height, align);
+                    return manager.GetThumbnail(fileId, fileName, width, height, align);
+                }
             }
 
             return null;
