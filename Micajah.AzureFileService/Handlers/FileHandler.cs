@@ -37,9 +37,16 @@ namespace Micajah.AzureFileService
             context.Response.ContentType = contentType;
 
             string contentDisposition = string.Empty;
-            if (context.Request.Browser.IsBrowser("IE") || context.Request.UserAgent.Contains("Chrome"))
+            string userAgent = string.Empty;
+
+            if (context.Request.UserAgent != null)
+            {
+                userAgent = context.Request.UserAgent;
+            }
+
+            if (context.Request.Browser.IsBrowser("IE") || userAgent.Contains("Chrome"))
                 contentDisposition = "filename=\"" + fileName.ToHex() + "\";";
-            else if (context.Request.UserAgent.Contains("Safari"))
+            else if (userAgent.Contains("Safari"))
                 contentDisposition = "filename=\"" + fileName + "\";";
             else
                 contentDisposition = "filename*=utf-8''" + HttpUtility.UrlPathEncode(fileName) + ";";
