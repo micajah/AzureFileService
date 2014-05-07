@@ -11,10 +11,22 @@ namespace Micajah.AzureFileService.WebControls
     {
         private class ThumbnailsListItemTemplate : ITemplate, IDisposable
         {
+            #region
+
+            private const int ImageThumbnailWidth = 128;
+            private const int ImageThumbnailHeight = 128;
+            private const int VideoThumbnailWidth = 148;
+            private const int VideoThumbnailHeight = 148;
+            private const int ThumbnailPadding = 4; // 2 borders x 1px + 2 paddings x 1px 
+
+            #endregion
+
             #region Members
 
             private ListItemType m_ItemType;
             private FileList m_FileList;
+            private int m_PictureWidth;
+            private int m_PictureHeight;
 
             private LinkButton DeleteLink;
             private Image Picture;
@@ -29,6 +41,15 @@ namespace Micajah.AzureFileService.WebControls
             {
                 m_ItemType = itemType;
                 m_FileList = fileList;
+
+                m_PictureWidth = ImageThumbnailWidth;
+                m_PictureHeight = ImageThumbnailHeight;
+
+                if (m_FileList.ShowVideoOnly)
+                {
+                    m_PictureWidth = VideoThumbnailWidth;
+                    m_PictureHeight = VideoThumbnailWidth;
+                }
             }
 
             #endregion
@@ -43,8 +64,9 @@ namespace Micajah.AzureFileService.WebControls
                 string url = (m_FileList.ShowVideoOnly ? ResourceHandler.GetWebResourceUrl("Images.Video.gif", true) : GetNonImageFileTypeIconUrl(file.Name, IconSize.Bigger));
                 if (url == null)
                 {
-                    url = m_FileList.FileManager.GetThumbnailUrl(file.FileId, (int)IconSize.Bigger, (int)IconSize.Bigger, 1, false);
+                    url = m_FileList.FileManager.GetThumbnailUrl(file.FileId, m_PictureWidth, m_PictureHeight, 1, false);
                 }
+
                 img.ImageUrl = url;
             }
 
@@ -104,21 +126,21 @@ namespace Micajah.AzureFileService.WebControls
                     return;
                 }
 
-                int width = (m_FileList.ShowVideoOnly ? 148 : 128);
-                int height = width;
-
                 Picture = new Image();
                 Picture.DataBinding += new EventHandler(Image_DataBinding);
-                Picture.Width = Unit.Pixel(width);
-                Picture.Height = Unit.Pixel(height);
+                Picture.Width = Unit.Pixel(m_PictureWidth);
+                Picture.Height = Unit.Pixel(m_PictureHeight);
 
                 PictureLink = new HyperLink();
                 PictureLink.DataBinding += new EventHandler(HyperLink_DataBinding);
                 PictureLink.Controls.Add(Picture);
 
+                int width = m_PictureWidth + ThumbnailPadding;
+                int height = m_PictureHeight + ThumbnailPadding;
+
                 if (m_FileList.EnableDeleting && (!m_FileList.ShowFileToolTip))
                 {
-                    height += 17;
+                    height += 19;
                 }
 
                 PicturePanel = new Panel();

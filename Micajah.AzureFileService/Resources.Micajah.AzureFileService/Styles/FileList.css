@@ -4,10 +4,6 @@
     color: Black;
 }
 
-.flThumbs a {
-    display: block;
-}
-
 .flGrid td {
     padding-right: 10px;
 }
@@ -54,6 +50,23 @@
     .flGrid .flDate.flIcons {
         left: -50px;
     }
+
+.flThumbs * {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+    .flThumbs *:before,
+    .flThumbs *:after {
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
+    }
+
+.flThumbs a {
+    display: block;
+}
 
 .flThumbs div {
     border: solid 1px #cccccc !important;
