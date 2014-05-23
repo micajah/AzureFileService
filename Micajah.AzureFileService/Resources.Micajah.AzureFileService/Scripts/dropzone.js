@@ -447,6 +447,7 @@
                     dictRemoveFile: "Remove file",
                     dictRemoveFileConfirmation: null,
                     dictMaxFilesExceeded: "You can only upload {{maxFiles}} files.",
+                    dictDropMessage: "Drop files to upload",
                     accept: function (file, done) {
                         return done();
                     },
@@ -811,6 +812,13 @@
                     if (this.previewsContainer.classList.contains("dropzone") && !this.previewsContainer.querySelector(".dz-message")) {
                         this.previewsContainer.appendChild(Dropzone.createElement("<div class=\"dz-default dz-message\"><span>" + this.options.dictDefaultMessage + "</span></div>"));
                     }
+                    var hoverMessage = document.createElement("DIV");
+                    hoverMessage.innerHTML = this.options.dictDropMessage;
+                    hoverMessage.className = "dz-drag-hover-message";
+                    this.previewsContainer.insertBefore(hoverMessage, this.previewsContainer.firstChild);
+                    var hoverOverlay = document.createElement("DIV");
+                    hoverOverlay.className = "dz-drag-hover-overlay";
+                    this.previewsContainer.insertBefore(hoverOverlay, this.previewsContainer.firstChild);
                     if (this.clickableElements.length) {
                         setupHiddenFileInput = function () {
                             if (_this.hiddenFileInput) {

@@ -144,6 +144,9 @@
   <data name="FileUpload_DefaultMessage" xml:space="preserve">
     <value>Click or Drag files here to attach</value>
   </data>
+  <data name="FileUpload_DropMessage" xml:space="preserve">
+    <value>Drop files to upload</value>
+  </data>
   <data name="FileUpload_InvalidFileSize" xml:space="preserve">
     <value>Invalid file size</value>
   </data>

@@ -395,12 +395,13 @@ namespace Micajah.AzureFileService.WebControls
                     sb.Append(",previewTemplate:\"\"");
                 }
 
-                sb.AppendFormat(CultureInfo.InvariantCulture, ",cacheControl:\"{0}\",dictDefaultMessage:\"{1}\",dictCancelUpload:\"{2}\",dictRemoveFile:\"{3}\",dictRemoveFileConfirmation:\"{4}\"}});\r\n"
+                sb.AppendFormat(CultureInfo.InvariantCulture, ",cacheControl:\"{0}\",dictDefaultMessage:\"{1}\",dictCancelUpload:\"{2}\",dictRemoveFile:\"{3}\",dictRemoveFileConfirmation:\"{4}\",dictDropMessage:\"{5}\"}});\r\n"
                     , Settings.ClientCacheControl
                     , Resources.FileUpload_DefaultMessage
                     , Resources.FileUpload_CancelText
                     , Resources.FileList_DeleteText
-                    , Resources.FileList_DeletingConfirmationText);
+                    , Resources.FileList_DeletingConfirmationText
+                    , Resources.FileUpload_DropMessage);
 
                 if (this.AutoAcceptChanges)
                 {

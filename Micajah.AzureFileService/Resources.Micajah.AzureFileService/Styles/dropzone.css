@@ -26,10 +26,6 @@
 .dropzone.dz-clickable * {
   cursor: default;
 }
-.dz-drag-hover {
-  border-color: rgba(0,0,0,0.15);
-  background: rgba(0,0,0,0.04);
-}
 .dropzone.dz-started .dz-message {
   display: none;
 }
@@ -183,4 +179,53 @@
 
 .dropzone a.dz-remove:hover {
     color: red;
+}
+
+.dz-drag-hover {
+    position: relative;
+}
+
+.dz-drag-hover-overlay {
+    position: absolute;
+    z-index: 3010;
+    margin: auto;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    display: none;
+    opacity: 0.9;
+    -moz-opacity: 0.9;
+    -khtml-opacity: 0.9;
+    -ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=90)";
+    filter: alpha(opacity=90);
+    background: rgba(0,77,119,0.9);
+    border-color: rgba(0,77,119,0.9);
+}
+
+.dz-drag-hover-message {
+    position: absolute;
+    z-index: 3011;
+    margin: auto;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 40px;
+    text-align: center;
+    font-size: 32px;
+    font-weight: bold;
+    color: white;
+    display: none;
+}
+
+.dz-drag-hover .dz-drag-hover-overlay, .dz-drag-hover .dz-drag-hover-message {
+    display: block;
+}
+
+.dz-drag-hover .dz-default {
+    display: none;
 }

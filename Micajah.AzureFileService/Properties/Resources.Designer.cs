@@ -142,6 +142,15 @@ namespace Micajah.AzureFileService.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Drop files to upload.
+        /// </summary>
+        internal static string FileUpload_DropMessage {
+            get {
+                return ResourceManager.GetString("FileUpload_DropMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid file size.
         /// </summary>
         internal static string FileUpload_InvalidFileSize {
