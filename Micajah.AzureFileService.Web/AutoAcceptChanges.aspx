@@ -1,4 +1,4 @@
-﻿<%@ Page Title="File Upload" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="AutoAcceptChanges.aspx.cs" Inherits="Micajah.AzureFileService.Web.AutoAcceptChanges" %>
+﻿<%@ Page Title="Auto Upload" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="AutoAcceptChanges.aspx.cs" Inherits="Micajah.AzureFileService.Web.AutoAcceptChanges" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
 </asp:Content>

@@ -1,4 +1,4 @@
-﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="SimpleUpload.aspx.cs" Inherits="Micajah.AzureFileService.Web.SimpleUpload" %>
+﻿<%@ Page Title="Simple Upload" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="SimpleUpload.aspx.cs" Inherits="Micajah.AzureFileService.Web.SimpleUpload" %>
 
 <%@ Register Src="~/Controls/SimpleUpload.ascx" TagPrefix="uc1" TagName="SimpleUpload" %>
 
