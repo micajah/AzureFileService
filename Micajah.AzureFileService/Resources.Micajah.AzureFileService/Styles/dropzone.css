@@ -232,6 +232,10 @@
     display: block;
 }
 
+body.dz-drag-hover .dz-drag-hover-overlay, body.dz-drag-hover .dz-drag-hover-message {
+    position: fixed;
+}
+
 .dropzone.dz-drag-hover .dz-default {
     display: none;
 }
