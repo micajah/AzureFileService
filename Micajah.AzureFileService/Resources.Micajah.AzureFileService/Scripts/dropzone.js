@@ -942,6 +942,7 @@
                         this.hiddenFileInput.parentNode.removeChild(this.hiddenFileInput);
                         this.hiddenFileInput = null;
                     }
+                    this.removeHoverOverlay();
                     return delete this.element.dropzone;
                 };
 
@@ -955,6 +956,17 @@
                     hoverOverlay.id = this.id + "_HoverOverlay";
                     hoverOverlay.className = "dz-drag-hover-overlay";
                     this.element.insertBefore(hoverOverlay, this.element.firstChild);
+                }
+
+                Dropzone.prototype.removeHoverOverlay = function () {
+                    var elem = document.getElementById(this.id + "_HoverOverlay");
+                    if (elem) {
+                        this.element.removeChild(elem);
+                    }
+                    elem = document.getElementById(this.id + "_HoverMessage");
+                    if (elem) {
+                        this.element.removeChild(elem);
+                    }
                 }
 
                 Dropzone.prototype.showHoverOverlay = function () {
