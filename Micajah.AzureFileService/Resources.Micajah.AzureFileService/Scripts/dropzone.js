@@ -516,26 +516,26 @@
                     */
 
                     drop: function (e) {
-                        return this.previewsContainer.classList.remove("dz-drag-hover");
+                        return this.element.classList.remove("dz-drag-hover");
                     },
                     dragstart: noop,
                     dragend: function (e) {
-                        return this.previewsContainer.classList.remove("dz-drag-hover");
+                        return this.element.classList.remove("dz-drag-hover");
                     },
                     dragenter: function (e) {
-                        if (this.previewsContainer.removeHoverCssClassTimer) {
-                            clearTimeout(this.previewsContainer.removeHoverCssClassTimer);
+                        if (this.element.removeHoverCssClassTimer) {
+                            clearTimeout(this.element.removeHoverCssClassTimer);
                         }
-                        return this.previewsContainer.classList.add("dz-drag-hover");
+                        return this.element.classList.add("dz-drag-hover");
                     },
                     dragover: function (e) {
-                        if (this.previewsContainer.removeHoverCssClassTimer) {
-                            clearTimeout(this.previewsContainer.removeHoverCssClassTimer);
+                        if (this.element.removeHoverCssClassTimer) {
+                            clearTimeout(this.element.removeHoverCssClassTimer);
                         }
-                        return this.previewsContainer.classList.add("dz-drag-hover");
+                        return this.element.classList.add("dz-drag-hover");
                     },
                     dragleave: function (e) {
-                        var elem = this.previewsContainer;
+                        var elem = this.element;
                         elem.removeHoverCssClassTimer
                             = setTimeout(function () {
                                 if (elem) {
@@ -815,10 +815,10 @@
                     var hoverMessage = document.createElement("DIV");
                     hoverMessage.innerHTML = this.options.dictDropMessage;
                     hoverMessage.className = "dz-drag-hover-message";
-                    this.previewsContainer.insertBefore(hoverMessage, this.previewsContainer.firstChild);
+                    this.element.insertBefore(hoverMessage, this.element.firstChild);
                     var hoverOverlay = document.createElement("DIV");
                     hoverOverlay.className = "dz-drag-hover-overlay";
-                    this.previewsContainer.insertBefore(hoverOverlay, this.previewsContainer.firstChild);
+                    this.element.insertBefore(hoverOverlay, this.element.firstChild);
                     if (this.clickableElements.length) {
                         setupHiddenFileInput = function () {
                             if (_this.hiddenFileInput) {
