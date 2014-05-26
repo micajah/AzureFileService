@@ -364,11 +364,12 @@ namespace Micajah.AzureFileService.WebControls
                 sb.AppendFormat(CultureInfo.InvariantCulture, @"if (typeof({0}) !== ""undefined"") {{
     {0}.destroy();
 }}
-{0} = new Dropzone({1},{{paramName:""{2}"",url:""{3}"""
+{0} = new Dropzone(""{4}"",{1},{{paramName:""{2}"",url:""{3}"""
                     , variableName
                     , element
                     , FileFromMyComputer.UniqueID
-                    , this.FileManager.GetTemporaryFilesUrlFormat(this.TemporaryDirectoryName));
+                    , this.FileManager.GetTemporaryFilesUrlFormat(this.TemporaryDirectoryName)
+                    , this.ClientID);
 
                 if (!string.IsNullOrWhiteSpace(this.Accept))
                 {

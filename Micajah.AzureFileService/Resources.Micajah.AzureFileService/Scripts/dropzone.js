@@ -516,31 +516,34 @@
                     */
 
                     drop: function (e) {
+                        this.hideHoverOverlay();
                         return this.element.classList.remove("dz-drag-hover");
                     },
                     dragstart: noop,
                     dragend: function (e) {
+                        this.hideHoverOverlay();
                         return this.element.classList.remove("dz-drag-hover");
                     },
                     dragenter: function (e) {
                         if (this.element.removeHoverCssClassTimer) {
                             clearTimeout(this.element.removeHoverCssClassTimer);
                         }
+                        this.showHoverOverlay();
                         return this.element.classList.add("dz-drag-hover");
                     },
                     dragover: function (e) {
                         if (this.element.removeHoverCssClassTimer) {
                             clearTimeout(this.element.removeHoverCssClassTimer);
                         }
+                        this.showHoverOverlay();
                         return this.element.classList.add("dz-drag-hover");
                     },
                     dragleave: function (e) {
-                        var elem = this.element;
-                        elem.removeHoverCssClassTimer
+                        var _this = this;
+                        this.element.removeHoverCssClassTimer
                             = setTimeout(function () {
-                                if (elem) {
-                                    elem.classList.remove("dz-drag-hover");
-                                }
+                                _this.hideHoverOverlay();
+                                _this.element.classList.remove("dz-drag-hover");
                             }, 100);
                         return;
                     },
@@ -695,8 +698,9 @@
                     return target;
                 };
 
-                function Dropzone(element, options) {
+                function Dropzone(id, element, options) {
                     var elementOptions, fallback, _ref;
+                    this.id = id;
                     this.element = element;
                     this.version = Dropzone.version;
                     this.defaultOptions.previewTemplate = this.defaultOptions.previewTemplate.replace(/\n*/g, "");
@@ -812,13 +816,7 @@
                     if (this.previewsContainer.classList.contains("dropzone") && !this.previewsContainer.querySelector(".dz-message")) {
                         this.previewsContainer.appendChild(Dropzone.createElement("<div class=\"dz-default dz-message\"><span>" + this.options.dictDefaultMessage + "</span></div>"));
                     }
-                    var hoverMessage = document.createElement("DIV");
-                    hoverMessage.innerHTML = this.options.dictDropMessage;
-                    hoverMessage.className = "dz-drag-hover-message";
-                    this.element.insertBefore(hoverMessage, this.element.firstChild);
-                    var hoverOverlay = document.createElement("DIV");
-                    hoverOverlay.className = "dz-drag-hover-overlay";
-                    this.element.insertBefore(hoverOverlay, this.element.firstChild);
+                    this.createHoverOverlay();
                     if (this.clickableElements.length) {
                         setupHiddenFileInput = function () {
                             if (_this.hiddenFileInput) {
@@ -946,6 +944,32 @@
                     }
                     return delete this.element.dropzone;
                 };
+
+                Dropzone.prototype.createHoverOverlay = function () {
+                    var hoverMessage = document.createElement("DIV");
+                    hoverMessage.id = this.id + "_HoverMessage";
+                    hoverMessage.innerHTML = this.options.dictDropMessage;
+                    hoverMessage.className = "dz-drag-hover-message";
+                    this.element.insertBefore(hoverMessage, this.element.firstChild);
+                    var hoverOverlay = document.createElement("DIV");
+                    hoverOverlay.id = this.id + "_HoverOverlay";
+                    hoverOverlay.className = "dz-drag-hover-overlay";
+                    this.element.insertBefore(hoverOverlay, this.element.firstChild);
+                }
+
+                Dropzone.prototype.showHoverOverlay = function () {
+                    var elem = document.getElementById(this.id + "_HoverOverlay");
+                    elem.style.display = "block";
+                    elem = document.getElementById(this.id + "_HoverMessage");
+                    elem.style.display = "block";
+                }
+
+                Dropzone.prototype.hideHoverOverlay = function () {
+                    var elem = document.getElementById(this.id + "_HoverOverlay");
+                    elem.style.display = "none";
+                    elem = document.getElementById(this.id + "_HoverMessage");
+                    elem.style.display = "none";
+                }
 
                 Dropzone.prototype.updateTotalUploadProgress = function () {
                     var acceptedFiles, file, totalBytes, totalBytesSent, totalUploadProgress, _i, _len, _ref;

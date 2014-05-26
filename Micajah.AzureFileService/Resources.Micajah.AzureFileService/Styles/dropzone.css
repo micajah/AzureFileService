@@ -222,9 +222,9 @@
     display: none;
 }
 
-.dz-drag-hover .dz-drag-hover-overlay, .dz-drag-hover .dz-drag-hover-message {
+/*.dz-drag-hover .dz-drag-hover-overlay, .dz-drag-hover .dz-drag-hover-message {
     display: block;
-}
+}*/
 
 body.dz-drag-hover .dz-drag-hover-overlay {
     position: fixed;
