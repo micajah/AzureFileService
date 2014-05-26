@@ -216,24 +216,25 @@
     width: 100%;
     text-align: center;
     color: white;
-    font-size: 42px;
-    font-weight: bold;
-    height: 50px;
-    display: none;
-}
-
-.dropzone .dz-drag-hover-message {
     font-size: 22px;
     font-weight: normal;
     height: 25px;
+    display: none;
 }
 
 .dz-drag-hover .dz-drag-hover-overlay, .dz-drag-hover .dz-drag-hover-message {
     display: block;
 }
 
-body.dz-drag-hover .dz-drag-hover-overlay, body.dz-drag-hover .dz-drag-hover-message {
+body.dz-drag-hover .dz-drag-hover-overlay {
     position: fixed;
+}
+
+body.dz-drag-hover .dz-drag-hover-message {
+    position: fixed;
+    font-size: 42px;
+    font-weight: bold;
+    height: 50px;
 }
 
 .dropzone.dz-drag-hover .dz-default {
