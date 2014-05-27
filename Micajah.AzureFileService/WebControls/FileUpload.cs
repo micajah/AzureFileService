@@ -555,7 +555,14 @@ namespace Micajah.AzureFileService.WebControls
         /// <param name="e">An System.EventArgs object that contains the event data.</param>
         protected override void OnPreRender(EventArgs e)
         {
-            this.CssClass = "dropzone";
+            if (string.IsNullOrEmpty(this.CssClass))
+            {
+                this.CssClass = "dropzone";
+            }
+            else
+            {
+                this.CssClass = "dropzone " + this.CssClass;
+            }
 
             if (!this.EnablePreview)
             {
