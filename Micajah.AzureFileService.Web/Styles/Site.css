@@ -74,4 +74,6 @@ p {
     font-size: 20px;
     color: lightgray;
     background-color: white;
+    position: relative;
+    z-index: 3012;
 }

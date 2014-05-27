@@ -236,7 +236,3 @@ body.dz-drag-hover .dz-drag-hover-overlay, body.dz-drag-hover .dz-drag-hover-mes
     position: fixed;
 }
 
-.dz-drop-disabled {
-    position: relative;
-    z-index: 3012;
-}
