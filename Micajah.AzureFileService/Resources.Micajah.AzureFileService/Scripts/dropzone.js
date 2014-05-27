@@ -525,22 +525,22 @@
                         return this.element.classList.remove("dz-drag-hover");
                     },
                     dragenter: function (e) {
-                        if (this.element.removeHoverCssClassTimer) {
-                            clearTimeout(this.element.removeHoverCssClassTimer);
+                        if (this.removeHoverCssClassTimer) {
+                            clearTimeout(this.removeHoverCssClassTimer);
                         }
                         this.showHoverOverlay();
                         return this.element.classList.add("dz-drag-hover");
                     },
                     dragover: function (e) {
-                        if (this.element.removeHoverCssClassTimer) {
-                            clearTimeout(this.element.removeHoverCssClassTimer);
+                        if (this.removeHoverCssClassTimer) {
+                            clearTimeout(this.removeHoverCssClassTimer);
                         }
                         this.showHoverOverlay();
                         return this.element.classList.add("dz-drag-hover");
                     },
                     dragleave: function (e) {
                         var _this = this;
-                        this.element.removeHoverCssClassTimer
+                        this.removeHoverCssClassTimer
                             = setTimeout(function () {
                                 _this.hideHoverOverlay();
                                 _this.element.classList.remove("dz-drag-hover");
