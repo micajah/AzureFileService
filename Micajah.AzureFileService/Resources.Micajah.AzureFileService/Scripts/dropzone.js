@@ -702,6 +702,7 @@
                     var elementOptions, fallback, _ref;
                     this.id = id;
                     this.element = element;
+                    this.filesStateElement = document.getElementById(this.id + "_FilesStateField");
                     this.version = Dropzone.version;
                     this.defaultOptions.previewTemplate = this.defaultOptions.previewTemplate.replace(/\n*/g, "");
                     this.clickableElements = [];
@@ -931,13 +932,16 @@
                         });
                     });
                     this.enable();
+                    this.loadFilesState();
                     return this.options.init.call(this);
                 };
 
-                Dropzone.prototype.destroy = function () {
+                Dropzone.prototype.destroy = function (saveFilesState) {
                     var _ref;
                     this.disable();
-                    this.removeAllFiles(true);
+                    if (!saveFilesState) {
+                        this.removeAllFiles(true);
+                    }
                     if ((_ref = this.hiddenFileInput) != null ? _ref.parentNode : void 0) {
                         this.hiddenFileInput.parentNode.removeChild(this.hiddenFileInput);
                         this.hiddenFileInput = null;
@@ -946,17 +950,37 @@
                     return delete this.element.dropzone;
                 };
 
+                Dropzone.prototype.loadFilesState = function () {
+                    var value = this.filesStateElement.value;
+                    if (value.length > 0) {
+                        var filesInfo = JSON.parse(value);
+                        var length = filesInfo.length;
+                        if (length > 0) {
+                            this.previewsContainer.classList.add("dz-started");
+                            for (var x = 0; x < length; x++) {
+                                var fileInfo = filesInfo[x];
+                                this.addUploadedFile(fileInfo);
+                            }
+                        }
+                    }
+                };
+
+                Dropzone.prototype.saveFilesState = function () {
+                    var filesInfo = [];
+                    for (var x = 0; x < this.files.length; x++) {
+                        var file = this.files[x];
+                        var fileInfo = Dropzone.createFileInfo(file);
+                        filesInfo.push(fileInfo);
+                    }
+                    this.filesStateElement.value = JSON.stringify(filesInfo);
+                };
+
                 Dropzone.prototype.createHoverOverlay = function () {
-                    var hoverMessage = document.createElement("DIV");
-                    hoverMessage.id = this.id + "_HoverMessage";
-                    hoverMessage.innerHTML = this.options.dictDropMessage;
-                    hoverMessage.className = "dz-drag-hover-message";
+                    var hoverMessage = Dropzone.createDivElement(this.id + "_HoverMessage", "dz-drag-hover-message", this.options.dictDropMessage);
                     this.element.insertBefore(hoverMessage, this.element.firstChild);
-                    var hoverOverlay = document.createElement("DIV");
-                    hoverOverlay.id = this.id + "_HoverOverlay";
-                    hoverOverlay.className = "dz-drag-hover-overlay";
+                    var hoverOverlay = Dropzone.createDivElement(this.id + "_HoverOverlay", "dz-drag-hover-overlay");
                     this.element.insertBefore(hoverOverlay, this.element.firstChild);
-                }
+                };
 
                 Dropzone.prototype.removeHoverOverlay = function () {
                     var elem = document.getElementById(this.id + "_HoverOverlay");
@@ -967,21 +991,21 @@
                     if (elem) {
                         this.element.removeChild(elem);
                     }
-                }
+                };
 
                 Dropzone.prototype.showHoverOverlay = function () {
                     var elem = document.getElementById(this.id + "_HoverOverlay");
                     elem.style.display = "block";
                     elem = document.getElementById(this.id + "_HoverMessage");
                     elem.style.display = "block";
-                }
+                };
 
                 Dropzone.prototype.hideHoverOverlay = function () {
                     var elem = document.getElementById(this.id + "_HoverOverlay");
                     elem.style.display = "none";
                     elem = document.getElementById(this.id + "_HoverMessage");
                     elem.style.display = "none";
-                }
+                };
 
                 Dropzone.prototype.updateTotalUploadProgress = function () {
                     var acceptedFiles, file, totalBytes, totalBytesSent, totalUploadProgress, _i, _len, _ref;
@@ -1218,6 +1242,21 @@
                     });
                 };
 
+                Dropzone.prototype.addUploadedFile = function (file) {
+                    this.files.push(file);
+                    this.emit("addedfile", file);
+                    file.accepted = true;
+                    this.emit("uploadprogress", file, file.upload.progress, file.upload.bytesSent);
+                    if (file.previewElement) {
+                        file.previewElement.classList.add("dz-processing");
+                        if (file.status === Dropzone.SUCCESS) {
+                            file.previewElement.classList.add("dz-success");
+                        } else if (file.status === Dropzone.ERROR) {
+                            file.previewElement.classList.add("dz-error");
+                        }
+                    }
+                };
+
                 Dropzone.prototype.enqueueFiles = function (files) {
                     var file, _i, _len;
                     for (_i = 0, _len = files.length; _i < _len; _i++) {
@@ -1273,15 +1312,9 @@
                         this.cancelUpload(file);
                     }
                     this.files = without(this.files, file);
+                    this.saveFilesState();
+                    this.deleteFile(file);
                     this.emit("removedfile", file);
-                    if (file.status !== Dropzone.CANCELED) {
-                        if ((!this.options.forceFallback) && Dropzone.isBrowserSupported()) {
-                            var xhr = new XMLHttpRequest();
-                            var url = this.options.url.replace("{0}", file.name);
-                            xhr.open("Delete", url, true);
-                            xhr.send();
-                        }
-                    }
                     if (this.files.length === 0) {
                         return this.emit("reset");
                     }
@@ -1300,6 +1333,17 @@
                         }
                     }
                     return null;
+                };
+
+                Dropzone.prototype.deleteFile = function (file) {
+                    if ((file.status !== Dropzone.CANCELED) && (file.status !== Dropzone.ERROR)) {
+                        if ((!this.options.forceFallback) && Dropzone.isBrowserSupported()) {
+                            var xhr = new XMLHttpRequest();
+                            var url = this.options.url.replace("{0}", file.name);
+                            xhr.open("Delete", url, true);
+                            xhr.send();
+                        }
+                    }
                 };
 
                 Dropzone.prototype.createThumbnail = function (file) {
@@ -1668,6 +1712,7 @@
                         this.emit("success", file, responseText, e);
                         this.emit("complete", file);
                     }
+                    this.saveFilesState();
                     if (this.options.uploadMultiple) {
                         this.emit("successmultiple", files, responseText, e);
                         this.emit("completemultiple", files);
@@ -1685,6 +1730,7 @@
                         this.emit("error", file, message, xhr);
                         this.emit("complete", file);
                     }
+                    this.saveFilesState();
                     if (this.options.uploadMultiple) {
                         this.emit("errormultiple", files, message, xhr);
                         this.emit("completemultiple", files);
@@ -1755,6 +1801,16 @@
                 div = document.createElement("div");
                 div.innerHTML = string;
                 return div.childNodes[0];
+            };
+
+            Dropzone.createDivElement = function (id, cssClass, message) {
+                var div = document.createElement("div");
+                div.id = id;
+                div.className = cssClass;
+                if (message) {
+                    div.innerHTML = message;
+                }
+                return div;
             };
 
             Dropzone.elementInside = function (element, container) {
@@ -1858,6 +1914,16 @@
                 return target;
             };
 
+            Dropzone.createFileInfo = function (file) {
+                var fileInfo = new Object();
+                fileInfo.name = file.name;
+                fileInfo.size = file.size;
+                fileInfo.type = file.type;
+                fileInfo.status = file.status;
+                fileInfo.upload = file.upload;
+                return fileInfo;
+            };
+
             if (typeof jQuery !== "undefined" && jQuery !== null) {
                 jQuery.fn.dropzone = function (options) {
                     return this.each(function () {
@@ -1896,7 +1962,9 @@
     if (typeof exports == "object") {
         module.exports = require("dropzone");
     } else if (typeof define == "function" && define.amd) {
-        define(function () { return require("dropzone"); });
+        define(function () {
+            return require("dropzone");
+        });
     } else {
         this["Dropzone"] = require("dropzone");
     }

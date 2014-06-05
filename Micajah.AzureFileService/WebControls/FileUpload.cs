@@ -1,5 +1,6 @@
 ﻿using Micajah.AzureFileService.Properties;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Drawing;
@@ -24,6 +25,7 @@ namespace Micajah.AzureFileService.WebControls
         protected System.Web.UI.WebControls.FileUpload FileFromMyComputer;
         protected CustomValidator Validator;
         protected Button AcceptChangesButton;
+        protected HiddenField FilesStateField;
 
         private FileManager m_FileManager;
 
@@ -362,7 +364,7 @@ namespace Micajah.AzureFileService.WebControls
                 StringBuilder sb = new StringBuilder();
 
                 sb.AppendFormat(CultureInfo.InvariantCulture, @"if (typeof({0}) !== ""undefined"") {{
-    {0}.destroy();
+    {0}.destroy(true);
 }}
 {0} = new Dropzone(""{4}"",{1},{{paramName:""{2}"",url:""{3}"""
                     , variableName
@@ -538,6 +540,10 @@ namespace Micajah.AzureFileService.WebControls
             AcceptChangesButton.Style[HtmlTextWriterStyle.Display] = "none";
             AcceptChangesButton.Click += AcceptChangesButton_Click;
             this.Controls.Add(AcceptChangesButton);
+
+            FilesStateField = new HiddenField();
+            FilesStateField.ID = "FilesStateField";
+            this.Controls.Add(FilesStateField);
         }
 
         protected override void OnLoad(EventArgs e)
@@ -555,14 +561,24 @@ namespace Micajah.AzureFileService.WebControls
         /// <param name="e">An System.EventArgs object that contains the event data.</param>
         protected override void OnPreRender(EventArgs e)
         {
-            if (string.IsNullOrEmpty(this.CssClass))
+            string cssClass = this.CssClass;
+            if (string.IsNullOrEmpty(cssClass))
             {
-                this.CssClass = "dropzone";
+                cssClass = "dropzone";
             }
             else
             {
-                this.CssClass = "dropzone " + this.CssClass;
+                string[] cssClasses = cssClass.Split(Html32TextWriter.SpaceChar);
+                List<string> list = new List<string>(cssClasses);
+
+                if (!list.Contains("dropzone"))
+                {
+                    list.Add("dropzone");
+
+                    cssClass = string.Join(" ", list);
+                }
             }
+            this.CssClass = cssClass;
 
             if (!this.EnablePreview)
             {
@@ -613,6 +629,7 @@ namespace Micajah.AzureFileService.WebControls
             this.FileManager.MoveTemporaryFiles(this.TemporaryDirectoryName);
 
             this.TemporaryDirectoryName = null;
+            FilesStateField.Value = string.Empty;
 
             if (this.AcceptedChanges != null)
             {
@@ -628,6 +645,7 @@ namespace Micajah.AzureFileService.WebControls
             this.FileManager.DeleteTemporaryFiles(this.TemporaryDirectoryName);
 
             this.TemporaryDirectoryName = null;
+            FilesStateField.Value = string.Empty;
         }
 
         #endregion
