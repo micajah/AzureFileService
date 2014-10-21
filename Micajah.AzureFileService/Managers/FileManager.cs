@@ -746,6 +746,8 @@ namespace Micajah.AzureFileService
                         string fileName = GetNameFromFileId(tempBlob.Name);
                         string blobName = string.Format(CultureInfo.InvariantCulture, blobNameFormat, fileName);
 
+                        this.DeleteFile(blobName);
+
                         CloudBlockBlob blob = this.Container.GetBlockBlobReference(blobName);
                         blob.StartCopyFromBlob(tempBlob);
 
