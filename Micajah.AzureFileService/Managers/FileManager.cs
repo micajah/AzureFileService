@@ -258,6 +258,26 @@ namespace Micajah.AzureFileService
             return result;
         }
 
+        private void DeleteThumbnails(string fileId)
+        {
+            string fileName = GetNameFromFileId(fileId);
+            string prefix = fileId.Replace(fileName, string.Empty);
+            fileName = "/" + fileName;
+
+            IEnumerable<IListBlobItem> thumbnailBlobList = this.Container.ListBlobs(prefix, true);
+            foreach (IListBlobItem item in thumbnailBlobList)
+            {
+                CloudBlockBlob blob = item as CloudBlockBlob;
+                if (blob != null)
+                {
+                    if (blob.Name.EndsWith(fileName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        blob.Delete();
+                    }
+                }
+            }
+        }
+
         private static string GetBlobPath(string objectType, string objectId)
         {
             return string.Format(CultureInfo.InvariantCulture, "{0}/{1}/", objectType, objectId);
@@ -313,6 +333,11 @@ namespace Micajah.AzureFileService
             blob.Properties.CacheControl = Settings.ClientCacheControl;
 
             return blob;
+        }
+
+        private static bool IsImageBlob(string fileId)
+        {
+            return MimeType.IsImageType(MimeMapping.GetMimeMapping(fileId));
         }
 
         #endregion
@@ -569,25 +594,9 @@ namespace Micajah.AzureFileService
         {
             if (!string.IsNullOrEmpty(fileId))
             {
-                if (MimeType.IsImageType(MimeMapping.GetMimeMapping(fileId)))
+                if (IsImageBlob(fileId))
                 {
-                    // Delete all thumbnails of the image.
-                    string fileName = GetNameFromFileId(fileId);
-                    string prefix = fileId.Replace(fileName, string.Empty);
-                    fileName = "/" + fileName;
-
-                    IEnumerable<IListBlobItem> thumbnailBlobList = this.Container.ListBlobs(prefix, true);
-                    foreach (IListBlobItem item in thumbnailBlobList)
-                    {
-                        CloudBlockBlob blob = item as CloudBlockBlob;
-                        if (blob != null)
-                        {
-                            if (blob.Name.EndsWith(fileName, StringComparison.OrdinalIgnoreCase))
-                            {
-                                blob.Delete();
-                            }
-                        }
-                    }
+                    this.DeleteThumbnails(fileId);
                 }
                 else
                 {
@@ -746,7 +755,10 @@ namespace Micajah.AzureFileService
                         string fileName = GetNameFromFileId(tempBlob.Name);
                         string blobName = string.Format(CultureInfo.InvariantCulture, blobNameFormat, fileName);
 
-                        this.DeleteFile(blobName);
+                        if (IsImageBlob(blobName))
+                        {
+                            this.DeleteThumbnails(blobName);
+                        }
 
                         CloudBlockBlob blob = this.Container.GetBlockBlobReference(blobName);
                         blob.StartCopyFromBlob(tempBlob);
