@@ -4,7 +4,7 @@ using System.Web.Configuration;
 
 namespace Micajah.AzureFileService
 {
-    internal static partial class Settings
+    public static partial class Settings
     {
         #region Constants
 
@@ -25,7 +25,20 @@ namespace Micajah.AzureFileService
 
         #region Internal Properties
 
-        internal static int SharedAccessExpiryTime
+        internal static string ClientCacheControl
+        {
+            get
+            {
+                TimeSpan t = new TimeSpan(0, ClientCacheExpiryTime, 0);
+                return string.Format(CultureInfo.InvariantCulture, ClientCacheControlFormat, t.TotalSeconds);
+            }
+        }
+
+        #endregion
+
+        #region Public Properties
+
+        public static int SharedAccessExpiryTime
         {
             get
             {
@@ -39,7 +52,7 @@ namespace Micajah.AzureFileService
             }
         }
 
-        internal static int ClientCacheExpiryTime
+        public static int ClientCacheExpiryTime
         {
             get
             {
@@ -53,12 +66,12 @@ namespace Micajah.AzureFileService
             }
         }
 
-        internal static string StorageConnectionString
+        public static string StorageConnectionString
         {
             get { return WebConfigurationManager.AppSettings[StorageConnectionStringKey]; }
         }
 
-        internal static string TemporaryContainerName
+        public static string TemporaryContainerName
         {
             get
             {
@@ -71,16 +84,7 @@ namespace Micajah.AzureFileService
             }
         }
 
-        internal static string ClientCacheControl
-        {
-            get
-            {
-                TimeSpan t = new TimeSpan(0, ClientCacheExpiryTime, 0);
-                return string.Format(CultureInfo.InvariantCulture, ClientCacheControlFormat, t.TotalSeconds);
-            }
-        }
-
-        internal static int MaxFileSize
+        public static int MaxFileSize
         {
             get
             {
