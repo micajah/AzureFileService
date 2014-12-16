@@ -714,7 +714,7 @@ namespace Micajah.AzureFileService
                 {
                     if (blob.BlobType == BlobType.BlockBlob)
                     {
-                        File file = GetFileInfo(blob);
+                        File file = GetFileInfo(blob, true);
                         files.Add(file);
                     }
                 }
