@@ -290,12 +290,17 @@ namespace Micajah.AzureFileService
 
         private File GetFileInfo(CloudBlockBlob blob)
         {
+            return GetFileInfo(blob, (!this.ContainerPublicAccess));
+        }
+
+        private File GetFileInfo(CloudBlockBlob blob, bool requireSharedAccessSignature)
+        {
             BlobProperties props = blob.Properties;
 
             string fileName = GetNameFromFileId(blob.Name);
 
             string url = Uri.EscapeUriString(blob.Uri.ToString());
-            if (!this.ContainerPublicAccess)
+            if (requireSharedAccessSignature)
             {
                 string sas = blob.GetSharedAccessSignature(this.ReadAccessPolicy);
                 url = string.Format(CultureInfo.InvariantCulture, "{0}{1}", url, sas);
@@ -636,6 +641,30 @@ namespace Micajah.AzureFileService
                 , HttpServerUtility.UrlTokenEncode(Encoding.UTF8.GetBytes(string.Format(CultureInfo.InvariantCulture, "{0}|{1}|{2}|{3}|{4}", fileId, width, height, align, this.ContainerName))));
         }
 
+        public void MoveFiles(string objectId)
+        {
+            string newBlobNameFormat = GetBlobNameFormat(this.ObjectType, objectId);
+
+            IEnumerable<IListBlobItem> blobList = this.Container.ListBlobs(this.BlobPath);
+            foreach (IListBlobItem item in blobList)
+            {
+                CloudBlockBlob blob = item as CloudBlockBlob;
+                if (blob != null)
+                {
+                    if (blob.BlobType == BlobType.BlockBlob)
+                    {
+                        string fileName = GetNameFromFileId(blob.Name);
+                        string newBlobName = string.Format(CultureInfo.InvariantCulture, newBlobNameFormat, fileName);
+
+                        CloudBlockBlob newBlob = this.Container.GetBlockBlobReference(newBlobName);
+                        newBlob.StartCopyFromBlob(blob);
+
+                        this.DeleteFile(blob.Name);
+                    }
+                }
+            }
+        }
+
         public string UploadFile(string fileName, string contentType, byte[] buffer)
         {
             if (buffer != null)
@@ -658,6 +687,17 @@ namespace Micajah.AzureFileService
             blob.UploadFromStream(source);
 
             return blob.Name;
+        }
+
+        public File GetTemporaryFileInfo(string fileId)
+        {
+            CloudBlockBlob blob = this.TemporaryContainer.GetBlockBlobReference(fileId);
+            if (blob.Exists())
+            {
+                return GetFileInfo(blob, true);
+            }
+
+            return null;
         }
 
         public Collection<File> GetTemporaryFiles(string directoryName)
@@ -700,6 +740,21 @@ namespace Micajah.AzureFileService
             return names.ToArray();
         }
 
+        public void DeleteTemporaryFiles(string directoryName)
+        {
+            directoryName += "/";
+
+            IEnumerable<IListBlobItem> blobList = this.TemporaryContainer.ListBlobs(directoryName);
+            foreach (IListBlobItem item in blobList)
+            {
+                CloudBlockBlob blob = item as CloudBlockBlob;
+                if (blob != null)
+                {
+                    blob.Delete();
+                }
+            }
+        }
+
         public string UploadTemporaryFile(string fileName, string contentType, byte[] buffer, string directoryName)
         {
             if (buffer != null)
@@ -722,21 +777,6 @@ namespace Micajah.AzureFileService
             blob.UploadFromStream(source);
 
             return blob.Name;
-        }
-
-        public void DeleteTemporaryFiles(string directoryName)
-        {
-            directoryName += "/";
-
-            IEnumerable<IListBlobItem> blobList = this.TemporaryContainer.ListBlobs(directoryName);
-            foreach (IListBlobItem item in blobList)
-            {
-                CloudBlockBlob blob = item as CloudBlockBlob;
-                if (blob != null)
-                {
-                    blob.Delete();
-                }
-            }
         }
 
         public void MoveTemporaryFiles(string directoryName)
@@ -764,30 +804,6 @@ namespace Micajah.AzureFileService
                         blob.StartCopyFromBlob(tempBlob);
 
                         tempBlob.Delete();
-                    }
-                }
-            }
-        }
-
-        public void MoveFiles(string objectId)
-        {
-            string newBlobNameFormat = GetBlobNameFormat(this.ObjectType, objectId);
-
-            IEnumerable<IListBlobItem> blobList = this.Container.ListBlobs(this.BlobPath);
-            foreach (IListBlobItem item in blobList)
-            {
-                CloudBlockBlob blob = item as CloudBlockBlob;
-                if (blob != null)
-                {
-                    if (blob.BlobType == BlobType.BlockBlob)
-                    {
-                        string fileName = GetNameFromFileId(blob.Name);
-                        string newBlobName = string.Format(CultureInfo.InvariantCulture, newBlobNameFormat, fileName);
-
-                        CloudBlockBlob newBlob = this.Container.GetBlockBlobReference(newBlobName);
-                        newBlob.StartCopyFromBlob(blob);
-
-                        this.DeleteFile(blob.Name);
                     }
                 }
             }
