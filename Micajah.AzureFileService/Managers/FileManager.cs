@@ -14,6 +14,11 @@ namespace Micajah.AzureFileService
     {
         #region Members
 
+        /// <summary>
+        /// The public access to the files in the temporary container is not allowed.
+        /// </summary>
+        private const bool TemporaryContainerPublicAccess = false;
+
         private string m_ContainerName;
         private string m_TemporaryContainerName;
         private SharedAccessBlobPolicy m_ReadAccessPolicy;
@@ -694,7 +699,7 @@ namespace Micajah.AzureFileService
             CloudBlockBlob blob = this.TemporaryContainer.GetBlockBlobReference(fileId);
             if (blob.Exists())
             {
-                return GetFileInfo(blob, true);
+                return GetFileInfo(blob, (!TemporaryContainerPublicAccess));
             }
 
             return null;
@@ -714,7 +719,7 @@ namespace Micajah.AzureFileService
                 {
                     if (blob.BlobType == BlobType.BlockBlob)
                     {
-                        File file = GetFileInfo(blob, true);
+                        File file = GetFileInfo(blob, (!TemporaryContainerPublicAccess));
                         files.Add(file);
                     }
                 }
