@@ -7,9 +7,9 @@
     <mafs:FileUpload ID="FileUpload1" runat="server" DropElement="document.body"
         ContainerName="micajahazurefileservice" TemporaryContainerName="micajahazurefileservicetemp" ObjectType="ticket" ObjectId="12345" />
     <br />
-    <asp:Button ID="AcceptButton" runat="server" Text="Accept Changes" OnClick="AcceptButton_Click" />&nbsp;
-    <asp:Button ID="RejectButton" runat="server" Text="Reject Changes" OnClick="RejectButton_Click" />&nbsp;
-    <asp:Button ID="SubmitButton" runat="server" Text="Just Do Postback" Style="margin-left: 45px;" />
+    <asp:Button ID="AcceptButton" runat="server" Text="Accept Changes" OnClick="AcceptButton_Click" UseSubmitBehavior="false" />&nbsp;
+    <asp:Button ID="RejectButton" runat="server" Text="Reject Changes" OnClick="RejectButton_Click" UseSubmitBehavior="false" />&nbsp;
+    <asp:Button ID="SubmitButton" runat="server" Text="Just Do Postback" Style="margin-left: 45px;" UseSubmitBehavior="false" />
     <div id="DropDisabledPanel" class="panel dz-drop-disabled">
         If you drop the files here - it will be rejected
     </div>

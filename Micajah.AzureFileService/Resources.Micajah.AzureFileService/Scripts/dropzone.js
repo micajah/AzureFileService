@@ -754,6 +754,7 @@
                         }
                     }
                     this.init();
+                    Dropzone._instances.push(id);
                 }
 
                 Dropzone.prototype.getAcceptedFiles = function () {
@@ -1712,11 +1713,11 @@
                         this.emit("success", file, responseText, e);
                         this.emit("complete", file);
                     }
-                    this.saveFilesState();
                     if (this.options.uploadMultiple) {
                         this.emit("successmultiple", files, responseText, e);
                         this.emit("completemultiple", files);
                     }
+                    this.saveFilesState();
                     if (this.options.autoProcessQueue) {
                         return this.processQueue();
                     }
@@ -1953,6 +1954,71 @@
             Dropzone.ERROR = "error";
 
             Dropzone.SUCCESS = "success";
+
+            Dropzone._originalDoPostBack = __doPostBack;
+            Dropzone._eventTarget = "";
+            Dropzone._eventArgument = "";
+            Dropzone._tryDoPostBackTimer = null;
+            Dropzone._instances = [];
+
+            Dropzone._uploadCompleted = function () {
+                if (typeof (Dropzone._instances) != "undefined") {
+                    var count = Dropzone._instances.length;
+                    for (var i = 0; i < count; i++) {
+                        var ctl = eval("dz_" + Dropzone._instances[i]);
+                        if (ctl) {
+                            for (var x = 0; x < ctl.files.length; x++) {
+                                var file = ctl.files[x];
+                                if ((file.status !== Dropzone.SUCCESS) && (file.status !== Dropzone.ERROR) && (file.status !== Dropzone.CANCELED)) {
+                                    return false;
+                                }
+                            }
+                        }
+                    }
+                }
+                return true;
+            };
+
+            Dropzone._tryDoPostBack = function () {
+                if (Dropzone._uploadCompleted() == true) {
+                    window.clearInterval(Dropzone._tryDoPostBackTimer);
+                    if (typeof (theForm) != "undefined") {
+                        if (typeof (Sys) !== "undefined") {
+                            if (Sys.WebForms) {
+                                if (Sys.WebForms.PageRequestManager) {
+                                    var prm = Sys.WebForms.PageRequestManager.getInstance();
+                                    if (prm != null) {
+                                        if (prm._onsubmit != null)
+                                            theForm.onsubmit = prm._onsubmit;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    Dropzone._tryDoPostBackTimer = null;
+                    Dropzone._originalDoPostBack(Dropzone._eventTarget, Dropzone._eventArgument);
+                }
+            };
+
+            __doPostBack = function (eventTarget, eventArgument) {
+                if (Dropzone._tryDoPostBackTimer == null) {
+                    Dropzone._eventTarget = eventTarget;
+                    Dropzone._eventArgument = eventArgument;
+                    var code = 0;
+                    if (typeof (Page_IsValid) == "boolean") {
+                        if (Page_IsValid == false)
+                            code = 1;
+                    }
+                    switch (code) {
+                        case 0:
+                            Dropzone._tryDoPostBackTimer = window.setInterval(Dropzone._tryDoPostBack, 500);
+                            break;
+                        case 1:
+                            Dropzone._originalDoPostBack(Dropzone._eventTarget, Dropzone._eventArgument);
+                            break;
+                    }
+                }
+            };
 
         }).call(this);
 

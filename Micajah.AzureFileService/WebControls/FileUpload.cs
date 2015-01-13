@@ -345,7 +345,7 @@ namespace Micajah.AzureFileService.WebControls
         {
             get
             {
-                string variableName = (char.ToLowerInvariant(this.ClientID[0]) + this.ClientID.Substring(1)).Replace(this.ClientIDSeparator.ToString(), string.Empty);
+                string variableName = "dz_" + this.ClientID;
                 string element = (string.IsNullOrEmpty(this.DropElement) ? string.Format(CultureInfo.InvariantCulture, "\"#{0}\"", this.ClientID) : this.DropElement);
 
                 string previewsContainer = null;
