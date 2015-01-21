@@ -814,6 +814,27 @@ namespace Micajah.AzureFileService
             }
         }
 
+        public void RenameFile(string fileId, string fileName)
+        {
+            if (!string.IsNullOrEmpty(fileId))
+            {
+                CloudBlockBlob blob = this.Container.GetBlockBlobReference(fileId);
+                if (blob != null)
+                {
+                    if (blob.BlobType == BlobType.BlockBlob)
+                    {
+                        string blobNameFormat = this.BlobNameFormat;
+                        string newBlobName = string.Format(CultureInfo.InvariantCulture, blobNameFormat, fileName);
+
+                        CloudBlockBlob newBlob = this.Container.GetBlockBlobReference(newBlobName);
+                        newBlob.StartCopyFromBlob(blob);
+
+                        this.DeleteFile(blob.Name);
+                    }
+                }
+            }
+        }
+
         #endregion
     }
 }
