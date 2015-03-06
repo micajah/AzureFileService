@@ -14,11 +14,6 @@ namespace Micajah.AzureFileService
     {
         #region Members
 
-        /// <summary>
-        /// The public access to the files in the temporary container is not allowed.
-        /// </summary>
-        private const bool TemporaryContainerPublicAccess = false;
-
         private static CloudBlobClient s_ServiceClient;
         private static CloudBlobContainer s_TemporaryContainer;
 
