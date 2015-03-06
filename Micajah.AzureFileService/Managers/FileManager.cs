@@ -99,14 +99,6 @@ namespace Micajah.AzureFileService
             }
         }
 
-        private static CloudBlobContainer TemporaryContainer
-        {
-            get
-            {
-                return s_TemporaryContainer;
-            }
-        }
-
         #endregion
 
         #region Public Properties
@@ -293,7 +285,7 @@ namespace Micajah.AzureFileService
         {
             string fileId = string.Format(CultureInfo.InvariantCulture, "{0}/{1}", directoryName, fileName);
 
-            CloudBlockBlob blob = TemporaryContainer.GetBlockBlobReference(fileId);
+            CloudBlockBlob blob = s_TemporaryContainer.GetBlockBlobReference(fileId);
             blob.Properties.ContentType = contentType;
             blob.Properties.CacheControl = Settings.ClientCacheControl;
 
@@ -416,9 +408,9 @@ namespace Micajah.AzureFileService
         {
             SharedAccessBlobPolicy writeDeleteAccessPolicy = CreateWriteDeleteAccessPolicy();
 
-            string sas = TemporaryContainer.GetSharedAccessSignature(writeDeleteAccessPolicy);
+            string sas = s_TemporaryContainer.GetSharedAccessSignature(writeDeleteAccessPolicy);
 
-            return string.Format(CultureInfo.InvariantCulture, "{0}/{1}/{{0}}{2}", TemporaryContainer.Uri.AbsoluteUri, directoryName, sas);
+            return string.Format(CultureInfo.InvariantCulture, "{0}/{1}/{{0}}{2}", s_TemporaryContainer.Uri.AbsoluteUri, directoryName, sas);
         }
 
         #endregion
@@ -632,7 +624,7 @@ namespace Micajah.AzureFileService
             directoryName += "/";
             string blobNameFormat = this.BlobNameFormat;
 
-            IEnumerable<IListBlobItem> temporaryBlobList = TemporaryContainer.ListBlobs(directoryName);
+            IEnumerable<IListBlobItem> temporaryBlobList = s_TemporaryContainer.ListBlobs(directoryName);
             foreach (IListBlobItem item in temporaryBlobList)
             {
                 CloudBlockBlob tempBlob = item as CloudBlockBlob;
@@ -704,7 +696,7 @@ namespace Micajah.AzureFileService
 
         public static File GetTemporaryFileInfo(string fileId)
         {
-            CloudBlockBlob blob = TemporaryContainer.GetBlockBlobReference(fileId);
+            CloudBlockBlob blob = s_TemporaryContainer.GetBlockBlobReference(fileId);
             if (blob.Exists())
             {
                 SharedAccessBlobPolicy readAccessPolicy = CreateReadAccessPolicy();
@@ -723,7 +715,7 @@ namespace Micajah.AzureFileService
 
             SharedAccessBlobPolicy readAccessPolicy = CreateReadAccessPolicy();
 
-            IEnumerable<IListBlobItem> blobList = TemporaryContainer.ListBlobs(directoryName);
+            IEnumerable<IListBlobItem> blobList = s_TemporaryContainer.ListBlobs(directoryName);
             foreach (IListBlobItem item in blobList)
             {
                 CloudBlockBlob blob = item as CloudBlockBlob;
@@ -761,7 +753,7 @@ namespace Micajah.AzureFileService
         {
             directoryName += "/";
 
-            IEnumerable<IListBlobItem> blobList = TemporaryContainer.ListBlobs(directoryName);
+            IEnumerable<IListBlobItem> blobList = s_TemporaryContainer.ListBlobs(directoryName);
             foreach (IListBlobItem item in blobList)
             {
                 CloudBlockBlob blob = item as CloudBlockBlob;
