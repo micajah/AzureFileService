@@ -12,7 +12,7 @@ namespace Micajah.AzureFileService.Web
 
         protected void Application_Start(object sender, EventArgs e)
         {
-            Micajah.AzureFileService.ResourceVirtualPathProvider.Register();
+            Micajah.AzureFileService.FileManager.Register();
         }
 
         protected void Session_Start(object sender, EventArgs e)

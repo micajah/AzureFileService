@@ -19,13 +19,12 @@ namespace Micajah.AzureFileService
         /// </summary>
         private const bool TemporaryContainerPublicAccess = false;
 
+        private static CloudBlobClient s_ServiceClient;
+        private static CloudBlobContainer s_TemporaryContainer;
+
         private string m_ContainerName;
-        private string m_TemporaryContainerName;
         private SharedAccessBlobPolicy m_ReadAccessPolicy;
-        private SharedAccessBlobPolicy m_WriteDeleteAccessPolicy;
-        private CloudBlobClient m_ServiceClient;
         private CloudBlobContainer m_Container;
-        private CloudBlobContainer m_TemporaryContainer;
 
         #endregion
 
@@ -39,20 +38,8 @@ namespace Micajah.AzureFileService
             m_ContainerName = containerName;
         }
 
-        public FileManager(string containerName, string objectType, string objectId, string temporaryContainerName) :
-            this(containerName, objectType, objectId)
-        {
-            m_TemporaryContainerName = temporaryContainerName;
-        }
-
         public FileManager(string containerName, bool containerPublicAccess, string objectType, string objectId) :
             this(containerName, objectType, objectId)
-        {
-            this.ContainerPublicAccess = containerPublicAccess;
-        }
-
-        public FileManager(string containerName, bool containerPublicAccess, string objectType, string objectId, string temporaryContainerName) :
-            this(containerName, objectType, objectId, temporaryContainerName)
         {
             this.ContainerPublicAccess = containerPublicAccess;
         }
@@ -77,58 +64,13 @@ namespace Micajah.AzureFileService
             }
         }
 
-        private SharedAccessBlobPolicy ReadAccessPolicy
-        {
-            get
-            {
-                if (m_ReadAccessPolicy == null)
-                {
-                    m_ReadAccessPolicy = new SharedAccessBlobPolicy
-                    {
-                        Permissions = SharedAccessBlobPermissions.Read,
-                        SharedAccessExpiryTime = DateTime.UtcNow.AddMinutes(Settings.SharedAccessExpiryTime)
-                    };
-                }
-                return m_ReadAccessPolicy;
-            }
-        }
-
-        private SharedAccessBlobPolicy WriteDeleteAccessPolicy
-        {
-            get
-            {
-                if (m_WriteDeleteAccessPolicy == null)
-                {
-                    m_WriteDeleteAccessPolicy = new SharedAccessBlobPolicy
-                    {
-                        Permissions = SharedAccessBlobPermissions.Write | SharedAccessBlobPermissions.Delete,
-                        SharedAccessExpiryTime = DateTime.UtcNow.AddMinutes(Settings.SharedAccessExpiryTime)
-                    };
-                }
-                return m_WriteDeleteAccessPolicy;
-            }
-        }
-
-        private CloudBlobClient ServiceClient
-        {
-            get
-            {
-                if (m_ServiceClient == null)
-                {
-                    CloudStorageAccount storageAccount = CloudStorageAccount.Parse(Settings.StorageConnectionString);
-                    m_ServiceClient = storageAccount.CreateCloudBlobClient();
-                }
-                return m_ServiceClient;
-            }
-        }
-
         private CloudBlobContainer Container
         {
             get
             {
                 if (m_Container == null)
                 {
-                    m_Container = this.ServiceClient.GetContainerReference(this.ContainerName);
+                    m_Container = s_ServiceClient.GetContainerReference(this.ContainerName);
                     m_Container.CreateIfNotExists();
 
                     if (this.ContainerPublicAccess)
@@ -145,16 +87,23 @@ namespace Micajah.AzureFileService
             }
         }
 
-        private CloudBlobContainer TemporaryContainer
+        private SharedAccessBlobPolicy ReadAccessPolicy
         {
             get
             {
-                if (m_TemporaryContainer == null)
+                if (m_ReadAccessPolicy == null)
                 {
-                    m_TemporaryContainer = this.ServiceClient.GetContainerReference(this.TemporaryContainerName);
-                    m_TemporaryContainer.CreateIfNotExists();
+                    m_ReadAccessPolicy = CreateReadAccessPolicy();
                 }
-                return m_TemporaryContainer;
+                return m_ReadAccessPolicy;
+            }
+        }
+
+        private static CloudBlobContainer TemporaryContainer
+        {
+            get
+            {
+                return s_TemporaryContainer;
             }
         }
 
@@ -219,22 +168,6 @@ namespace Micajah.AzureFileService
         /// </summary>
         public string ObjectId { get; set; }
 
-        /// <summary>
-        /// Gets or sets the name of the temporary container the files are uploaded to.
-        /// </summary>
-        public string TemporaryContainerName
-        {
-            get
-            {
-                return m_TemporaryContainerName;
-            }
-            set
-            {
-                m_TemporaryContainerName = value;
-                m_TemporaryContainer = null;
-            }
-        }
-
         #endregion
 
         #region Private Methods
@@ -261,6 +194,28 @@ namespace Micajah.AzureFileService
                 }
             }
             return result;
+        }
+
+        private static SharedAccessBlobPolicy CreateReadAccessPolicy()
+        {
+            SharedAccessBlobPolicy policy = new SharedAccessBlobPolicy
+            {
+                Permissions = SharedAccessBlobPermissions.Read,
+                SharedAccessExpiryTime = DateTime.UtcNow.AddMinutes(Settings.SharedAccessExpiryTime)
+            };
+
+            return policy;
+        }
+
+        private static SharedAccessBlobPolicy CreateWriteDeleteAccessPolicy()
+        {
+            SharedAccessBlobPolicy policy = new SharedAccessBlobPolicy
+            {
+                Permissions = SharedAccessBlobPermissions.Write | SharedAccessBlobPermissions.Delete,
+                SharedAccessExpiryTime = DateTime.UtcNow.AddMinutes(Settings.SharedAccessExpiryTime)
+            };
+
+            return policy;
         }
 
         private void DeleteThumbnails(string fileId)
@@ -295,19 +250,19 @@ namespace Micajah.AzureFileService
 
         private File GetFileInfo(CloudBlockBlob blob)
         {
-            return GetFileInfo(blob, (!this.ContainerPublicAccess));
+            return GetFileInfo(blob, (this.ContainerPublicAccess ? null : this.ReadAccessPolicy));
         }
 
-        private File GetFileInfo(CloudBlockBlob blob, bool requireSharedAccessSignature)
+        private static File GetFileInfo(CloudBlockBlob blob, SharedAccessBlobPolicy readAccessPolicy)
         {
             BlobProperties props = blob.Properties;
 
             string fileName = GetNameFromFileId(blob.Name);
 
             string url = Uri.EscapeUriString(blob.Uri.ToString());
-            if (requireSharedAccessSignature)
+            if (readAccessPolicy != null)
             {
-                string sas = blob.GetSharedAccessSignature(this.ReadAccessPolicy);
+                string sas = blob.GetSharedAccessSignature(readAccessPolicy);
                 url = string.Format(CultureInfo.InvariantCulture, "{0}{1}", url, sas);
             }
 
@@ -334,11 +289,11 @@ namespace Micajah.AzureFileService
             return blob;
         }
 
-        private CloudBlockBlob GetTemporaryFileReference(string fileName, string contentType, string directoryName)
+        private static CloudBlockBlob GetTemporaryFileReference(string fileName, string contentType, string directoryName)
         {
             string fileId = string.Format(CultureInfo.InvariantCulture, "{0}/{1}", directoryName, fileName);
 
-            CloudBlockBlob blob = this.TemporaryContainer.GetBlockBlobReference(fileId);
+            CloudBlockBlob blob = TemporaryContainer.GetBlockBlobReference(fileId);
             blob.Properties.ContentType = contentType;
             blob.Properties.CacheControl = Settings.ClientCacheControl;
 
@@ -457,11 +412,13 @@ namespace Micajah.AzureFileService
             return bytes;
         }
 
-        internal string GetTemporaryFilesUrlFormat(string directoryName)
+        internal static string GetTemporaryFilesUrlFormat(string directoryName)
         {
-            string sas = this.TemporaryContainer.GetSharedAccessSignature(this.WriteDeleteAccessPolicy);
+            SharedAccessBlobPolicy writeDeleteAccessPolicy = CreateWriteDeleteAccessPolicy();
 
-            return string.Format(CultureInfo.InvariantCulture, "{0}/{1}/{{0}}{2}", this.TemporaryContainer.Uri.AbsoluteUri, directoryName, sas);
+            string sas = TemporaryContainer.GetSharedAccessSignature(writeDeleteAccessPolicy);
+
+            return string.Format(CultureInfo.InvariantCulture, "{0}/{1}/{{0}}{2}", TemporaryContainer.Uri.AbsoluteUri, directoryName, sas);
         }
 
         #endregion
@@ -670,126 +627,12 @@ namespace Micajah.AzureFileService
             }
         }
 
-        public string UploadFile(string fileName, string contentType, byte[] buffer)
-        {
-            if (buffer != null)
-            {
-                CloudBlockBlob blob = this.GetFileReference(fileName, contentType);
-
-                int count = buffer.Length;
-                blob.UploadFromByteArray(buffer, 0, count);
-
-                return blob.Name;
-            }
-
-            return null;
-        }
-
-        public string UploadFile(string fileName, string contentType, Stream source)
-        {
-            CloudBlockBlob blob = this.GetFileReference(fileName, contentType);
-
-            blob.UploadFromStream(source);
-
-            return blob.Name;
-        }
-
-        public File GetTemporaryFileInfo(string fileId)
-        {
-            CloudBlockBlob blob = this.TemporaryContainer.GetBlockBlobReference(fileId);
-            if (blob.Exists())
-            {
-                return GetFileInfo(blob, (!TemporaryContainerPublicAccess));
-            }
-
-            return null;
-        }
-
-        public Collection<File> GetTemporaryFiles(string directoryName)
-        {
-            directoryName += "/";
-
-            List<File> files = new List<File>();
-
-            IEnumerable<IListBlobItem> blobList = this.TemporaryContainer.ListBlobs(directoryName);
-            foreach (IListBlobItem item in blobList)
-            {
-                CloudBlockBlob blob = item as CloudBlockBlob;
-                if (blob != null)
-                {
-                    if (blob.BlobType == BlobType.BlockBlob)
-                    {
-                        File file = GetFileInfo(blob, (!TemporaryContainerPublicAccess));
-                        files.Add(file);
-                    }
-                }
-            }
-
-            files.Sort(CompareFilesByLastModifiedAndName);
-
-            return new Collection<File>(files);
-        }
-
-        public string[] GetTemporaryFileNames(string directoryName)
-        {
-            List<string> names = new List<string>();
-
-            Collection<File> files = this.GetTemporaryFiles(directoryName);
-
-            foreach (File file in files)
-            {
-                string fileName = file.Name;
-                names.Add(fileName);
-            }
-
-            return names.ToArray();
-        }
-
-        public void DeleteTemporaryFiles(string directoryName)
-        {
-            directoryName += "/";
-
-            IEnumerable<IListBlobItem> blobList = this.TemporaryContainer.ListBlobs(directoryName);
-            foreach (IListBlobItem item in blobList)
-            {
-                CloudBlockBlob blob = item as CloudBlockBlob;
-                if (blob != null)
-                {
-                    blob.Delete();
-                }
-            }
-        }
-
-        public string UploadTemporaryFile(string fileName, string contentType, byte[] buffer, string directoryName)
-        {
-            if (buffer != null)
-            {
-                CloudBlockBlob blob = this.GetTemporaryFileReference(fileName, contentType, directoryName);
-
-                int count = buffer.Length;
-                blob.UploadFromByteArray(buffer, 0, count);
-
-                return blob.Name;
-            }
-
-            return null;
-        }
-
-        public string UploadTemporaryFile(string fileName, string contentType, Stream source, string directoryName)
-        {
-            CloudBlockBlob blob = this.GetTemporaryFileReference(fileName, contentType, directoryName);
-
-            blob.UploadFromStream(source);
-
-            return blob.Name;
-        }
-
         public void MoveTemporaryFiles(string directoryName)
         {
             directoryName += "/";
             string blobNameFormat = this.BlobNameFormat;
 
-            IEnumerable<IListBlobItem> temporaryBlobList = this.TemporaryContainer.ListBlobs(directoryName);
+            IEnumerable<IListBlobItem> temporaryBlobList = TemporaryContainer.ListBlobs(directoryName);
             foreach (IListBlobItem item in temporaryBlobList)
             {
                 CloudBlockBlob tempBlob = item as CloudBlockBlob;
@@ -833,6 +676,136 @@ namespace Micajah.AzureFileService
                     }
                 }
             }
+        }
+
+        public string UploadFile(string fileName, string contentType, byte[] buffer)
+        {
+            if (buffer != null)
+            {
+                CloudBlockBlob blob = this.GetFileReference(fileName, contentType);
+
+                int count = buffer.Length;
+                blob.UploadFromByteArray(buffer, 0, count);
+
+                return blob.Name;
+            }
+
+            return null;
+        }
+
+        public string UploadFile(string fileName, string contentType, Stream source)
+        {
+            CloudBlockBlob blob = this.GetFileReference(fileName, contentType);
+
+            blob.UploadFromStream(source);
+
+            return blob.Name;
+        }
+
+        public static File GetTemporaryFileInfo(string fileId)
+        {
+            CloudBlockBlob blob = TemporaryContainer.GetBlockBlobReference(fileId);
+            if (blob.Exists())
+            {
+                SharedAccessBlobPolicy readAccessPolicy = CreateReadAccessPolicy();
+
+                return GetFileInfo(blob, readAccessPolicy);
+            }
+
+            return null;
+        }
+
+        public static Collection<File> GetTemporaryFiles(string directoryName)
+        {
+            directoryName += "/";
+
+            List<File> files = new List<File>();
+
+            SharedAccessBlobPolicy readAccessPolicy = CreateReadAccessPolicy();
+
+            IEnumerable<IListBlobItem> blobList = TemporaryContainer.ListBlobs(directoryName);
+            foreach (IListBlobItem item in blobList)
+            {
+                CloudBlockBlob blob = item as CloudBlockBlob;
+                if (blob != null)
+                {
+                    if (blob.BlobType == BlobType.BlockBlob)
+                    {
+                        File file = GetFileInfo(blob, readAccessPolicy);
+                        files.Add(file);
+                    }
+                }
+            }
+
+            files.Sort(CompareFilesByLastModifiedAndName);
+
+            return new Collection<File>(files);
+        }
+
+        public static string[] GetTemporaryFileNames(string directoryName)
+        {
+            List<string> names = new List<string>();
+
+            Collection<File> files = GetTemporaryFiles(directoryName);
+
+            foreach (File file in files)
+            {
+                string fileName = file.Name;
+                names.Add(fileName);
+            }
+
+            return names.ToArray();
+        }
+
+        public static void DeleteTemporaryFiles(string directoryName)
+        {
+            directoryName += "/";
+
+            IEnumerable<IListBlobItem> blobList = TemporaryContainer.ListBlobs(directoryName);
+            foreach (IListBlobItem item in blobList)
+            {
+                CloudBlockBlob blob = item as CloudBlockBlob;
+                if (blob != null)
+                {
+                    blob.Delete();
+                }
+            }
+        }
+
+        public static string UploadTemporaryFile(string fileName, string contentType, byte[] buffer, string directoryName)
+        {
+            if (buffer != null)
+            {
+                CloudBlockBlob blob = GetTemporaryFileReference(fileName, contentType, directoryName);
+
+                int count = buffer.Length;
+                blob.UploadFromByteArray(buffer, 0, count);
+
+                return blob.Name;
+            }
+
+            return null;
+        }
+
+        public static string UploadTemporaryFile(string fileName, string contentType, Stream source, string directoryName)
+        {
+            CloudBlockBlob blob = GetTemporaryFileReference(fileName, contentType, directoryName);
+
+            blob.UploadFromStream(source);
+
+            return blob.Name;
+        }
+
+        public static void Register()
+        {
+            ResourceVirtualPathProvider.Register();
+
+            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(Settings.StorageConnectionString);
+
+            s_ServiceClient = storageAccount.CreateCloudBlobClient();
+
+            s_TemporaryContainer = s_ServiceClient.GetContainerReference(Settings.TemporaryContainerName);
+            s_TemporaryContainer.CreateIfNotExists();
         }
 
         #endregion

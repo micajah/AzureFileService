@@ -142,6 +142,38 @@ namespace Micajah.AzureFileService
             return path;
         }
 
+        /// <summary>
+        /// Registers a new ResourceVirtualPathProvider instance with the ASP.NET compilation system.
+        /// </summary>
+        internal static void Register()
+        {
+            MethodInfo mi = typeof(HostingEnvironment).GetMethod("RegisterVirtualPathProviderInternal", (BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod));
+            if (mi != null)
+                mi.Invoke(null, new object[] { new ResourceVirtualPathProvider() });
+            else
+                HostingEnvironment.RegisterVirtualPathProvider(new ResourceVirtualPathProvider());
+        }
+
+        /// <summary>
+        /// Converts a virtual path to an application absolute path.
+        /// </summary>
+        /// <param name="virtualPath">The virtual path to convert to an application-relative path.</param>
+        /// <returns>The absolute path representation of the specified virtual path or original string, if the conversion is not possible.</returns>
+        internal static string VirtualPathToAbsolute(string virtualPath)
+        {
+            string url = ProcessVirtualPath(virtualPath);
+            if (url != null)
+            {
+                string applicationPath = HttpContext.Current.Request.ApplicationPath;
+                if (!applicationPath.Equals("/", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (!url.Contains(applicationPath + "/")) url = applicationPath + url;
+                }
+                return url;
+            }
+            return virtualPath;
+        }
+
         #endregion
 
         #region Overriden Methods
@@ -193,81 +225,6 @@ namespace Micajah.AzureFileService
                 return GetVirtualDirectory(virtualDir);
             else
                 return this.Previous.GetDirectory(virtualDir);
-        }
-
-        #endregion
-
-        #region Public Methods
-
-        /// <summary>
-        /// Registers a new ResourceVirtualPathProvider instance with the ASP.NET compilation system.
-        /// </summary>
-        public static void Register()
-        {
-            MethodInfo mi = typeof(HostingEnvironment).GetMethod("RegisterVirtualPathProviderInternal", (BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod));
-            if (mi != null)
-                mi.Invoke(null, new object[] { new ResourceVirtualPathProvider() });
-            else
-                HostingEnvironment.RegisterVirtualPathProvider(new ResourceVirtualPathProvider());
-        }
-
-        /// <summary>
-        /// Converts the specified URL to the application relative URL if it is possible.
-        /// </summary>
-        /// <param name="url">The URL to convert.</param>
-        /// <returns>The string that represents the application relative URL or original URL, if the conversion is not possible.</returns>
-        public static string VirtualPathToApplicationRelative(string url)
-        {
-            if (!string.IsNullOrEmpty(url))
-            {
-                if (url.StartsWith("~", StringComparison.OrdinalIgnoreCase)) url = url.Remove(0, 1);
-                string applicationPath = HttpContext.Current.Request.ApplicationPath;
-                if (!applicationPath.Equals("/", StringComparison.OrdinalIgnoreCase))
-                {
-                    url = url.Replace(applicationPath, string.Empty);
-                }
-            }
-            return url;
-        }
-
-        /// <summary>
-        /// Converts a virtual path to an application absolute path.
-        /// </summary>
-        /// <param name="virtualPath">The virtual path to convert to an application-relative path.</param>
-        /// <returns>The absolute path representation of the specified virtual path or original string, if the conversion is not possible.</returns>
-        public static string VirtualPathToAbsolute(string virtualPath)
-        {
-            string url = ProcessVirtualPath(virtualPath);
-            if (url != null)
-            {
-                string applicationPath = HttpContext.Current.Request.ApplicationPath;
-                if (!applicationPath.Equals("/", StringComparison.OrdinalIgnoreCase))
-                {
-                    if (!url.Contains(applicationPath + "/")) url = applicationPath + url;
-                }
-                return url;
-            }
-            return virtualPath;
-        }
-
-        /// <summary>
-        /// Converts a virtual path to an URI.
-        /// </summary>
-        /// <param name="url">The virtual path to convert to an URI.</param>
-        /// <returns>The string that represents the URI or original URL, if the conversion is not possible.</returns>
-        public static string VirtualPathToAbsoluteUri(string virtualPath)
-        {
-            string url = ProcessVirtualPath(virtualPath);
-            if (url != null)
-            {
-                HttpRequest request = HttpContext.Current.Request;
-                string portString = string.Empty;
-                int port = request.Url.Port;
-                if ((!request.Url.IsDefaultPort) && (port > -1)) portString = string.Concat(":", port);
-                url = string.Concat(request.Url.Scheme, Uri.SchemeDelimiter, request.Url.Host, portString, request.ApplicationPath) + url;
-                return url;
-            }
-            return virtualPath;
         }
 
         #endregion

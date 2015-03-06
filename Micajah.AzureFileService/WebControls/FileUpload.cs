@@ -190,35 +190,7 @@ namespace Micajah.AzureFileService.WebControls
         {
             get
             {
-                return new ReadOnlyCollection<string>(this.FileManager.GetTemporaryFileNames(this.TemporaryDirectoryName));
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the name of the temporary container the files are uploaded to.
-        /// </summary>
-        [Category("Data")]
-        [Description("The name of the temporary container the files are uploaded to.")]
-        [DefaultValue("")]
-        public string TemporaryContainerName
-        {
-            get
-            {
-                string value = (string)this.ViewState["TemporaryContainerName"];
-                if (string.IsNullOrWhiteSpace(value))
-                {
-                    value = Settings.TemporaryContainerName;
-                }
-                return value;
-            }
-            set
-            {
-                this.ViewState["TemporaryContainerName"] = value;
-
-                if (m_FileManager != null)
-                {
-                    m_FileManager.TemporaryContainerName = value;
-                }
+                return new ReadOnlyCollection<string>(FileManager.GetTemporaryFileNames(this.TemporaryDirectoryName));
             }
         }
 
@@ -314,7 +286,7 @@ namespace Micajah.AzureFileService.WebControls
             {
                 if (m_FileManager == null)
                 {
-                    m_FileManager = new FileManager(this.ContainerName, this.ContainerPublicAccess, this.ObjectType, this.ObjectId, this.TemporaryContainerName);
+                    m_FileManager = new FileManager(this.ContainerName, this.ContainerPublicAccess, this.ObjectType, this.ObjectId);
                 }
                 return m_FileManager;
             }
@@ -370,7 +342,7 @@ namespace Micajah.AzureFileService.WebControls
                     , variableName
                     , element
                     , FileFromMyComputer.UniqueID
-                    , this.FileManager.GetTemporaryFilesUrlFormat(this.TemporaryDirectoryName)
+                    , FileManager.GetTemporaryFilesUrlFormat(this.TemporaryDirectoryName)
                     , this.ClientID);
 
                 if (!string.IsNullOrWhiteSpace(this.Accept))
@@ -456,7 +428,7 @@ namespace Micajah.AzureFileService.WebControls
                         {
                             string fileName = Path.GetFileName(file.FileName);
 
-                            this.FileManager.UploadTemporaryFile(fileName, file.ContentType, file.InputStream, this.TemporaryDirectoryName);
+                            FileManager.UploadTemporaryFile(fileName, file.ContentType, file.InputStream, this.TemporaryDirectoryName);
                         }
                         else
                             this.ErrorMessage = Resources.FileUpload_InvalidFileSize;
@@ -642,7 +614,7 @@ namespace Micajah.AzureFileService.WebControls
         /// </summary>
         public void RejectChanges()
         {
-            this.FileManager.DeleteTemporaryFiles(this.TemporaryDirectoryName);
+            FileManager.DeleteTemporaryFiles(this.TemporaryDirectoryName);
 
             this.TemporaryDirectoryName = null;
             FilesStateField.Value = string.Empty;
