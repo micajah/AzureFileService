@@ -76,6 +76,7 @@
   <ItemGroup>
     <Compile Include="Extensions\ControlExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
+    <Compile Include="Managers\ContainerManager.cs" />
     <Compile Include="Managers\FileManager.cs" />
     <Compile Include="Entities\File.cs" />
     <Compile Include="Handlers\FileHandler.cs" />

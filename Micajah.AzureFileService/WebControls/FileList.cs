@@ -501,7 +501,6 @@ namespace Micajah.AzureFileService.WebControls
                 if (m_FileManager != null)
                 {
                     m_FileManager.ContainerPublicAccess = value;
-                    m_FileManager.ContainerName = this.ContainerName;
                 }
             }
         }

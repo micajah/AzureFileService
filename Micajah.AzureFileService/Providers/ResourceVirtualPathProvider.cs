@@ -143,18 +143,6 @@ namespace Micajah.AzureFileService
         }
 
         /// <summary>
-        /// Registers a new ResourceVirtualPathProvider instance with the ASP.NET compilation system.
-        /// </summary>
-        internal static void Register()
-        {
-            MethodInfo mi = typeof(HostingEnvironment).GetMethod("RegisterVirtualPathProviderInternal", (BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod));
-            if (mi != null)
-                mi.Invoke(null, new object[] { new ResourceVirtualPathProvider() });
-            else
-                HostingEnvironment.RegisterVirtualPathProvider(new ResourceVirtualPathProvider());
-        }
-
-        /// <summary>
         /// Converts a virtual path to an application absolute path.
         /// </summary>
         /// <param name="virtualPath">The virtual path to convert to an application-relative path.</param>
@@ -225,6 +213,22 @@ namespace Micajah.AzureFileService
                 return GetVirtualDirectory(virtualDir);
             else
                 return this.Previous.GetDirectory(virtualDir);
+        }
+
+        #endregion
+
+        #region Public Methods
+
+        /// <summary>
+        /// Registers a new ResourceVirtualPathProvider instance with the ASP.NET compilation system.
+        /// </summary>
+        public static void Register()
+        {
+            MethodInfo mi = typeof(HostingEnvironment).GetMethod("RegisterVirtualPathProviderInternal", (BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod));
+            if (mi != null)
+                mi.Invoke(null, new object[] { new ResourceVirtualPathProvider() });
+            else
+                HostingEnvironment.RegisterVirtualPathProvider(new ResourceVirtualPathProvider());
         }
 
         #endregion

@@ -5,7 +5,7 @@
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
     <p>Upload a file using drag and drop for whole page</p>
     <mafs:FileUpload ID="FileUpload1" runat="server" DropElement="document.body"
-        ContainerName="micajahazurefileservice" TemporaryContainerName="micajahazurefileservicetemp" ObjectType="ticket" ObjectId="12345" />
+        ContainerName="micajahazurefileservice" ObjectType="ticket" ObjectId="12345" />
     <br />
     <asp:Button ID="AcceptButton" runat="server" Text="Accept Changes" OnClick="AcceptButton_Click" UseSubmitBehavior="false" />&nbsp;
     <asp:Button ID="RejectButton" runat="server" Text="Reject Changes" OnClick="RejectButton_Click" UseSubmitBehavior="false" />&nbsp;
