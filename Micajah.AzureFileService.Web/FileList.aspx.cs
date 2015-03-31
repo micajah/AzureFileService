@@ -29,7 +29,7 @@ namespace Micajah.AzureFileService.Web
         {
             base.OnPreRenderComplete(e);
 
-            long size = FileList2.FileManager.ContainerLength;
+            long size = ContainerManager.GetContainerLength(FileList2.ContainerName);
             long sizeInKB = size / 1024;
             long sizeInMB = sizeInKB / 1024;
 

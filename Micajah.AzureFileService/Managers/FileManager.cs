@@ -105,32 +105,6 @@ namespace Micajah.AzureFileService
         public bool ContainerPublicAccess { get; set; }
 
         /// <summary>
-        /// Gets the size of all blobs in the container, in bytes.
-        /// </summary>
-        public long ContainerLength
-        {
-            get
-            {
-                long length = 0;
-
-                IEnumerable<IListBlobItem> blobList = this.Container.ListBlobs(null, true);
-                foreach (IListBlobItem item in blobList)
-                {
-                    CloudBlockBlob blob = item as CloudBlockBlob;
-                    if (blob != null)
-                    {
-                        if (blob.BlobType == BlobType.BlockBlob)
-                        {
-                            length += blob.Properties.Length;
-                        }
-                    }
-                }
-
-                return length;
-            }
-        }
-
-        /// <summary>
         /// Gets or sets the type of the object which the files are associated with.
         /// </summary>
         public string ObjectType { get; set; }

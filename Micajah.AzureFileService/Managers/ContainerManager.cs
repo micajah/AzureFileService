@@ -1,5 +1,6 @@
 ﻿using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
+using System.Collections.Generic;
 
 namespace Micajah.AzureFileService
 {
@@ -78,9 +79,41 @@ namespace Micajah.AzureFileService
 
         #region Public Methods
 
+        /// <summary>
+        /// Creates the container if it does not already exist.
+        /// </summary>
+        /// <param name="containerName">A string containing the name of the container.</param>
+        /// <param name="publicAccess">A value indicating whether the public access to the files is allowed in the container.</param>
         public static void CreateContainer(string containerName, bool publicAccess)
         {
             CreateContainerIfNotExists(containerName, publicAccess);
+        }
+
+        /// <summary>
+        /// Returns the size of all blobs in the container, in bytes.
+        /// </summary>
+        /// <param name="containerName">A string containing the name of the container.</param>
+        /// <returns>Returns the size of all blobs in the container, in bytes.</returns>
+        public static long GetContainerLength(string containerName)
+        {
+            long length = 0;
+
+            CloudBlobContainer container = GetContainerReference(containerName);
+
+            IEnumerable<IListBlobItem> blobList = container.ListBlobs(null, true);
+            foreach (IListBlobItem item in blobList)
+            {
+                CloudBlockBlob blob = item as CloudBlockBlob;
+                if (blob != null)
+                {
+                    if (blob.BlobType == BlobType.BlockBlob)
+                    {
+                        length += blob.Properties.Length;
+                    }
+                }
+            }
+
+            return length;
         }
 
         #endregion
