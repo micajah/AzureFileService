@@ -205,7 +205,7 @@ namespace Micajah.AzureFileService
 
             string fileName = GetNameFromFileId(blob.Name);
 
-            string url = Uri.EscapeUriString(blob.Uri.ToString());
+            string url = blob.Uri.ToString();
             if (readAccessPolicy != null)
             {
                 string sas = blob.GetSharedAccessSignature(readAccessPolicy);

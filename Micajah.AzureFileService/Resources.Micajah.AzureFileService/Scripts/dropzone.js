@@ -1340,7 +1340,7 @@
                     if ((file.status !== Dropzone.CANCELED) && (file.status !== Dropzone.ERROR)) {
                         if ((!this.options.forceFallback) && Dropzone.isBrowserSupported()) {
                             var xhr = new XMLHttpRequest();
-                            var url = this.options.url.replace("{0}", file.name);
+                            var url = this.options.url.replace("{0}", encodeURIComponent(file.name));
                             xhr.open("Delete", url, true);
                             xhr.send();
                         }
@@ -1609,7 +1609,8 @@
                     xhr = new XMLHttpRequest();
                     for (_i = 0, _len = files.length; _i < _len; _i++) {
                         file = files[_i];
-                        xhr.open("Put", this.options.url.replace("{0}", file.name), true);
+                        var url = this.options.url.replace("{0}", encodeURIComponent(file.name));
+                        xhr.open("Put", url, true);
                         xhr.withCredentials = !!this.options.withCredentials;
                         file.xhr = xhr;
                     }
