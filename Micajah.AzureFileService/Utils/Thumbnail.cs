@@ -98,8 +98,8 @@ namespace Micajah.AzureFileService
                 return;
             }
 
-            double widthPercent = ((originalWidth > 0) ? 100 * width / originalWidth : 100);
-            double heightPercent = ((originalHeight > 0) ? 100 * height / originalHeight : 100);
+            double widthPercent = ((originalWidth > 0) ? (100 * width / (double)originalWidth) : 100);
+            double heightPercent = ((originalHeight > 0) ? (100 * height / (double)originalHeight) : 100);
 
             double currentPercent = ((widthPercent > heightPercent) ? heightPercent : widthPercent);
             if (currentPercent == 0)
