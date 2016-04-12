@@ -565,7 +565,7 @@ namespace Micajah.AzureFileService
                         string newBlobName = string.Format(CultureInfo.InvariantCulture, newBlobNameFormat, fileName);
 
                         CloudBlockBlob newBlob = this.Container.GetBlockBlobReference(newBlobName);
-                        newBlob.StartCopyFromBlob(blob);
+                        newBlob.StartCopy(blob);
 
                         this.DeleteFile(blob.Name);
                     }
@@ -595,7 +595,7 @@ namespace Micajah.AzureFileService
                         }
 
                         CloudBlockBlob blob = this.Container.GetBlockBlobReference(blobName);
-                        blob.StartCopyFromBlob(tempBlob);
+                        blob.StartCopy(tempBlob);
 
                         tempBlob.Delete();
                     }
@@ -616,7 +616,7 @@ namespace Micajah.AzureFileService
                         string newBlobName = string.Format(CultureInfo.InvariantCulture, blobNameFormat, fileName);
 
                         CloudBlockBlob newBlob = this.Container.GetBlockBlobReference(newBlobName);
-                        newBlob.StartCopyFromBlob(blob);
+                        newBlob.StartCopy(blob);
 
                         this.DeleteFile(blob.Name);
                     }
