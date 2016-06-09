@@ -79,6 +79,16 @@ namespace Micajah.AzureFileService
             }
         }
 
+        /// <summary>
+        /// Gets or sets the type of the object which the file is associated with.
+        /// </summary>
+        public string ObjectType { get; set; }
+
+        /// <summary>
+        /// Gets or sets the unique identifier of the object which the file is associated with.
+        /// </summary>
+        public string ObjectId { get; set; }
+
         #endregion
     }
 }

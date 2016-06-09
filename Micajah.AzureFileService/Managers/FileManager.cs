@@ -43,6 +43,11 @@ namespace Micajah.AzureFileService
         {
             get
             {
+                if (string.IsNullOrEmpty(this.ObjectType) && string.IsNullOrEmpty(this.ObjectId))
+                {
+                    return null;
+                }
+
                 return GetBlobPath(this.ObjectType, this.ObjectId);
             }
         }
@@ -203,7 +208,12 @@ namespace Micajah.AzureFileService
         {
             BlobProperties props = blob.Properties;
 
-            string fileName = GetNameFromFileId(blob.Name);
+            string[] parts = blob.Name.Split('/');
+            int length = parts.Length;
+
+            string fileName = parts[length - 1];
+            string objectType = parts[0];
+            string objectId = parts[1];
 
             string url = blob.Uri.ToString();
             if (readAccessPolicy != null)
@@ -220,8 +230,33 @@ namespace Micajah.AzureFileService
                 ContentType = props.ContentType,
                 FullName = blob.Name,
                 Url = url,
-                LastModified = props.LastModified.Value.DateTime
+                LastModified = props.LastModified.Value.DateTime,
+                ObjectType = objectType,
+                ObjectId = objectId
             };
+        }
+
+        private Collection<File> GetFiles(bool useFlatBlobListing)
+        {
+            List<File> files = new List<File>();
+
+            IEnumerable<IListBlobItem> blobList = this.Container.ListBlobs(this.BlobPath, useFlatBlobListing);
+            foreach (IListBlobItem item in blobList)
+            {
+                CloudBlockBlob blob = item as CloudBlockBlob;
+                if (blob != null)
+                {
+                    if (blob.BlobType == BlobType.BlockBlob)
+                    {
+                        File file = GetFileInfo(blob);
+                        files.Add(file);
+                    }
+                }
+            }
+
+            files.Sort(CompareFilesByLastModifiedAndName);
+
+            return new Collection<File>(files);
         }
 
         private CloudBlockBlob GetFileReference(string fileName, string contentType)
@@ -420,27 +455,14 @@ namespace Micajah.AzureFileService
             return null;
         }
 
+        public Collection<File> GetAllFiles()
+        {
+            return GetFiles(true);
+        }
+
         public Collection<File> GetFiles()
         {
-            List<File> files = new List<File>();
-
-            IEnumerable<IListBlobItem> blobList = this.Container.ListBlobs(this.BlobPath);
-            foreach (IListBlobItem item in blobList)
-            {
-                CloudBlockBlob blob = item as CloudBlockBlob;
-                if (blob != null)
-                {
-                    if (blob.BlobType == BlobType.BlockBlob)
-                    {
-                        File file = GetFileInfo(blob);
-                        files.Add(file);
-                    }
-                }
-            }
-
-            files.Sort(CompareFilesByLastModifiedAndName);
-
-            return new Collection<File>(files);
+            return GetFiles(false);
         }
 
         public Collection<File> GetFiles(string[] extensions, bool negate)
