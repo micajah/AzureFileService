@@ -266,6 +266,10 @@ namespace Micajah.AzureFileService
             CloudBlockBlob blob = this.Container.GetBlockBlobReference(fileId);
             blob.Properties.ContentType = contentType;
             blob.Properties.CacheControl = Settings.ClientCacheControl;
+            if (MimeType.IsHtml(contentType))
+            {
+                blob.Properties.ContentDisposition = "attachment;";
+            }
 
             return blob;
         }
@@ -277,6 +281,10 @@ namespace Micajah.AzureFileService
             CloudBlockBlob blob = ContainerManager.TemporaryContainer.GetBlockBlobReference(fileId);
             blob.Properties.ContentType = contentType;
             blob.Properties.CacheControl = Settings.ClientCacheControl;
+            if (MimeType.IsHtml(contentType))
+            {
+                blob.Properties.ContentDisposition = "attachment;";
+            }
 
             return blob;
         }

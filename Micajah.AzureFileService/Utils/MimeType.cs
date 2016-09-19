@@ -12,6 +12,7 @@ namespace Micajah.AzureFileService
 
         public const string Flash = "application/x-shockwave-flash";
         public const string Jpeg = "image/jpeg";
+        public const string Html = "text/html";
         public const string SwfExtension = ".swf";
 
         #endregion
@@ -63,6 +64,16 @@ namespace Micajah.AzureFileService
         public static bool IsFlash(string mimeType)
         {
             return (string.Compare(mimeType, Flash, StringComparison.OrdinalIgnoreCase) == 0);
+        }
+
+        /// <summary>
+        /// Determines whether the specified MIME type is HTML.
+        /// </summary>
+        /// <param name="mimeType">The string that contains the MIME type to check.</param>
+        /// <returns>true, if the specified MIME type is HTML; otherwise, false.</returns>
+        public static bool IsHtml(string mimeType)
+        {
+            return (string.Compare(mimeType, Html, StringComparison.OrdinalIgnoreCase) == 0);
         }
 
         /// <summary>
