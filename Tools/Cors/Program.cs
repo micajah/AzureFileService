@@ -17,10 +17,13 @@ namespace Micajah.AzureFileService.Tools.Cors
             CorsProperties corsSettings = serviceProperties.Cors;
 
             //AddRule(corsSettings);
-
             //corsSettings.CorsRules.RemoveAt(0);
 
-            client.SetServiceProperties(serviceProperties);
+            //serviceProperties.DefaultServiceVersion = "2015-07-08";
+
+            //client.SetServiceProperties(serviceProperties);
+
+            Console.WriteLine("DefaultServiceVersion        : " + serviceProperties.DefaultServiceVersion);
 
             DisplayCorsSettings(corsSettings);
 
@@ -46,7 +49,7 @@ namespace Micajah.AzureFileService.Tools.Cors
             {
                 if (corsSettings != null)
                 {
-                    Console.WriteLine("Cors.CorsRules.Count          : " + corsSettings.CorsRules.Count);
+                    Console.WriteLine("Cors.CorsRules.Count         : " + corsSettings.CorsRules.Count);
                     for (int index = 0; index < corsSettings.CorsRules.Count; index++)
                     {
                         var corsRule = corsSettings.CorsRules[index];
