@@ -1697,7 +1697,7 @@
                         var reader = new FileReader();
                         xhr.setRequestHeader("x-ms-blob-content-type", file.type);
                         if (file.type == "text/html") {
-                            xhr.setRequestHeader("x-ms-blob-content-disposition", "attachment;");
+                            xhr.setRequestHeader("x-ms-blob-content-disposition", "attachment");
                         }
                         if (this.options.cacheControl) {
                             xhr.setRequestHeader("x-ms-blob-cache-control", this.options.cacheControl);

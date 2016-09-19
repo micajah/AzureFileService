@@ -268,7 +268,7 @@ namespace Micajah.AzureFileService
             blob.Properties.CacheControl = Settings.ClientCacheControl;
             if (MimeType.IsHtml(contentType))
             {
-                blob.Properties.ContentDisposition = "attachment;";
+                blob.Properties.ContentDisposition = "attachment";
             }
 
             return blob;
@@ -283,7 +283,7 @@ namespace Micajah.AzureFileService
             blob.Properties.CacheControl = Settings.ClientCacheControl;
             if (MimeType.IsHtml(contentType))
             {
-                blob.Properties.ContentDisposition = "attachment;";
+                blob.Properties.ContentDisposition = "attachment";
             }
 
             return blob;
