@@ -1227,6 +1227,7 @@
                         total: file.size,
                         bytesSent: 0
                     };
+                    file.uniqueName = _this._getFileUniqueName(file.name);
                     this.files.push(file);
                     file.status = Dropzone.ADDED;
                     this.emit("addedfile", file);
@@ -1340,7 +1341,7 @@
                     if ((file.status !== Dropzone.CANCELED) && (file.status !== Dropzone.ERROR)) {
                         if ((!this.options.forceFallback) && Dropzone.isBrowserSupported()) {
                             var xhr = new XMLHttpRequest();
-                            var url = this.options.url.replace("{0}", encodeURIComponent(file.name));
+                            var url = this.options.url.replace("{0}", encodeURIComponent(file.uniqueName));
                             xhr.open("Delete", url, true);
                             xhr.send();
                         }
@@ -1609,7 +1610,7 @@
                     xhr = new XMLHttpRequest();
                     for (_i = 0, _len = files.length; _i < _len; _i++) {
                         file = files[_i];
-                        var url = this.options.url.replace("{0}", encodeURIComponent(file.name));
+                        var url = this.options.url.replace("{0}", encodeURIComponent(file.uniqueName));
                         xhr.open("Put", url, true);
                         xhr.withCredentials = !!this.options.withCredentials;
                         file.xhr = xhr;
@@ -1744,6 +1745,20 @@
                     if (this.options.autoProcessQueue) {
                         return this.processQueue();
                     }
+                };
+
+                Dropzone.prototype._getFileUniqueName = function (fileName) {
+                    var file, _i, _len, _ref;
+                    _ref = this.files;
+                    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+                        file = _ref[_i];
+                        if (file.name === fileName) {
+                            var startIndex = fileName.lastIndexOf(".");
+                            var newFileName = fileName.substr(0, startIndex) + Date.now() + fileName.substr(startIndex);
+                            return newFileName;
+                        }
+                    }
+                    return fileName;
                 };
 
                 return Dropzone;
@@ -1923,6 +1938,7 @@
             Dropzone.createFileInfo = function (file) {
                 var fileInfo = new Object();
                 fileInfo.name = file.name;
+                fileInfo.uniqueName = file.uniqueName;
                 fileInfo.size = file.size;
                 fileInfo.type = file.type;
                 fileInfo.status = file.status;
