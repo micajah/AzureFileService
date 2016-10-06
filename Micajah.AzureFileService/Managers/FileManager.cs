@@ -2,6 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -292,6 +294,50 @@ namespace Micajah.AzureFileService
         private static bool IsImageBlob(string fileId)
         {
             return MimeType.IsImageType(MimeMapping.GetMimeMapping(fileId));
+        }
+
+        private static void RotateFlipImageBlobByOrientation(CloudBlockBlob blob)
+        {
+            MemoryStream source = null;
+            MemoryStream output = null;
+            Image image = null;
+
+            try
+            {
+                source = new MemoryStream();
+                blob.DownloadToStream(source);
+                source.Position = 0;
+
+                image = Image.FromStream(source);
+
+                if (image.RotateFlipByOrientation())
+                {
+                    ImageFormat imageFormat = MimeType.GetImageFormat(blob.Properties.ContentType) ?? ImageFormat.Jpeg;
+
+                    output = new MemoryStream();
+                    image.Save(output, imageFormat);
+                    output.Position = 0;
+
+                    blob.UploadFromStream(output);
+                }
+            }
+            finally
+            {
+                if (source != null)
+                {
+                    source.Dispose();
+                }
+
+                if (output != null)
+                {
+                    output.Dispose();
+                }
+
+                if (image != null)
+                {
+                    image.Dispose();
+                }
+            }
         }
 
         #endregion
@@ -619,8 +665,10 @@ namespace Micajah.AzureFileService
                         string fileName = GetNameFromFileId(tempBlob.Name);
                         string blobName = string.Format(CultureInfo.InvariantCulture, blobNameFormat, fileName);
 
-                        if (IsImageBlob(blobName))
+                        if (MimeType.IsImageType(tempBlob.Properties.ContentType))
                         {
+                            RotateFlipImageBlobByOrientation(tempBlob);
+
                             this.DeleteThumbnails(blobName);
                         }
 

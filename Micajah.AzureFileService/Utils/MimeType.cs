@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.Drawing.Imaging;
+using System.Linq;
 
 namespace Micajah.AzureFileService
 {
@@ -98,6 +100,23 @@ namespace Micajah.AzureFileService
             if (!string.IsNullOrEmpty(mimeType))
                 return mimeType.StartsWith("video/", StringComparison.OrdinalIgnoreCase);
             return false;
+        }
+
+        /// <summary>
+        /// Returns image format associated to the specified MIME type.
+        /// </summary>
+        /// <param name="mimeType">The string that contains the MIME type.</param>
+        /// <returns>An image format, if it is found; otherwise null reference.</returns>
+        public static ImageFormat GetImageFormat(string mimeType)
+        {
+            ImageCodecInfo[] imageCodecs = ImageCodecInfo.GetImageEncoders();
+            ImageCodecInfo imageCodec = imageCodecs.First(codec => codec.MimeType == mimeType);
+            if (imageCodec != null)
+            {
+                return new ImageFormat(imageCodec.FormatID);
+            }
+
+            return null;
         }
 
         #endregion
