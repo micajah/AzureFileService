@@ -296,29 +296,21 @@ namespace Micajah.AzureFileService
             return MimeType.IsImageType(MimeMapping.GetMimeMapping(fileId));
         }
 
-        private static void RotateFlipImageBlobByOrientation(CloudBlockBlob blob)
+        private static void RotateFlipImageByOrientation(CloudBlockBlob blob)
         {
             MemoryStream source = null;
-            MemoryStream output = null;
-            Image image = null;
 
             try
             {
                 source = new MemoryStream();
                 blob.DownloadToStream(source);
-                source.Position = 0;
 
-                image = Image.FromStream(source);
+                byte[] bytes = RotateFlipImageByOrientation(blob.Properties.ContentType, source);
 
-                if (image.RotateFlipByOrientation())
+                if (bytes != null)
                 {
-                    ImageFormat imageFormat = MimeType.GetImageFormat(blob.Properties.ContentType) ?? ImageFormat.Jpeg;
-
-                    output = new MemoryStream();
-                    image.Save(output, imageFormat);
-                    output.Position = 0;
-
-                    blob.UploadFromStream(output);
+                    int count = bytes.Length;
+                    blob.UploadFromByteArray(bytes, 0, count);
                 }
             }
             finally
@@ -327,7 +319,54 @@ namespace Micajah.AzureFileService
                 {
                     source.Dispose();
                 }
+            }
+        }
 
+        private static byte[] RotateFlipImageByOrientation(string contentType, byte[] buffer)
+        {
+            MemoryStream source = null;
+
+            try
+            {
+                source = new MemoryStream(buffer);
+
+                return RotateFlipImageByOrientation(contentType, source);
+            }
+            finally
+            {
+                if (source != null)
+                {
+                    source.Dispose();
+                }
+            }
+        }
+
+        private static byte[] RotateFlipImageByOrientation(string contentType, Stream source)
+        {
+            MemoryStream output = null;
+            Image image = null;
+
+            try
+            {
+                source.Position = 0;
+
+                image = Image.FromStream(source);
+
+                if (image.RotateFlipByOrientation())
+                {
+                    ImageFormat imageFormat = MimeType.GetImageFormat(contentType) ?? ImageFormat.Jpeg;
+
+                    output = new MemoryStream();
+                    image.Save(output, imageFormat);
+                    output.Position = 0;
+
+                    return output.ToArray();
+                }
+
+                return null;
+            }
+            finally
+            {
                 if (output != null)
                 {
                     output.Dispose();
@@ -338,6 +377,42 @@ namespace Micajah.AzureFileService
                     image.Dispose();
                 }
             }
+        }
+
+        private static void UploadBlobFromByteArray(CloudBlockBlob blob, string contentType, byte[] buffer)
+        {
+            byte[] bytes = null;
+
+            if (MimeType.IsImageType(contentType))
+            {
+                bytes = RotateFlipImageByOrientation(contentType, buffer);
+            }
+
+            if (bytes == null)
+            {
+                bytes = buffer;
+            }
+
+            int count = bytes.Length;
+            blob.UploadFromByteArray(bytes, 0, count);
+        }
+
+        private static void UploadBlobFromStream(CloudBlockBlob blob, string contentType, Stream source)
+        {
+            if (MimeType.IsImageType(contentType))
+            {
+                byte[] bytes = RotateFlipImageByOrientation(contentType, source);
+
+                if (bytes != null)
+                {
+                    int count = bytes.Length;
+                    blob.UploadFromByteArray(bytes, 0, count);
+
+                    return;
+                }
+            }
+
+            blob.UploadFromStream(source);
         }
 
         #endregion
@@ -667,7 +742,7 @@ namespace Micajah.AzureFileService
 
                         if (MimeType.IsImageType(tempBlob.Properties.ContentType))
                         {
-                            RotateFlipImageBlobByOrientation(tempBlob);
+                            RotateFlipImageByOrientation(tempBlob);
 
                             this.DeleteThumbnails(blobName);
                         }
@@ -708,8 +783,7 @@ namespace Micajah.AzureFileService
             {
                 CloudBlockBlob blob = this.GetFileReference(fileName, contentType);
 
-                int count = buffer.Length;
-                blob.UploadFromByteArray(buffer, 0, count);
+                UploadBlobFromByteArray(blob, contentType, buffer);
 
                 return blob.Name;
             }
@@ -719,11 +793,16 @@ namespace Micajah.AzureFileService
 
         public string UploadFile(string fileName, string contentType, Stream source)
         {
-            CloudBlockBlob blob = this.GetFileReference(fileName, contentType);
+            if (source != null)
+            {
+                CloudBlockBlob blob = this.GetFileReference(fileName, contentType);
 
-            blob.UploadFromStream(source);
+                UploadBlobFromStream(blob, contentType, source);
 
-            return blob.Name;
+                return blob.Name;
+            }
+
+            return null;
         }
 
         public static File GetTemporaryFileInfo(string fileId)
@@ -802,8 +881,7 @@ namespace Micajah.AzureFileService
             {
                 CloudBlockBlob blob = GetTemporaryFileReference(fileName, contentType, directoryName);
 
-                int count = buffer.Length;
-                blob.UploadFromByteArray(buffer, 0, count);
+                UploadBlobFromByteArray(blob, contentType, buffer);
 
                 return blob.Name;
             }
@@ -813,11 +891,16 @@ namespace Micajah.AzureFileService
 
         public static string UploadTemporaryFile(string fileName, string contentType, Stream source, string directoryName)
         {
-            CloudBlockBlob blob = GetTemporaryFileReference(fileName, contentType, directoryName);
+            if (source != null)
+            {
+                CloudBlockBlob blob = GetTemporaryFileReference(fileName, contentType, directoryName);
 
-            blob.UploadFromStream(source);
+                UploadBlobFromStream(blob, contentType, source);
 
-            return blob.Name;
+                return blob.Name;
+            }
+
+            return null;
         }
 
         #endregion
