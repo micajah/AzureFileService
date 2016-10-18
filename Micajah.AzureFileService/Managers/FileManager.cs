@@ -302,15 +302,18 @@ namespace Micajah.AzureFileService
 
             try
             {
-                source = new MemoryStream();
-                blob.DownloadToStream(source);
-
-                byte[] bytes = RotateFlipImageByOrientation(blob.Properties.ContentType, source);
-
-                if (bytes != null)
+                if (blob.Properties.Length > 0)
                 {
-                    int count = bytes.Length;
-                    blob.UploadFromByteArray(bytes, 0, count);
+                    source = new MemoryStream();
+                    blob.DownloadToStream(source);
+
+                    byte[] bytes = RotateFlipImageByOrientation(blob.Properties.ContentType, source);
+
+                    if (bytes != null)
+                    {
+                        int count = bytes.Length;
+                        blob.UploadFromByteArray(bytes, 0, count);
+                    }
                 }
             }
             finally
@@ -328,7 +331,10 @@ namespace Micajah.AzureFileService
 
             try
             {
-                source = new MemoryStream(buffer);
+                if (buffer.Length > 0)
+                {
+                    source = new MemoryStream(buffer);
+                }
 
                 return RotateFlipImageByOrientation(contentType, source);
             }
@@ -348,19 +354,25 @@ namespace Micajah.AzureFileService
 
             try
             {
-                source.Position = 0;
-
-                image = Image.FromStream(source);
-
-                if (image.RotateFlipByOrientation())
+                if (source != null)
                 {
-                    ImageFormat imageFormat = MimeType.GetImageFormat(contentType) ?? ImageFormat.Jpeg;
+                    if (source.Length > 0)
+                    {
+                        source.Position = 0;
 
-                    output = new MemoryStream();
-                    image.Save(output, imageFormat);
-                    output.Position = 0;
+                        image = Image.FromStream(source);
 
-                    return output.ToArray();
+                        if (image.RotateFlipByOrientation())
+                        {
+                            ImageFormat imageFormat = MimeType.GetImageFormat(contentType) ?? ImageFormat.Jpeg;
+
+                            output = new MemoryStream();
+                            image.Save(output, imageFormat);
+                            output.Position = 0;
+
+                            return output.ToArray();
+                        }
+                    }
                 }
 
                 return null;
