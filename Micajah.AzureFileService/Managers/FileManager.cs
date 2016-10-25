@@ -429,6 +429,7 @@ namespace Micajah.AzureFileService
                 }
             }
 
+            source.Position = 0;
             blob.UploadFromStream(source);
         }
 
