@@ -7,6 +7,7 @@ using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Web;
 
 namespace Micajah.AzureFileService
@@ -263,6 +264,8 @@ namespace Micajah.AzureFileService
 
         private CloudBlockBlob GetFileReference(string fileName, string contentType)
         {
+            fileName = VerifyFileName(fileName);
+
             string fileId = string.Format(CultureInfo.InvariantCulture, this.BlobNameFormat, fileName);
 
             CloudBlockBlob blob = this.Container.GetBlockBlobReference(fileId);
@@ -278,6 +281,8 @@ namespace Micajah.AzureFileService
 
         private static CloudBlockBlob GetTemporaryFileReference(string fileName, string contentType, string directoryName)
         {
+            fileName = VerifyFileName(fileName);
+
             string fileId = string.Format(CultureInfo.InvariantCulture, "{0}/{1}", directoryName, fileName);
 
             CloudBlockBlob blob = ContainerManager.TemporaryContainer.GetBlockBlobReference(fileId);
@@ -425,6 +430,11 @@ namespace Micajah.AzureFileService
             }
 
             blob.UploadFromStream(source);
+        }
+
+        private static string VerifyFileName(string fileName)
+        {
+            return Regex.Replace(fileName, "\uFFFD", string.Empty, RegexOptions.Multiline);
         }
 
         #endregion
@@ -777,6 +787,8 @@ namespace Micajah.AzureFileService
                 {
                     if (blob.BlobType == BlobType.BlockBlob)
                     {
+                        fileName = VerifyFileName(fileName);
+
                         string blobNameFormat = this.BlobNameFormat;
                         string newBlobName = string.Format(CultureInfo.InvariantCulture, blobNameFormat, fileName);
 

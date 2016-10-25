@@ -1755,9 +1755,11 @@
                         if (file.name === fileName) {
                             var startIndex = fileName.lastIndexOf(".");
                             var newFileName = fileName.substr(0, startIndex) + Date.now() + fileName.substr(startIndex);
+                            newFileName = newFileName.replace(/\uFFFD/g, '');
                             return newFileName;
                         }
                     }
+                    fileName = fileName.replace(/\uFFFD/g, '');
                     return fileName;
                 };
 
