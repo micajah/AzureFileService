@@ -379,8 +379,13 @@ namespace Micajah.AzureFileService
                         }
                     }
                 }
-
-                return null;
+            }
+            catch (ArgumentException)
+            {
+                if (!MimeType.IsIcon(contentType))
+                {
+                    throw;
+                }
             }
             finally
             {
@@ -394,6 +399,8 @@ namespace Micajah.AzureFileService
                     image.Dispose();
                 }
             }
+
+            return null;
         }
 
         private static void UploadBlobFromByteArray(CloudBlockBlob blob, string contentType, byte[] buffer)

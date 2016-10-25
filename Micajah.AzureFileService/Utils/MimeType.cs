@@ -12,9 +12,34 @@ namespace Micajah.AzureFileService
     {
         #region Constants
 
+        /// <summary>
+        /// image/vnd.microsoft.icon
+        /// </summary>
+        private const string Icon2 = "image/vnd.microsoft.icon";
+
+        /// <summary>
+        /// image/x-icon
+        /// </summary>
+        public const string Icon = "image/x-icon";
+
+        /// <summary>
+        /// application/x-shockwave-flash
+        /// </summary>
         public const string Flash = "application/x-shockwave-flash";
+
+        /// <summary>
+        /// image/jpeg
+        /// </summary>
         public const string Jpeg = "image/jpeg";
+
+        /// <summary>
+        /// text/html
+        /// </summary>
         public const string Html = "text/html";
+
+        /// <summary>
+        /// .swf
+        /// </summary>
         public const string SwfExtension = ".swf";
 
         #endregion
@@ -100,6 +125,16 @@ namespace Micajah.AzureFileService
             if (!string.IsNullOrEmpty(mimeType))
                 return mimeType.StartsWith("video/", StringComparison.OrdinalIgnoreCase);
             return false;
+        }
+
+        /// <summary>
+        /// Determines whether the specified MIME type is icon image.
+        /// </summary>
+        /// <param name="mimeType">The string that contains the MIME type to check.</param>
+        /// <returns>true, if the specified MIME type is icon image; otherwise, false.</returns>
+        public static bool IsIcon(string mimeType)
+        {
+            return ((string.Compare(mimeType, Icon, StringComparison.OrdinalIgnoreCase) == 0) || (string.Compare(mimeType, Icon2, StringComparison.OrdinalIgnoreCase) == 0));
         }
 
         /// <summary>
