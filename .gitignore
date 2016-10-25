@@ -106,3 +106,4 @@ UpgradeLog*.XML
 # Prevent committing the sensitive data to Git
 Micajah.AzureFileService.Web/appSettings.config
 Micajah.AzureFileService.Cors/appSettings.config
+/.vs/config/applicationhost.config
