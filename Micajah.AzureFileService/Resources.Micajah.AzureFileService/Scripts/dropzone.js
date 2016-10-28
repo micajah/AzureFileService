@@ -1748,18 +1748,28 @@
                 };
 
                 Dropzone.prototype._getFileUniqueName = function (fileName) {
-                    var file, _i, _len, _ref;
-                    _ref = this.files;
+                    var file, _i, _len;
+                    var _ref = this.files;
+                    var duplicate = false;
                     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
                         file = _ref[_i];
                         if (file.name === fileName) {
-                            var startIndex = fileName.lastIndexOf(".");
-                            var newFileName = fileName.substr(0, startIndex) + Date.now() + fileName.substr(startIndex);
-                            newFileName = newFileName.replace(/\uFFFD/g, '');
-                            return newFileName;
+                            duplicate = true;
+                            break;
                         }
                     }
-                    fileName = fileName.replace(/\uFFFD/g, '');
+                    var re = new RegExp("[" + eval('String.fromCharCode(' + Dropzone.invalidFileNameChars + ')') + "]", "g");
+                    fileName = fileName.replace(re, "");
+                    var fileNameWitoutExtension = "";
+                    var extension = "";
+                    var index = fileName.lastIndexOf(".");
+                    if (index > -1) {
+                        fileNameWitoutExtension = fileName.substr(0, index);
+                        extension = fileName.substr(index);
+                    }
+                    if (duplicate || (fileNameWitoutExtension.replace(/^\s+$/gm, "").length == 0)) {
+                        fileName = fileNameWitoutExtension + Date.now() + extension;
+                    }
                     return fileName;
                 };
 
@@ -1784,6 +1794,8 @@
             };
 
             Dropzone.blacklistedBrowsers = [/opera.*Macintosh.*version\/12/i];
+
+            Dropzone.invalidFileNameChars = [34, 60, 62, 124, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 58, 42, 63, 92, 47, 65533];
 
             Dropzone.isBrowserSupported = function () {
                 var capableBrowser, regex, _i, _len, _ref;

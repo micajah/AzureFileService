@@ -264,7 +264,7 @@ namespace Micajah.AzureFileService
 
         private CloudBlockBlob GetFileReference(string fileName, string contentType)
         {
-            fileName = VerifyFileName(fileName);
+            fileName = EscapeInvalidChars(fileName);
 
             string fileId = string.Format(CultureInfo.InvariantCulture, this.BlobNameFormat, fileName);
 
@@ -281,7 +281,7 @@ namespace Micajah.AzureFileService
 
         private static CloudBlockBlob GetTemporaryFileReference(string fileName, string contentType, string directoryName)
         {
-            fileName = VerifyFileName(fileName);
+            fileName = EscapeInvalidChars(fileName);
 
             string fileId = string.Format(CultureInfo.InvariantCulture, "{0}/{1}", directoryName, fileName);
 
@@ -438,11 +438,6 @@ namespace Micajah.AzureFileService
 
             source.Position = 0;
             blob.UploadFromStream(source);
-        }
-
-        private static string VerifyFileName(string fileName)
-        {
-            return Regex.Replace(fileName, "\uFFFD", string.Empty, RegexOptions.Multiline);
         }
 
         #endregion
@@ -795,7 +790,7 @@ namespace Micajah.AzureFileService
                 {
                     if (blob.BlobType == BlobType.BlockBlob)
                     {
-                        fileName = VerifyFileName(fileName);
+                        fileName = EscapeInvalidChars(fileName);
 
                         string blobNameFormat = this.BlobNameFormat;
                         string newBlobName = string.Format(CultureInfo.InvariantCulture, blobNameFormat, fileName);
@@ -933,6 +928,27 @@ namespace Micajah.AzureFileService
             }
 
             return null;
+        }
+
+        public static string EscapeInvalidChars(string fileName)
+        {
+            if (!string.IsNullOrEmpty(fileName))
+            {
+                string name = string.Join(string.Empty, fileName.Split(Path.GetInvalidFileNameChars())).Replace("\ufffd", string.Empty);
+
+                string nameWithoutExtension = Path.GetFileNameWithoutExtension(name);
+
+                if (nameWithoutExtension.Trim().Length == 0)
+                {
+                    string extension = Path.GetExtension(name);
+
+                    name = DateTime.UtcNow.Ticks.ToString(CultureInfo.InvariantCulture) + extension;
+                }
+
+                return name;
+            }
+
+            return fileName;
         }
 
         #endregion
