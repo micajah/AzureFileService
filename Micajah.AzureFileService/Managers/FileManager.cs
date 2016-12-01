@@ -343,6 +343,13 @@ namespace Micajah.AzureFileService
 
                 return RotateFlipImageByOrientation(contentType, source);
             }
+            catch (ArgumentException)
+            {
+                if (!MimeType.IsIcon(contentType))
+                {
+                    throw;
+                }
+            }
             finally
             {
                 if (source != null)
@@ -350,6 +357,8 @@ namespace Micajah.AzureFileService
                     source.Dispose();
                 }
             }
+
+            return null;
         }
 
         private static byte[] RotateFlipImageByOrientation(string contentType, Stream source)
