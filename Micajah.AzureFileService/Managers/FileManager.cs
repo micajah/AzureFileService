@@ -172,6 +172,44 @@ namespace Micajah.AzureFileService
             return policy;
         }
 
+        private void CopyTemporaryFiles(string directoryName, bool deleteTemporaryFiles)
+        {
+            directoryName += "/";
+            string blobNameFormat = this.BlobNameFormat;
+
+            IEnumerable<IListBlobItem> temporaryBlobList = ContainerManager.TemporaryContainer.ListBlobs(directoryName);
+            foreach (IListBlobItem item in temporaryBlobList)
+            {
+                CloudBlockBlob tempBlob = item as CloudBlockBlob;
+                if (tempBlob != null)
+                {
+                    if (tempBlob.BlobType == BlobType.BlockBlob)
+                    {
+                        string fileName = GetNameFromFileId(tempBlob.Name);
+                        string blobName = string.Format(CultureInfo.InvariantCulture, blobNameFormat, fileName);
+
+                        if (MimeType.IsImageType(tempBlob.Properties.ContentType))
+                        {
+                            RotateFlipImageByOrientation(tempBlob);
+
+                            if (deleteTemporaryFiles)
+                            {
+                                this.DeleteThumbnails(blobName);
+                            }
+                        }
+
+                        CloudBlockBlob blob = this.Container.GetBlockBlobReference(blobName);
+                        blob.StartCopy(tempBlob);
+
+                        if (deleteTemporaryFiles)
+                        {
+                            tempBlob.Delete();
+                        }
+                    }
+                }
+            }
+        }
+
         private void DeleteThumbnails(string fileId)
         {
             string fileName = GetNameFromFileId(fileId);
@@ -760,34 +798,12 @@ namespace Micajah.AzureFileService
 
         public void MoveTemporaryFiles(string directoryName)
         {
-            directoryName += "/";
-            string blobNameFormat = this.BlobNameFormat;
+            CopyTemporaryFiles(directoryName, true);
+        }
 
-            IEnumerable<IListBlobItem> temporaryBlobList = ContainerManager.TemporaryContainer.ListBlobs(directoryName);
-            foreach (IListBlobItem item in temporaryBlobList)
-            {
-                CloudBlockBlob tempBlob = item as CloudBlockBlob;
-                if (tempBlob != null)
-                {
-                    if (tempBlob.BlobType == BlobType.BlockBlob)
-                    {
-                        string fileName = GetNameFromFileId(tempBlob.Name);
-                        string blobName = string.Format(CultureInfo.InvariantCulture, blobNameFormat, fileName);
-
-                        if (MimeType.IsImageType(tempBlob.Properties.ContentType))
-                        {
-                            RotateFlipImageByOrientation(tempBlob);
-
-                            this.DeleteThumbnails(blobName);
-                        }
-
-                        CloudBlockBlob blob = this.Container.GetBlockBlobReference(blobName);
-                        blob.StartCopy(tempBlob);
-
-                        tempBlob.Delete();
-                    }
-                }
-            }
+        public void CopyTemporaryFiles(string directoryName)
+        {
+            CopyTemporaryFiles(directoryName, false);
         }
 
         public void RenameFile(string fileId, string fileName)
