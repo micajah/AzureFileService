@@ -7,7 +7,6 @@ using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Web;
 
 namespace Micajah.AzureFileService
@@ -381,13 +380,6 @@ namespace Micajah.AzureFileService
 
                 return RotateFlipImageByOrientation(contentType, source);
             }
-            catch (ArgumentException)
-            {
-                if (!MimeType.IsIcon(contentType))
-                {
-                    throw;
-                }
-            }
             finally
             {
                 if (source != null)
@@ -395,8 +387,6 @@ namespace Micajah.AzureFileService
                     source.Dispose();
                 }
             }
-
-            return null;
         }
 
         private static byte[] RotateFlipImageByOrientation(string contentType, Stream source)
@@ -427,12 +417,8 @@ namespace Micajah.AzureFileService
                     }
                 }
             }
-            catch (ArgumentException)
+            catch (Exception)
             {
-                if (!MimeType.IsIcon(contentType))
-                {
-                    throw;
-                }
             }
             finally
             {
