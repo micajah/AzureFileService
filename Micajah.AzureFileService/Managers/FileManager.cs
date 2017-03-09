@@ -174,7 +174,6 @@ namespace Micajah.AzureFileService
         private void CopyTemporaryFiles(string directoryName, bool deleteTemporaryFiles)
         {
             directoryName += "/";
-            string blobNameFormat = this.BlobNameFormat;
 
             IEnumerable<IListBlobItem> temporaryBlobList = ContainerManager.TemporaryContainer.ListBlobs(directoryName);
             foreach (IListBlobItem item in temporaryBlobList)
@@ -185,7 +184,7 @@ namespace Micajah.AzureFileService
                     if (tempBlob.BlobType == BlobType.BlockBlob)
                     {
                         string fileName = GetNameFromFileId(tempBlob.Name);
-                        string blobName = string.Format(CultureInfo.InvariantCulture, blobNameFormat, fileName);
+                        string blobName = GetFileId(fileName);
 
                         if (MimeType.IsImageType(tempBlob.Properties.ContentType))
                         {
@@ -237,6 +236,13 @@ namespace Micajah.AzureFileService
         private static string GetBlobNameFormat(string objectType, string objectId)
         {
             return string.Format(CultureInfo.InvariantCulture, "{0}{{0}}", GetBlobPath(objectType, objectId));
+        }
+
+        private string GetFileId(string fileName)
+        {
+            string fileId = string.Format(CultureInfo.InvariantCulture, this.BlobNameFormat, fileName);
+
+            return fileId;
         }
 
         private File GetFileInfo(CloudBlockBlob blob)
@@ -303,7 +309,7 @@ namespace Micajah.AzureFileService
         {
             fileName = EscapeInvalidChars(fileName);
 
-            string fileId = string.Format(CultureInfo.InvariantCulture, this.BlobNameFormat, fileName);
+            string fileId = this.GetFileId(fileName);
 
             CloudBlockBlob blob = this.Container.GetBlockBlobReference(fileId);
             blob.Properties.ContentType = contentType;
@@ -604,6 +610,13 @@ namespace Micajah.AzureFileService
             return null;
         }
 
+        public File GetFileInfoByName(string fileName)
+        {
+            string fileId = this.GetFileId(fileName);
+
+            return this.GetFileInfo(fileId);
+        }
+
         public byte[] GetFile(string fileId)
         {
             byte[] bytes = null;
@@ -620,6 +633,13 @@ namespace Micajah.AzureFileService
             return bytes;
         }
 
+        public byte[] GetFileByName(string fileName)
+        {
+            string fileId = this.GetFileId(fileName);
+
+            return this.GetFile(fileId);
+        }
+
         public static byte[] GetFileByUrl(string url)
         {
             if (!string.IsNullOrEmpty(url))
@@ -634,9 +654,7 @@ namespace Micajah.AzureFileService
 
                 FileManager manager = new FileManager(containerName, objectType, objectId);
 
-                string fileId = string.Format(CultureInfo.InvariantCulture, manager.BlobNameFormat, fileName);
-
-                return manager.GetFile(fileId);
+                return manager.GetFileByName(fileName);
             }
 
             return null;
@@ -803,8 +821,7 @@ namespace Micajah.AzureFileService
                     {
                         fileName = EscapeInvalidChars(fileName);
 
-                        string blobNameFormat = this.BlobNameFormat;
-                        string newBlobName = string.Format(CultureInfo.InvariantCulture, blobNameFormat, fileName);
+                        string newBlobName = GetFileId(fileName);
 
                         CloudBlockBlob newBlob = this.Container.GetBlockBlobReference(newBlobName);
                         newBlob.StartCopy(blob);
