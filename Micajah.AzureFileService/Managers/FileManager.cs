@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
+using System.Net;
 using System.Text;
 using System.Web;
 
@@ -858,6 +859,19 @@ namespace Micajah.AzureFileService
             }
 
             return null;
+        }
+
+        public string UploadFileFromUrl(string fileUrl)
+        {
+            string fileName = Path.GetFileName(fileUrl);
+            string contentType = MimeMapping.GetMimeMapping(fileName);
+
+            using (WebClient webClient = new WebClient())
+            {
+                byte[] buffer = webClient.DownloadData(fileUrl);
+
+                return UploadFile(fileName, contentType, buffer);
+            }
         }
 
         public static File GetTemporaryFileInfo(string fileId)
