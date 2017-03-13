@@ -863,15 +863,20 @@ namespace Micajah.AzureFileService
 
         public string UploadFileFromUrl(string fileUrl)
         {
-            string fileName = Path.GetFileName(fileUrl);
-            string contentType = MimeMapping.GetMimeMapping(fileName);
-
-            using (WebClient webClient = new WebClient())
+            if (!string.IsNullOrEmpty(fileUrl))
             {
-                byte[] buffer = webClient.DownloadData(fileUrl);
+                string fileName = Path.GetFileName(fileUrl.Split('?')[0]);
+                string contentType = MimeMapping.GetMimeMapping(fileName);
 
-                return UploadFile(fileName, contentType, buffer);
+                using (WebClient webClient = new WebClient())
+                {
+                    byte[] buffer = webClient.DownloadData(fileUrl);
+
+                    return UploadFile(fileName, contentType, buffer);
+                }
             }
+
+            return null;
         }
 
         public static File GetTemporaryFileInfo(string fileId)
