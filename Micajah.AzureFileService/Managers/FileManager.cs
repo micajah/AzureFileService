@@ -872,7 +872,7 @@ namespace Micajah.AzureFileService
                 string contentType = null;
                 byte[] buffer = null;
 
-                if (fileUrl.StartsWith("data", StringComparison.OrdinalIgnoreCase)) // data:[<media type[;charset=utf-8]>][;base64],<data>
+                if (fileUrl.StartsWith("data:", StringComparison.OrdinalIgnoreCase)) // data:[<media type[;charset=utf-8]>][;base64],<data>
                 {
                     string[] parts = fileUrl.Split(',');
                     string[] parts2 = parts[0].Split(':')[1].Split(';');
