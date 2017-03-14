@@ -865,25 +865,28 @@ namespace Micajah.AzureFileService
         {
             if (!string.IsNullOrEmpty(fileUrl))
             {
-                Uri address = null;
-
-                try
+                if (!fileUrl.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
                 {
-                    address = new Uri(fileUrl);
-                }
-                catch (UriFormatException)
-                {
-                    return null;
-                }
+                    Uri address = null;
 
-                string fileName = Path.GetFileName(fileUrl.Split('?')[0]);
-                string contentType = MimeMapping.GetMimeMapping(fileName);
+                    try
+                    {
+                        address = new Uri(fileUrl);
+                    }
+                    catch (UriFormatException)
+                    {
+                        return null;
+                    }
 
-                using (WebClient webClient = new WebClient())
-                {
-                    byte[] buffer = webClient.DownloadData(address);
+                    string fileName = Path.GetFileName(fileUrl.Split('?')[0]);
+                    string contentType = MimeMapping.GetMimeMapping(fileName);
 
-                    return UploadFile(fileName, contentType, buffer);
+                    using (WebClient webClient = new WebClient())
+                    {
+                        byte[] buffer = webClient.DownloadData(address);
+
+                        return UploadFile(fileName, contentType, buffer);
+                    }
                 }
             }
 
