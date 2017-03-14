@@ -313,8 +313,11 @@ namespace Micajah.AzureFileService
             string fileId = this.GetFileId(fileName);
 
             CloudBlockBlob blob = this.Container.GetBlockBlobReference(fileId);
-            blob.Properties.ContentType = contentType;
             blob.Properties.CacheControl = Settings.ClientCacheControl;
+            if (!string.IsNullOrEmpty(contentType))
+            {
+                blob.Properties.ContentType = contentType;
+            }
             if (MimeType.IsHtml(contentType))
             {
                 blob.Properties.ContentDisposition = "attachment";
@@ -865,28 +868,80 @@ namespace Micajah.AzureFileService
         {
             if (!string.IsNullOrEmpty(fileUrl))
             {
-                if (!fileUrl.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+                try
                 {
-                    Uri address = null;
+                    Uri address = new Uri(fileUrl);
 
-                    try
+                    return UploadFileFromUrl(address);
+                }
+                catch (UriFormatException)
+                {
+                }
+            }
+
+            return null;
+        }
+
+        public string UploadFileFromUrl(Uri fileUrl)
+        {
+            if (fileUrl != null)
+            {
+                string fileName = null;
+                string contentType = null;
+                byte[] buffer = null;
+
+                if (string.Compare(fileUrl.Scheme, "data", StringComparison.OrdinalIgnoreCase) == 0) // data:[<media type[;charset=utf-8]>][;base64],<data>
+                {
+                    string[] parts = fileUrl.OriginalString.Split(',');
+                    string[] parts2 = parts[0].Split(':')[1].Split(';');
+
+                    if (Array.IndexOf<string>(parts2, "base64") > -1)
                     {
-                        address = new Uri(fileUrl);
+                        buffer = Convert.FromBase64String(parts[1]);
                     }
-                    catch (UriFormatException)
+                    else if (parts.Length > 1)
                     {
-                        return null;
+                        string data = parts[1];
+
+                        if (!string.IsNullOrEmpty(data))
+                        {
+                            string charset = Array.Find<string>(parts2, x => x.StartsWith("charset=", StringComparison.OrdinalIgnoreCase));
+                            if (!string.IsNullOrEmpty(charset))
+                            {
+                                charset = charset.Split('=')[1];
+                                if (!string.IsNullOrEmpty(charset))
+                                {
+                                    try
+                                    {
+                                        Encoding encoding = Encoding.GetEncoding(charset);
+
+                                        data = HttpUtility.UrlDecode(data, encoding);
+                                    }
+                                    catch (ArgumentException) { }
+                                }
+                            }
+                        }
+
+                        buffer = Encoding.UTF8.GetBytes(data);
                     }
 
-                    string fileName = Path.GetFileName(fileUrl.Split('?')[0]);
-                    string contentType = MimeMapping.GetMimeMapping(fileName);
+                    contentType = parts2[0];
+                    fileName = Guid.NewGuid().ToString("N").Substring(0, 12) + MimeType.GetFileExtension(contentType);
+                }
+                else
+                {
+                    fileName = Path.GetFileName(fileUrl.OriginalString.Split('?')[0]);
+                    contentType = MimeMapping.GetMimeMapping(fileName);
 
                     using (WebClient webClient = new WebClient())
                     {
-                        byte[] buffer = webClient.DownloadData(address);
-
-                        return UploadFile(fileName, contentType, buffer);
+                        buffer = webClient.DownloadData(fileUrl);
                     }
+                }
+
+                if (buffer != null)
+                {
+                    return UploadFile(fileName, contentType, buffer);
                 }
             }
 
