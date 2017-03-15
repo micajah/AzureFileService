@@ -47,6 +47,21 @@ namespace Micajah.AzureFileService
 
         #endregion
 
+        #region Public Properties
+
+        /// <summary>
+        /// Gets the base URI for the Blob service client at the primary location.
+        /// </summary>
+        public static string ServiceClientBaseUrl
+        {
+            get
+            {
+                return ServiceClient.BaseUri.AbsoluteUri;
+            }
+        }
+
+        #endregion
+
         #region Internal Methods
 
         internal static CloudBlobContainer CreateContainerIfNotExists(string containerName, bool publicAccess)
