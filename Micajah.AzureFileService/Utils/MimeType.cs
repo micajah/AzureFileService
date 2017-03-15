@@ -306,28 +306,50 @@ namespace Micajah.AzureFileService
             {
                 case "IMAGE/BMP":
                     return ".bmp";
+                case "IMAGE/CIS-COD":
+                    return ".cod";
                 case "IMAGE/GIF":
                     return ".gif";
                 case "IMAGE/IEF":
                     return ".ief";
                 case "IMAGE/JPEG":
                     return ".jpg";
+                case "IMAGE/PJPEG":
+                    return ".jfif";
+                case "IMAGE/X-CMX":
+                    return ".cmx";
+                case "IMAGE/X-JG":
+                    return ".art";
+                case "IMAGE/X-ICON":
+                    return ".ico";
+                case "IMAGE/X-MACPAINT":
+                    return ".mac";
                 case "IMAGE/X-PORTABLE-BITMAP":
                     return ".pbm";
                 case "IMAGE/X-PORTABLE-GRAYMAP":
                     return ".pgm";
+                case "IMAGE/PICT":
+                    return ".pic";
                 case "IMAGE/PNG":
                     return ".png";
                 case "IMAGE/X-PORTABLE-ANYMAP":
                     return ".pnm";
                 case "IMAGE/X-PORTABLE-PIXMAP":
                     return ".ppm";
+                case "IMAGE/X-QUICKTIME":
+                    return ".qti";
                 case "IMAGE/CMU-RASTER":
                     return ".ras";
+                case "IMAGE/VND.RN-REALFLASH":
+                    return ".rf";
                 case "IMAGE/X-RGB":
                     return ".rgb";
                 case "IMAGE/TIFF":
                     return ".tif";
+                case "IMAGE/VND.WAP.WBMP":
+                    return ".wbmp";
+                case "IMAGE/VND.MS-PHOTO":
+                    return ".wdp";
                 case "IMAGE/X-XBITMAP":
                     return ".xbm";
                 case "IMAGE/X-XPIXMAP":
