@@ -62,7 +62,13 @@ namespace Micajah.AzureFileService
             get
             {
                 if (s_ImageExtensions == null)
-                    s_ImageExtensions = new ReadOnlyCollection<string>(new string[] { ".bmp", ".gif", ".ief", ".jpg", ".pbm", ".png", ".pnm", ".ppm", ".ras", ".rgb", ".tif", ".tiff", ".xbm", ".xpm", ".xwd" });
+                {
+                    s_ImageExtensions = new ReadOnlyCollection<string>(new string[] {
+                        ".art", ".bmp", ".cod", ".cmx", ".gif", ".ico", ".ief", ".jfif", ".jpg", ".mac",
+                        ".pbm", ".pgm", ".pic", ".png", ".pnm", ".pnt", ".ppm", ".qti", ".ras", ".rgb", ".rf",
+                        ".tif", ".tiff", ".wbmp", ".wdp", ".xbm", ".xpm", ".xwd"
+                    });
+                }
                 return s_ImageExtensions;
             }
         }
