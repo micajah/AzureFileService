@@ -910,7 +910,8 @@ namespace Micajah.AzureFileService
                     contentType = parts2[0];
                     fileName = Guid.NewGuid().ToString("N").Substring(0, 12) + MimeType.GetFileExtension(contentType);
                 }
-                else if (!fileUrl.StartsWith("cid:", StringComparison.OrdinalIgnoreCase))
+                else if (fileUrl.StartsWith(Uri.UriSchemeHttp + Uri.SchemeDelimiter, StringComparison.OrdinalIgnoreCase) ||
+                    fileUrl.StartsWith(Uri.UriSchemeHttps + Uri.SchemeDelimiter, StringComparison.OrdinalIgnoreCase))
                 {
                     fileName = Path.GetFileName(fileUrl.Split('?')[0]);
                     contentType = MimeMapping.GetMimeMapping(fileName);
