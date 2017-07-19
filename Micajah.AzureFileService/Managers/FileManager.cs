@@ -1,4 +1,5 @@
-﻿using Microsoft.WindowsAzure.Storage.Blob;
+﻿using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -176,7 +177,7 @@ namespace Micajah.AzureFileService
         {
             directoryName += "/";
 
-            IEnumerable<IListBlobItem> temporaryBlobList = ContainerManager.TemporaryContainer.ListBlobs(directoryName);
+            IEnumerable<IListBlobItem> temporaryBlobList = ListBlobs(ContainerManager.TemporaryContainer, directoryName);
             foreach (IListBlobItem item in temporaryBlobList)
             {
                 CloudBlockBlob tempBlob = item as CloudBlockBlob;
@@ -215,7 +216,7 @@ namespace Micajah.AzureFileService
             string prefix = fileId.Replace(fileName, string.Empty);
             fileName = "/" + fileName;
 
-            IEnumerable<IListBlobItem> thumbnailBlobList = this.Container.ListBlobs(prefix, true);
+            IEnumerable<IListBlobItem> thumbnailBlobList = ListBlobs(this.Container, prefix, true);
             foreach (IListBlobItem item in thumbnailBlobList)
             {
                 CloudBlockBlob blob = item as CloudBlockBlob;
@@ -287,7 +288,7 @@ namespace Micajah.AzureFileService
         {
             List<File> files = new List<File>();
 
-            IEnumerable<IListBlobItem> blobList = this.Container.ListBlobs(this.BlobPath, useFlatBlobListing);
+            IEnumerable<IListBlobItem> blobList = ListBlobs(this.Container, this.BlobPath, useFlatBlobListing);
             foreach (IListBlobItem item in blobList)
             {
                 CloudBlockBlob blob = item as CloudBlockBlob;
@@ -346,6 +347,37 @@ namespace Micajah.AzureFileService
         private static bool IsImageBlob(string fileId)
         {
             return MimeType.IsImageType(MimeMapping.GetMimeMapping(fileId));
+        }
+
+        private static List<IListBlobItem> ListBlobs(CloudBlobContainer container, string prefix, bool useFlatBlobListing = false)
+        {
+            List<IListBlobItem> list = null;
+
+            try
+            {
+                list = new List<IListBlobItem>(container.ListBlobs(prefix, useFlatBlobListing));
+            }
+            catch (StorageException ex)
+            {
+                RequestResult requestInfo = ex.RequestInformation;
+                if (requestInfo != null)
+                {
+                    StorageExtendedErrorInformation errorInfo = requestInfo.ExtendedErrorInformation;
+                    if (errorInfo != null)
+                    {
+                        if (errorInfo.ErrorCode.StartsWith("Container", StringComparison.Ordinal))
+                        {
+                            string errorMessage = string.Format(CultureInfo.InvariantCulture, "{0} The container name is \"{1}\".", requestInfo.HttpStatusMessage, container.Name);
+
+                            throw new StorageException(errorMessage);
+                        }
+                    }
+                }
+
+                throw;
+            }
+
+            return list;
         }
 
         private static void RotateFlipImageByOrientation(CloudBlockBlob blob)
@@ -689,7 +721,7 @@ namespace Micajah.AzureFileService
             }
             bool extensionsIsNotEmpty = (extensionsList.Count > 0);
 
-            IEnumerable<IListBlobItem> blobList = this.Container.ListBlobs(this.BlobPath);
+            IEnumerable<IListBlobItem> blobList = ListBlobs(this.Container, this.BlobPath);
             foreach (IListBlobItem item in blobList)
             {
                 CloudBlockBlob blob = item as CloudBlockBlob;
@@ -752,7 +784,7 @@ namespace Micajah.AzureFileService
 
         public void DeleteFiles()
         {
-            IEnumerable<IListBlobItem> blobList = this.Container.ListBlobs(this.BlobPath);
+            IEnumerable<IListBlobItem> blobList = ListBlobs(this.Container, this.BlobPath);
             foreach (IListBlobItem item in blobList)
             {
                 CloudBlockBlob blob = item as CloudBlockBlob;
@@ -784,7 +816,7 @@ namespace Micajah.AzureFileService
         {
             string newBlobNameFormat = GetBlobNameFormat(this.ObjectType, objectId);
 
-            IEnumerable<IListBlobItem> blobList = this.Container.ListBlobs(this.BlobPath);
+            IEnumerable<IListBlobItem> blobList = ListBlobs(this.Container, this.BlobPath);
             foreach (IListBlobItem item in blobList)
             {
                 CloudBlockBlob blob = item as CloudBlockBlob;
@@ -952,7 +984,7 @@ namespace Micajah.AzureFileService
 
             SharedAccessBlobPolicy readAccessPolicy = CreateReadAccessPolicy();
 
-            IEnumerable<IListBlobItem> blobList = ContainerManager.TemporaryContainer.ListBlobs(directoryName);
+            IEnumerable<IListBlobItem> blobList = ListBlobs(ContainerManager.TemporaryContainer, directoryName);
             foreach (IListBlobItem item in blobList)
             {
                 CloudBlockBlob blob = item as CloudBlockBlob;
@@ -990,7 +1022,7 @@ namespace Micajah.AzureFileService
         {
             directoryName += "/";
 
-            IEnumerable<IListBlobItem> blobList = ContainerManager.TemporaryContainer.ListBlobs(directoryName);
+            IEnumerable<IListBlobItem> blobList = ListBlobs(ContainerManager.TemporaryContainer, directoryName);
             foreach (IListBlobItem item in blobList)
             {
                 CloudBlockBlob blob = item as CloudBlockBlob;
