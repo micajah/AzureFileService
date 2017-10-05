@@ -580,7 +580,7 @@ namespace Micajah.AzureFileService
             {
                 CloudBlockBlob blob = this.Container.GetBlockBlobReference(fileId);
 
-                if (blob.Exists())
+                if (blob.Exists() && blob.Properties.Length > 0)
                 {
                     MemoryStream imageStream = null;
                     Stream thumbStream = null;
