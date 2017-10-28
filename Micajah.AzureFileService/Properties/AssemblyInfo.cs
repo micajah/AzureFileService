@@ -8,11 +8,11 @@ using System.Web.UI;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Micajah.AzureFileService")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Helper Library to work with Azure blob storages")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("Micajah IT Services Inc.")]
 [assembly: AssemblyProduct("Micajah.AzureFileService")]
-[assembly: AssemblyCopyright("Copyright ©  2013")]
+[assembly: AssemblyCopyright("© 2013-2017 Micajah IT Services Inc.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
