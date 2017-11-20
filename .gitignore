@@ -107,3 +107,4 @@ UpgradeLog*.XML
 Micajah.AzureFileService.Web/appSettings.config
 Micajah.AzureFileService.Cors/appSettings.config
 /.vs/config/applicationhost.config
+/.vs
