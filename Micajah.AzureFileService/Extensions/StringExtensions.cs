@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Text;
 
 namespace Micajah.AzureFileService
@@ -49,7 +50,7 @@ namespace Micajah.AzureFileService
                     byte[] encodedBytes = utf8.GetBytes(chr.ToString());
                     for (int index = 0; index < encodedBytes.Length; index++)
                     {
-                        sb.AppendFormat("%{0}", Convert.ToString(encodedBytes[index], 16));
+                        sb.AppendFormat(CultureInfo.InvariantCulture, "%{0}", Convert.ToString(encodedBytes[index], 16));
                     }
                 }
                 else
