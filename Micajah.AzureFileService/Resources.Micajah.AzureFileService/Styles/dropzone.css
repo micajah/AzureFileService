@@ -160,7 +160,8 @@
     padding-bottom: 6px;
 }
 
-.dropzone.dz-browser-not-supported .dz-error-message {
+.dropzone.dz-browser-not-supported .dz-error-message,
+.dropzone .fallback .dz-error-message {
     color: #800;
     display: block;
     padding-top: 10px;
