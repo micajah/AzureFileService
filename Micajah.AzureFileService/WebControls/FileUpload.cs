@@ -116,6 +116,22 @@ namespace Micajah.AzureFileService.WebControls
         }
 
         /// <summary>
+        /// Gets or set a value indicating whether the fallback panel with file input is forced.
+        /// </summary>
+        [Category("Appearance")]
+        [Description("Whether the fallback panel with file input is forced.")]
+        [DefaultValue(false)]
+        public bool ForceFallback
+        {
+            get
+            {
+                object obj = ViewState["ForceFallback"];
+                return ((obj == null) ? false : (bool)obj);
+            }
+            set { ViewState["ForceFallback"] = value; }
+        }
+
+        /// <summary>
         /// Gets or sets the maximum files count that can be selected by user in the control.
         /// The default value is 0 that indicates the maximum files count is not set.
         /// </summary>
@@ -367,6 +383,15 @@ namespace Micajah.AzureFileService.WebControls
                 if (!this.EnablePreview)
                 {
                     sb.Append(",previewTemplate:\"\"");
+                }
+
+                if (this.ForceFallback)
+                {
+                    sb.Append(",forceFallback:true,dictFallbackMessage:\"\"");
+                }
+                else
+                {
+                    sb.Append(",forceFallback:false");
                 }
 
                 sb.AppendFormat(CultureInfo.InvariantCulture, ",cacheControl:\"{0}\",dictDefaultMessage:\"{1}\",dictCancelUpload:\"{2}\",dictRemoveFile:\"{3}\",dictRemoveFileConfirmation:\"{4}\",dictDropMessage:\"{5}\"}});\r\n"

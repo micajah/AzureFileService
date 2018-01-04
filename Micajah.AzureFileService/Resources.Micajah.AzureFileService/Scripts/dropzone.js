@@ -458,24 +458,26 @@
                     fallback: function () {
                         var t = this.options.previewTemplate;
                         if (t.length > 0) {
-                            var child, messageElement, span, _i, _len, _ref;
-                            this.previewsContainer.className = "" + this.previewsContainer.className + " dz-browser-not-supported";
-                            _ref = this.previewsContainer.getElementsByTagName("div");
-                            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-                                child = _ref[_i];
-                                if (/(^| )dz-message($| )/.test(child.className)) {
-                                    messageElement = child;
-                                    child.className = "dz-message";
-                                    continue;
+                            if (dictFallbackMessage.length > 0) {
+                                var child, messageElement, span, _i, _len, _ref;
+                                this.previewsContainer.className = "" + this.previewsContainer.className + " dz-browser-not-supported";
+                                _ref = this.previewsContainer.getElementsByTagName("div");
+                                for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+                                    child = _ref[_i];
+                                    if (/(^| )dz-message($| )/.test(child.className)) {
+                                        messageElement = child;
+                                        child.className = "dz-message";
+                                        continue;
+                                    }
                                 }
-                            }
-                            if (!messageElement) {
-                                messageElement = Dropzone.createElement("<div class=\"dz-message\"><span></span></div>");
-                                this.previewsContainer.appendChild(messageElement);
-                            }
-                            span = messageElement.getElementsByTagName("span")[0];
-                            if (span) {
-                                span.textContent = this.options.dictFallbackMessage;
+                                if (!messageElement) {
+                                    messageElement = Dropzone.createElement("<div class=\"dz-message\"><span></span></div>");
+                                    this.previewsContainer.appendChild(messageElement);
+                                }
+                                span = messageElement.getElementsByTagName("span")[0];
+                                if (span) {
+                                    span.textContent = this.options.dictFallbackMessage;
+                                }
                             }
                             return this.previewsContainer.appendChild(this.getFallbackForm());
                         }
