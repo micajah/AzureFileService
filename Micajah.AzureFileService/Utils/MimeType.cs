@@ -226,6 +226,10 @@ namespace Micajah.AzureFileService
                     return ".tex";
                 case "APPLICATION/X-TEXINFO":
                     return ".texi";
+                case "APPLICATION/X-ZIP-COMPRESSED":
+                    return ".zip";
+                case "APPLICATION/X-ZIP":
+                    return ".zip";
                 case "APPLICATION/DSPTYPE":
                     return ".tsp";
                 case "APPLICATION/I-DEAS":
