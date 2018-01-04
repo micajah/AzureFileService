@@ -51,7 +51,7 @@ namespace Micajah.AzureFileService.WebControls
         /// Gets or sets a comma-separated list of MIME encodings used to constrain the file types the user can select.
         /// </summary>
         [Category("Behavior")]
-        [Description("A comma-separated list of MIME encodings used to constrain the file types the user can select.")]
+        [Description("A comma-separated list of MIME encodings or file extensions used to constrain the file types the user can select.")]
         [DefaultValue("")]
         public string Accept
         {
@@ -452,6 +452,15 @@ namespace Micajah.AzureFileService.WebControls
                 else if (mimeType.IndexOf(item.Replace("*", string.Empty), StringComparison.OrdinalIgnoreCase) == 0)
                 {
                     return true;
+                }
+                else
+                {
+                    string fileExtension = MimeType.GetFileExtension(mimeType);
+
+                    if (string.Compare(item, fileExtension, StringComparison.OrdinalIgnoreCase) == 0)
+                    {
+                        return true;
+                    }
                 }
             }
 
