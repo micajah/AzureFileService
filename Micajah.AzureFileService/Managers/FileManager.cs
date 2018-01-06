@@ -798,6 +798,15 @@ namespace Micajah.AzureFileService
             }
         }
 
+        public void DownloadToFile(string fileId, string path)
+        {
+            CloudBlockBlob blob = this.Container.GetBlockBlobReference(fileId);
+            if (blob.Exists())
+            {
+                blob.DownloadToFile(path, FileMode.Create);
+            }
+        }
+
         public byte[] GetThumbnail(string fileId, int width, int height, int align)
         {
             string fileName = GetNameFromFileId(fileId);
