@@ -1134,23 +1134,22 @@
 
                 Dropzone.prototype.filesize = function (size) {
                     var string;
-                    if (size >= 100000000000) {
-                        size = size / 100000000000;
+                    if (size >= 1099511627776) {
+                        size = size / 1099511627776;
                         string = "TB";
-                    } else if (size >= 100000000) {
-                        size = size / 100000000;
+                    } else if (size >= 1073741824) {
+                        size = size / 1073741824;
                         string = "GB";
-                    } else if (size >= 100000) {
-                        size = size / 100000;
+                    } else if (size >= 1048576) {
+                        size = size / 1048576;
                         string = "MB";
-                    } else if (size >= 100) {
-                        size = size / 100;
+                    } else if (size >= 1024) {
+                        size = size / 1024;
                         string = "KB";
                     } else {
-                        size = size * 10;
                         string = "b";
                     }
-                    return "<strong>" + (Math.round(size) / 10) + "</strong> " + string;
+                    return "<strong>" + (Math.round(size * 10) / 10) + "</strong> " + string;
                 };
 
                 Dropzone.prototype._updateMaxFilesReachedClass = function () {
