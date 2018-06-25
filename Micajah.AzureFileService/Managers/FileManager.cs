@@ -153,10 +153,15 @@ namespace Micajah.AzureFileService
 
         private static SharedAccessBlobPolicy CreateReadAccessPolicy()
         {
+            return CreateReadAccessPolicy(Settings.SharedAccessExpiryTime);
+        }
+
+        private static SharedAccessBlobPolicy CreateReadAccessPolicy(int sharedAccessExpiryTime)
+        {
             SharedAccessBlobPolicy policy = new SharedAccessBlobPolicy
             {
                 Permissions = SharedAccessBlobPermissions.Read,
-                SharedAccessExpiryTime = DateTime.UtcNow.AddMinutes(Settings.SharedAccessExpiryTime)
+                SharedAccessExpiryTime = DateTime.UtcNow.AddMinutes(sharedAccessExpiryTime)
             };
 
             return policy;
@@ -284,7 +289,7 @@ namespace Micajah.AzureFileService
             };
         }
 
-        private Collection<File> GetFiles(bool useFlatBlobListing)
+        private Collection<File> GetFiles(bool useFlatBlobListing, SharedAccessBlobPolicy readAccessPolicy)
         {
             List<File> files = new List<File>();
 
@@ -296,7 +301,7 @@ namespace Micajah.AzureFileService
                 {
                     if (blob.BlobType == BlobType.BlockBlob)
                     {
-                        File file = GetFileInfo(blob);
+                        File file = GetFileInfo(blob, readAccessPolicy);
                         files.Add(file);
                     }
                 }
@@ -646,11 +651,31 @@ namespace Micajah.AzureFileService
             return null;
         }
 
+        public File GetFileInfo(string fileId, int sharedAccessExpiryTime)
+        {
+            CloudBlockBlob blob = this.Container.GetBlockBlobReference(fileId);
+            if (blob.Exists())
+            {
+                SharedAccessBlobPolicy readAccessPolicy = CreateReadAccessPolicy(sharedAccessExpiryTime);
+
+                return GetFileInfo(blob, readAccessPolicy);
+            }
+
+            return null;
+        }
+
         public File GetFileInfoByName(string fileName)
         {
             string fileId = this.GetFileId(fileName);
 
             return this.GetFileInfo(fileId);
+        }
+
+        public File GetFileInfoByName(string fileName, int sharedAccessExpiryTime)
+        {
+            string fileId = this.GetFileId(fileName);
+
+            return this.GetFileInfo(fileId, sharedAccessExpiryTime);
         }
 
         public byte[] GetFile(string fileId)
@@ -698,12 +723,26 @@ namespace Micajah.AzureFileService
 
         public Collection<File> GetAllFiles()
         {
-            return GetFiles(true);
+            return GetFiles(true, this.ReadAccessPolicy);
+        }
+
+        public Collection<File> GetAllFiles(int sharedAccessExpiryTime)
+        {
+            SharedAccessBlobPolicy readAccessPolicy = CreateReadAccessPolicy(sharedAccessExpiryTime);
+
+            return GetFiles(true, readAccessPolicy);
         }
 
         public Collection<File> GetFiles()
         {
-            return GetFiles(false);
+            return GetFiles(false, this.ReadAccessPolicy);
+        }
+
+        public Collection<File> GetFiles(int sharedAccessExpiryTime)
+        {
+            SharedAccessBlobPolicy readAccessPolicy = CreateReadAccessPolicy(sharedAccessExpiryTime);
+
+            return GetFiles(false, readAccessPolicy);
         }
 
         public Collection<File> GetFiles(string[] extensions, bool negate)
