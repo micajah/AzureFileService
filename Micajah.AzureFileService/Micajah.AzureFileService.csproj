@@ -228,6 +228,7 @@
     <None Include="app.config">
       <SubType>Designer</SubType>
     </None>
+    <None Include="CreateAndPublishNugetPackage.ps1" />
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
