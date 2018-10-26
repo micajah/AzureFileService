@@ -81,6 +81,7 @@ namespace Micajah.AzureFileService.WebControls
                 if ((string.Compare(extension, MimeType.SwfExtension, StringComparison.OrdinalIgnoreCase) == 0) || MimeType.IsImageType(MimeMapping.GetMimeMapping(extension)))
                 {
                     link.Target = "_blank";
+                    link.Attributes["rel"] = "noopener";
                 }
             }
 

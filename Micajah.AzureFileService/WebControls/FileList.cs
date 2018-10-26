@@ -26,8 +26,8 @@ namespace Micajah.AzureFileService.WebControls
         private const string OnDeletingClientScript = "return flDel();";
         private const string DeletingClientScript = "function flDel() {{ return window.confirm(\"{0}\"); }}\r\n";
         private const string AdapterClientScript = "Opentip.adapters = {}; Opentip.adapter = null; firstAdapter = true; Opentip.addAdapter(new Adapter);";
-        private const string ToolTipBigHtml = "<div class=\"flToolTip s600x500\"><span></span><a class=\"flFileName\" target=\"_blank\" href=\"{0}\"><img alt=\"{1}\" src=\"{2}\"></a></div>";
-        private const string ToolTipSmallHtml = "<div class=\"flToolTip s250\"><a class=\"flFileName\" href=\"{0}\" target=\"_blank\">{1}</a><span class=\"flFileInfo\">{2}, {3:N0} KB</span>{4}</div>";
+        private const string ToolTipBigHtml = "<div class=\"flToolTip s600x500\"><span></span><a class=\"flFileName\" target=\"_blank\" rel=\"noopener\" href=\"{0}\"><img alt=\"{1}\" src=\"{2}\"></a></div>";
+        private const string ToolTipSmallHtml = "<div class=\"flToolTip s250\"><a class=\"flFileName\" href=\"{0}\" target=\"_blank\" rel=\"noopener\">{1}</a><span class=\"flFileInfo\">{2}, {3:N0} KB</span>{4}</div>";
         private const string DeleteLinkHtml = "<a class=\"flRemove\" href=\"{0}\" title=\"{1}\"{2}>{3}</a>";
 
         #endregion
@@ -777,15 +777,17 @@ namespace Micajah.AzureFileService.WebControls
                         fileNameCell = e.Row.Cells[0];
                     }
 
-                    if (this.ShowFileToolTip)
+                    HyperLink link = fileNameCell.Controls[0] as HyperLink;
+                    if (link == null)
                     {
-                        HyperLink link = fileNameCell.Controls[0] as HyperLink;
-                        if (link == null)
-                        {
-                            link = fileNameCell.Controls[1] as HyperLink;
-                        }
+                        link = fileNameCell.Controls[1] as HyperLink;
+                    }
 
-                        if (link != null)
+                    if (link != null)
+                    {
+                        link.Attributes["rel"] = "noopener";
+
+                        if (this.ShowFileToolTip)
                         {
                             link.CssClass = "flFileName";
 
