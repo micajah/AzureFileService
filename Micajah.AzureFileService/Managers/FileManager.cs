@@ -1000,9 +1000,22 @@ namespace Micajah.AzureFileService
                     fileName = Path.GetFileName(fileUrl.Split('?')[0]);
                     contentType = MimeMapping.GetMimeMapping(fileName);
 
+                    string responseContentType = null;
+
                     using (WebClient webClient = new WebClient())
                     {
                         buffer = webClient.DownloadData(fileUrl);
+
+                        if (webClient.ResponseHeaders != null)
+                        {
+                            responseContentType = webClient.ResponseHeaders["Content-Type"];
+                        }
+                    }
+
+                    if (!string.IsNullOrEmpty(responseContentType) && string.Compare(responseContentType, contentType, StringComparison.OrdinalIgnoreCase) != 0)
+                    {
+                        fileName = Path.GetFileNameWithoutExtension(fileName) + MimeType.GetFileExtension(responseContentType);
+                        contentType = responseContentType;
                     }
                 }
 
