@@ -215,6 +215,33 @@ namespace Micajah.AzureFileService
             }
         }
 
+        private void CopyFiles(string objectId, bool delete)
+        {
+            string newBlobNameFormat = GetBlobNameFormat(this.ObjectType, objectId);
+
+            IEnumerable<IListBlobItem> blobList = ListBlobs(this.Container, this.BlobPath);
+            foreach (IListBlobItem item in blobList)
+            {
+                CloudBlockBlob blob = item as CloudBlockBlob;
+                if (blob != null)
+                {
+                    if (blob.BlobType == BlobType.BlockBlob)
+                    {
+                        string fileName = GetNameFromFileId(blob.Name);
+                        string newBlobName = string.Format(CultureInfo.InvariantCulture, newBlobNameFormat, fileName);
+
+                        CloudBlockBlob newBlob = this.Container.GetBlockBlobReference(newBlobName);
+                        newBlob.StartCopy(blob);
+
+                        if (delete)
+                        {
+                            this.DeleteFile(blob.Name);
+                        }
+                    }
+                }
+            }
+        }
+
         private void DeleteThumbnails(string fileId)
         {
             string fileName = GetNameFromFileId(fileId);
@@ -864,28 +891,14 @@ namespace Micajah.AzureFileService
                 , HttpServerUtility.UrlTokenEncode(Encoding.UTF8.GetBytes(string.Format(CultureInfo.InvariantCulture, "{0}|{1}|{2}|{3}|{4}", fileId, width, height, align, this.ContainerName))));
         }
 
+        public void CopyFiles(string objectId)
+        {
+            CopyFiles(objectId, false);
+        }
+
         public void MoveFiles(string objectId)
         {
-            string newBlobNameFormat = GetBlobNameFormat(this.ObjectType, objectId);
-
-            IEnumerable<IListBlobItem> blobList = ListBlobs(this.Container, this.BlobPath);
-            foreach (IListBlobItem item in blobList)
-            {
-                CloudBlockBlob blob = item as CloudBlockBlob;
-                if (blob != null)
-                {
-                    if (blob.BlobType == BlobType.BlockBlob)
-                    {
-                        string fileName = GetNameFromFileId(blob.Name);
-                        string newBlobName = string.Format(CultureInfo.InvariantCulture, newBlobNameFormat, fileName);
-
-                        CloudBlockBlob newBlob = this.Container.GetBlockBlobReference(newBlobName);
-                        newBlob.StartCopy(blob);
-
-                        this.DeleteFile(blob.Name);
-                    }
-                }
-            }
+            CopyFiles(objectId, true);
         }
 
         public void MoveTemporaryFiles(string directoryName)
