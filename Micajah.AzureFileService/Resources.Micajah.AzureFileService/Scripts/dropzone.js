@@ -216,7 +216,7 @@
 
         function Emitter(obj) {
             if (obj) return mixin(obj);
-        };
+        }
 
         /**
          * Mixin the emitter properties.
@@ -1687,10 +1687,10 @@
                             var requestData = new Uint8Array(evt.target.result);
                             xhr.send(requestData);
                         }
-                    }
+                    };
                     progressObj = (_ref = xhr.upload) != null ? _ref : xhr;
                     progressObj.onprogress = updateProgress;
-                    xhr.setRequestHeader("x-ms-version", "2017-04-17");
+                    xhr.setRequestHeader("x-ms-version", "2018-03-28");
                     xhr.setRequestHeader("x-ms-blob-type", "BlockBlob");
                     for (_i = 0, _len = files.length; _i < _len; _i++) {
                         file = files[_i];
@@ -1705,9 +1705,9 @@
                             xhr.setRequestHeader("x-ms-blob-cache-control", this.options.cacheControl);
                         }
                         reader.onloadend = function (evt) {
-                            readerOnLoadEnd(evt, file.xhr)
+                            readerOnLoadEnd(evt, file.xhr);
                         };
-                        reader.readAsArrayBuffer(slice)
+                        reader.readAsArrayBuffer(slice);
                     }
                     return true;
                 };
