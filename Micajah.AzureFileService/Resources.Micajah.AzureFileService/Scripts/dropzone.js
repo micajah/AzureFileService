@@ -1690,7 +1690,7 @@
                     };
                     progressObj = (_ref = xhr.upload) != null ? _ref : xhr;
                     progressObj.onprogress = updateProgress;
-                    xhr.setRequestHeader("x-ms-version", "2018-03-28");
+                    xhr.setRequestHeader("x-ms-version", "2018-11-09");
                     xhr.setRequestHeader("x-ms-blob-type", "BlockBlob");
                     for (_i = 0, _len = files.length; _i < _len; _i++) {
                         file = files[_i];
