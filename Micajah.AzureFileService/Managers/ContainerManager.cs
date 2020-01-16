@@ -38,7 +38,7 @@ namespace Micajah.AzureFileService
                             {
                                 if (sender is WebRequest request)
                                 {
-                                    if (request.RequestUri.ToString().IndexOf(s_BlobEndpoint, System.StringComparison.OrdinalIgnoreCase) > -1)
+                                    if (request.RequestUri.ToString().IndexOf(s_BlobEndpoint, StringComparison.OrdinalIgnoreCase) > -1)
                                     {
                                         return true;
                                     }
