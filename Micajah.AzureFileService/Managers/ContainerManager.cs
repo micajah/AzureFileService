@@ -30,7 +30,7 @@ namespace Micajah.AzureFileService
 
                     s_BlobEndpoint = storageAccount.BlobEndpoint.ToString().TrimEnd('/');
 
-                    if (s_BlobEndpoint.StartsWith(Uri.UriSchemeHttps + Uri.SchemeDelimiter))
+                    if (s_BlobEndpoint.StartsWith(Uri.UriSchemeHttps + Uri.SchemeDelimiter, StringComparison.OrdinalIgnoreCase))
                     {
                         ServicePointManager.ServerCertificateValidationCallback = delegate (object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
                         {
