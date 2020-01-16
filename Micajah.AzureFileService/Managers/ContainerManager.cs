@@ -1,5 +1,6 @@
 ﻿using Microsoft.Azure.Storage;
 using Microsoft.Azure.Storage.Blob;
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Security;
@@ -29,21 +30,24 @@ namespace Micajah.AzureFileService
 
                     s_BlobEndpoint = storageAccount.BlobEndpoint.ToString().TrimEnd('/');
 
-                    ServicePointManager.ServerCertificateValidationCallback = delegate (object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+                    if (s_BlobEndpoint.StartsWith(Uri.UriSchemeHttps + Uri.SchemeDelimiter))
                     {
-                        if (sslPolicyErrors != SslPolicyErrors.None)
+                        ServicePointManager.ServerCertificateValidationCallback = delegate (object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
                         {
-                            if (sender is WebRequest request)
+                            if (sslPolicyErrors != SslPolicyErrors.None)
                             {
-                                if (request.RequestUri.ToString().IndexOf(s_BlobEndpoint, System.StringComparison.OrdinalIgnoreCase) > -1)
+                                if (sender is WebRequest request)
                                 {
-                                    return true;
+                                    if (request.RequestUri.ToString().IndexOf(s_BlobEndpoint, System.StringComparison.OrdinalIgnoreCase) > -1)
+                                    {
+                                        return true;
+                                    }
                                 }
                             }
-                        }
 
-                        return sslPolicyErrors == SslPolicyErrors.None;
-                    };
+                            return sslPolicyErrors == SslPolicyErrors.None;
+                        };
+                    }
 
                     s_ServiceClient = storageAccount.CreateCloudBlobClient();
                 }
