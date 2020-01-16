@@ -357,7 +357,7 @@ namespace Micajah.AzureFileService.WebControls
                     , variableName
                     , element
                     , FileFromMyComputer.UniqueID
-                    , FileManager.GetTemporaryFilesUrlFormat(this.TemporaryDirectoryName)
+                    , FileManager.GetTemporaryFilesUrlFormat(this.TemporaryDirectoryName).Replace(Uri.UriSchemeHttp + Uri.SchemeDelimiter, Uri.UriSchemeHttps + Uri.SchemeDelimiter)
                     , this.ClientID);
 
                 if (!string.IsNullOrWhiteSpace(this.Accept))
