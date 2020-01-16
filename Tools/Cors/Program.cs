@@ -16,12 +16,12 @@ namespace Micajah.AzureFileService.Tools.Cors
             ServiceProperties serviceProperties = client.GetServiceProperties();
             CorsProperties corsSettings = serviceProperties.Cors;
 
-            //AddRule(corsSettings);
+            AddRule(corsSettings);
             //corsSettings.CorsRules.RemoveAt(0);
 
             //serviceProperties.DefaultServiceVersion = "2015-07-08";
 
-            //client.SetServiceProperties(serviceProperties);
+            client.SetServiceProperties(serviceProperties);
 
             Console.WriteLine("DefaultServiceVersion        : " + serviceProperties.DefaultServiceVersion);
 
