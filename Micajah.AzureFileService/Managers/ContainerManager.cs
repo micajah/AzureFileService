@@ -1,9 +1,6 @@
 ﻿using Microsoft.Azure.Storage;
 using Microsoft.Azure.Storage.Blob;
 using System.Collections.Generic;
-using System.Net;
-using System.Net.Security;
-using System.Security.Cryptography.X509Certificates;
 
 namespace Micajah.AzureFileService
 {
@@ -13,7 +10,6 @@ namespace Micajah.AzureFileService
 
         private static CloudBlobClient s_ServiceClient;
         private static CloudBlobContainer s_TemporaryContainer;
-        private static string s_BlobEndpoint;
 
         #endregion
 
@@ -26,24 +22,6 @@ namespace Micajah.AzureFileService
                 if (s_ServiceClient == null)
                 {
                     CloudStorageAccount storageAccount = CloudStorageAccount.Parse(Settings.StorageConnectionString);
-
-                    s_BlobEndpoint = storageAccount.BlobEndpoint.ToString().TrimEnd('/');
-
-                    ServicePointManager.ServerCertificateValidationCallback = delegate (object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
-                    {
-                        if (sslPolicyErrors != SslPolicyErrors.None)
-                        {
-                            if (sender is WebRequest request)
-                            {
-                                if (request.RequestUri.ToString().IndexOf(s_BlobEndpoint, System.StringComparison.OrdinalIgnoreCase) > -1)
-                                {
-                                    return true;
-                                }
-                            }
-                        }
-
-                        return sslPolicyErrors == SslPolicyErrors.None;
-                    };
 
                     s_ServiceClient = storageAccount.CreateCloudBlobClient();
                 }
