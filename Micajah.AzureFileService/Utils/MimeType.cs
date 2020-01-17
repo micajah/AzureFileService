@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing.Imaging;
 using System.Linq;
@@ -37,6 +36,11 @@ namespace Micajah.AzureFileService
         /// text/html
         /// </summary>
         public const string Html = "text/html";
+
+        /// <summary>
+        /// application/pdf
+        /// </summary>
+        public const string Pdf = "application/pdf";
 
         /// <summary>
         /// .swf
@@ -253,6 +257,8 @@ namespace Micajah.AzureFileService
                 case "APPLICATION/MSWORD":
                     return ".doc";
                 case "APPLICATION/MSPOWERPOINT":
+                    return ".ppt";
+                case "APPLICATION/VND.MS-POWERPOINT":
                     return ".ppt";
                 case "APPLICATION/VND.MS-EXCEL":
                     return ".xls";
@@ -478,6 +484,28 @@ namespace Micajah.AzureFileService
         public static bool IsIcon(string mimeType)
         {
             return ((string.Compare(mimeType, Icon, StringComparison.OrdinalIgnoreCase) == 0) || (string.Compare(mimeType, Icon2, StringComparison.OrdinalIgnoreCase) == 0));
+        }
+
+        /// <summary>
+        /// Determines whether the specified MIME type is PDF.
+        /// </summary>
+        /// <param name="mimeType">The string that contains the MIME type to check.</param>
+        /// <returns>true, if the specified MIME type is PDF; otherwise, false.</returns>
+        public static bool IsPdf(string mimeType)
+        {
+            return (string.Compare(mimeType, Pdf, StringComparison.OrdinalIgnoreCase) == 0);
+        }
+
+        /// <summary>
+        /// Determines whether the specified MIME type is Microsoft Office.
+        /// </summary>
+        /// <param name="mimeType">The string that contains the MIME type to check.</param>
+        /// <returns>true, if the specified MIME type is Microsoft Office; otherwise, false.</returns>
+        public static bool IstMicrosoftOffice(string mimeType)
+        {
+            string extension = GetMicrosoftOfficeExtension(mimeType);
+
+            return !string.IsNullOrEmpty(extension);
         }
 
         /// <summary>
