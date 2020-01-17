@@ -675,6 +675,23 @@ namespace Micajah.AzureFileService
         }
 
         /// <summary>
+        /// Determines whether the specified MIME type is archive.
+        /// </summary>
+        /// <param name="mimeType">The string that contains the MIME type to check.</param>
+        /// <returns>true, if the specified MIME type is archive; otherwise, false.</returns>
+        public static bool IsArchive(string mimeType)
+        {
+            if (!string.IsNullOrEmpty(mimeType))
+            {
+                string extension = GetArchiveExtension(mimeType.ToUpperInvariant());
+
+                return !string.IsNullOrEmpty(extension);
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Determines whether the specified MIME type is audio.
         /// </summary>
         /// <param name="mimeType">The string that contains the MIME type to check.</param>
