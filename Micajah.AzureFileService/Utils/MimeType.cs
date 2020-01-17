@@ -376,24 +376,32 @@ namespace Micajah.AzureFileService
             return null;
         }
 
-        private static string GetTextExtension(string mimeType)
+        private static string GetMarkupExtension(string mimeType)
         {
             switch (mimeType)
             {
-                case "TEXT/PLAIN":
-                    return ".txt";
                 case "TEXT/CSS":
                     return ".css";
                 case "TEXT/X-SETEXT":
                     return ".etx";
                 case "TEXT/HTML":
                     return ".htm";
+                case "TEXT/SGML":
+                    return ".sgm";
+            }
+            return null;
+        }
+
+        private static string GetTextExtension(string mimeType)
+        {
+            switch (mimeType)
+            {
+                case "TEXT/PLAIN":
+                    return ".txt";
                 case "TEXT/RTF":
                     return ".rtf";
                 case "TEXT/RICHTEXT":
                     return ".rtx";
-                case "TEXT/SGML":
-                    return ".sgm";
                 case "TEXT/TAB-SEPARATED-VALUES":
                     return ".tsv";
                 case "TEXT/XML":
@@ -514,6 +522,23 @@ namespace Micajah.AzureFileService
         }
 
         /// <summary>
+        /// Determines whether the specified MIME type is text.
+        /// </summary>
+        /// <param name="mimeType">The string that contains the MIME type to check.</param>
+        /// <returns>true, if the specified MIME type is text; otherwise, false.</returns>
+        public static bool IsText(string mimeType)
+        {
+            if (!string.IsNullOrEmpty(mimeType))
+            {
+                string extension = GetTextExtension(mimeType.ToUpperInvariant());
+
+                return !string.IsNullOrEmpty(extension);
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Returns image format associated to the specified MIME type.
         /// </summary>
         /// <param name="mimeType">The string that contains the MIME type.</param>
@@ -552,23 +577,27 @@ namespace Micajah.AzureFileService
                         extension = GetVideoExtension(mimeType);
                         if (extension == null)
                         {
-                            extension = GetTextExtension(mimeType);
+                            extension = GetMarkupExtension(mimeType);
                             if (extension == null)
                             {
-                                switch (mimeType)
+                                extension = GetTextExtension(mimeType);
+                                if (extension == null)
                                 {
-                                    case "CHEMICAL/X-PDB":
-                                        return ".pdb";
-                                    case "MODEL/IGES":
-                                        return ".igs";
-                                    case "MODEL/MESH":
-                                        return ".msh";
-                                    case "MODEL/VRML":
-                                        return ".vrml";
-                                    case "WWW/MIME":
-                                        return ".mime";
-                                    case "X-CONFERENCE/X-COOLTALK":
-                                        return ".ice";
+                                    switch (mimeType)
+                                    {
+                                        case "CHEMICAL/X-PDB":
+                                            return ".pdb";
+                                        case "MODEL/IGES":
+                                            return ".igs";
+                                        case "MODEL/MESH":
+                                            return ".msh";
+                                        case "MODEL/VRML":
+                                            return ".vrml";
+                                        case "WWW/MIME":
+                                            return ".mime";
+                                        case "X-CONFERENCE/X-COOLTALK":
+                                            return ".ice";
+                                    }
                                 }
                             }
                         }
