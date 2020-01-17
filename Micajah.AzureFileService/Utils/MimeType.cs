@@ -501,7 +501,7 @@ namespace Micajah.AzureFileService
         /// </summary>
         /// <param name="mimeType">The string that contains the MIME type to check.</param>
         /// <returns>true, if the specified MIME type is Microsoft Office; otherwise, false.</returns>
-        public static bool IstMicrosoftOffice(string mimeType)
+        public static bool IsMicrosoftOffice(string mimeType)
         {
             string extension = GetMicrosoftOfficeExtension(mimeType);
 
