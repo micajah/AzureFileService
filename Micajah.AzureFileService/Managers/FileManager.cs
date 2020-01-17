@@ -401,7 +401,7 @@ namespace Micajah.AzureFileService
                         {
                             string errorMessage = string.Format(CultureInfo.InvariantCulture, "{0} The container name is \"{1}\".", requestInfo.HttpStatusMessage, container.Name);
 
-                            throw new StorageException(errorMessage);
+                            throw new StorageException(errorMessage, ex);
                         }
                     }
                 }
@@ -491,9 +491,7 @@ namespace Micajah.AzureFileService
                     }
                 }
             }
-            catch (Exception)
-            {
-            }
+            catch (Exception) { }
             finally
             {
                 if (output != null)
@@ -963,6 +961,11 @@ namespace Micajah.AzureFileService
 
         public string UploadFileFromUrl(string fileUrl)
         {
+            return UploadFileFromUrl(fileUrl, null);
+        }
+
+        public string UploadFileFromUrl(string fileUrl, FileContentTypeValidator validator)
+        {
             if (!string.IsNullOrEmpty(fileUrl))
             {
                 string fileName = null;
@@ -1034,6 +1037,14 @@ namespace Micajah.AzureFileService
 
                 if (buffer != null)
                 {
+                    if (validator != null)
+                    {
+                        if (!validator.Invoke(contentType))
+                        {
+                            throw new System.IO.InvalidDataException(string.Format(CultureInfo.InvariantCulture, "Invalid content type \"{0}\".", contentType));
+                        }
+                    }
+
                     return UploadFile(fileName, contentType, buffer);
                 }
             }
@@ -1162,4 +1173,6 @@ namespace Micajah.AzureFileService
 
         #endregion
     }
+
+    public delegate bool FileContentTypeValidator(string contentType);
 }
