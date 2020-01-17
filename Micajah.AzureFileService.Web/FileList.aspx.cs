@@ -19,6 +19,7 @@ namespace Micajah.AzureFileService.Web
                 }
                 IconSizeList.SelectedValue = IconSize.Smaller.ToString();
 
+                AudioLink.Attributes["onclick"] = string.Format(CultureInfo.InvariantCulture, "document.getElementById('{0}').value='audio';", FilterTextBox.ClientID);
                 VideoLink.Attributes["onclick"] = string.Format(CultureInfo.InvariantCulture, "document.getElementById('{0}').value='video';", FilterTextBox.ClientID);
                 ImageLink.Attributes["onclick"] = string.Format(CultureInfo.InvariantCulture, "document.getElementById('{0}').value='image';", FilterTextBox.ClientID);
                 ResetLink.Attributes["onclick"] = string.Format(CultureInfo.InvariantCulture, "document.getElementById('{0}').value='';", FilterTextBox.ClientID);

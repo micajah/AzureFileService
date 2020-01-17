@@ -59,7 +59,22 @@ namespace Micajah.AzureFileService
         #region Public Properties
 
         /// <summary>
-        /// The collection of the image files's extensions.
+        /// The collection of the audio files extensions.
+        /// </summary>
+        public static ReadOnlyCollection<string> AudioExtensions
+        {
+            get
+            {
+                if (s_VideoExtensions == null)
+                    s_VideoExtensions = new ReadOnlyCollection<string>(new string[] {
+                        ".aif", ".aifc", ".aiff", ".au", ".snd", ".mid", ".midi", ".mp3", ".ra", ".ram", ".rpm", ".tsi", ".wav"
+                    });
+                return s_VideoExtensions;
+            }
+        }
+
+        /// <summary>
+        /// The collection of the image files extensions.
         /// </summary>
         public static ReadOnlyCollection<string> ImageExtensions
         {
@@ -78,14 +93,16 @@ namespace Micajah.AzureFileService
         }
 
         /// <summary>
-        /// The collection of the video files's extensions.
+        /// The collection of the video files extensions.
         /// </summary>
         public static ReadOnlyCollection<string> VideoExtensions
         {
             get
             {
                 if (s_VideoExtensions == null)
-                    s_VideoExtensions = new ReadOnlyCollection<string>(new string[] { ".asf", ".avi", ".fli", ".mov", ".movie", ".mp4", ".mpe", ".mpeg", ".mpg", SwfExtension, ".viv", ".vivo", ".wmv" });
+                    s_VideoExtensions = new ReadOnlyCollection<string>(new string[] {
+                        ".asf", ".avi", ".fli", ".flv", ".mov", ".movie", ".mp4", ".mpe", ".mpeg", ".mpg", SwfExtension, ".viv", ".vivo", ".vob", ".wmv"
+                    });
                 return s_VideoExtensions;
             }
         }
@@ -105,7 +122,7 @@ namespace Micajah.AzureFileService
                 case "AUDIO/MIDI":
                     return ".mid";
                 case "AUDIO/MPEG":
-                    return ".MP3";
+                    return ".mp3";
                 case "AUDIO/X-REALAUDIO":
                     return ".ra";
                 case "AUDIO/X-PN-REALAUDIO":
@@ -430,10 +447,14 @@ namespace Micajah.AzureFileService
                     return ".mpg";
                 case "VIDEO/VND.VIVO":
                     return ".viv";
+                case "VIDEO/X-MS-VOB":
+                    return ".vob";
                 case "VIDEO/X-MS-ASF":
                     return ".asf";
                 case "VIDEO/X-MS-WMV":
                     return ".wmv";
+                case "VIDEO/X-FLV":
+                    return ".flv";
             }
             return null;
         }
@@ -537,6 +558,18 @@ namespace Micajah.AzureFileService
                 return !string.IsNullOrEmpty(extension);
             }
 
+            return false;
+        }
+
+        /// <summary>
+        /// Determines whether the specified MIME type is audio.
+        /// </summary>
+        /// <param name="mimeType">The string that contains the MIME type to check.</param>
+        /// <returns>true, if the specified MIME type is audio; otherwise, false.</returns>
+        public static bool IsAudio(string mimeType)
+        {
+            if (!string.IsNullOrEmpty(mimeType))
+                return mimeType.StartsWith("audio/", StringComparison.OrdinalIgnoreCase);
             return false;
         }
 

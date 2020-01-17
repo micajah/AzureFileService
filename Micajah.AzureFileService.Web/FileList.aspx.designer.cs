@@ -7,11 +7,13 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Micajah.AzureFileService.Web {
-    
-    
-    public partial class FileList {
-        
+namespace Micajah.AzureFileService.Web
+{
+
+
+    public partial class FileList
+    {
+
         /// <summary>
         /// ContainerLengthLabel control.
         /// </summary>
@@ -20,7 +22,7 @@ namespace Micajah.AzureFileService.Web {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Label ContainerLengthLabel;
-        
+
         /// <summary>
         /// IconSizeList control.
         /// </summary>
@@ -29,7 +31,7 @@ namespace Micajah.AzureFileService.Web {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.DropDownList IconSizeList;
-        
+
         /// <summary>
         /// ThumbnailsCheckBox control.
         /// </summary>
@@ -38,7 +40,7 @@ namespace Micajah.AzureFileService.Web {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.CheckBox ThumbnailsCheckBox;
-        
+
         /// <summary>
         /// IconsCheckBox control.
         /// </summary>
@@ -47,7 +49,7 @@ namespace Micajah.AzureFileService.Web {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.CheckBox IconsCheckBox;
-        
+
         /// <summary>
         /// Button1 control.
         /// </summary>
@@ -56,7 +58,7 @@ namespace Micajah.AzureFileService.Web {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Button Button1;
-        
+
         /// <summary>
         /// FileList2 control.
         /// </summary>
@@ -65,7 +67,7 @@ namespace Micajah.AzureFileService.Web {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::Micajah.AzureFileService.WebControls.FileList FileList2;
-        
+
         /// <summary>
         /// FilterTextBox control.
         /// </summary>
@@ -74,7 +76,16 @@ namespace Micajah.AzureFileService.Web {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.TextBox FilterTextBox;
-        
+
+        /// <summary>
+        /// AudioLink control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.HyperLink AudioLink;
+
         /// <summary>
         /// VideoLink control.
         /// </summary>
@@ -83,7 +94,7 @@ namespace Micajah.AzureFileService.Web {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.HyperLink VideoLink;
-        
+
         /// <summary>
         /// ImageLink control.
         /// </summary>
@@ -92,7 +103,7 @@ namespace Micajah.AzureFileService.Web {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.HyperLink ImageLink;
-        
+
         /// <summary>
         /// NegateCheckBox control.
         /// </summary>
@@ -101,7 +112,7 @@ namespace Micajah.AzureFileService.Web {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.CheckBox NegateCheckBox;
-        
+
         /// <summary>
         /// ResetLink control.
         /// </summary>
@@ -110,7 +121,7 @@ namespace Micajah.AzureFileService.Web {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.HyperLink ResetLink;
-        
+
         /// <summary>
         /// SubmitButton control.
         /// </summary>
@@ -119,7 +130,7 @@ namespace Micajah.AzureFileService.Web {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Button SubmitButton;
-        
+
         /// <summary>
         /// FileList3 control.
         /// </summary>

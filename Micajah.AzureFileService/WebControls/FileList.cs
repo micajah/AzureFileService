@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Web;
 using System.Web.UI;
@@ -72,19 +73,26 @@ namespace Micajah.AzureFileService.WebControls
             get
             {
                 List<string> extensions = new List<string>(this.FileExtensionsFilter);
-                if (extensions.Count > 0)
+
+                foreach (string extension in this.FileExtensionsFilter)
                 {
-                    switch (extensions[0].ToUpperInvariant())
+                    switch (extension.ToUpperInvariant())
                     {
+                        case "AUDIO":
+                            extensions.AddRange(MimeType.AudioExtensions);
+                            break;
                         case "VIDEO":
-                            extensions = new List<string>(MimeType.VideoExtensions);
+                            extensions.AddRange(MimeType.VideoExtensions);
                             break;
                         case "IMAGE":
-                            extensions = new List<string>(MimeType.ImageExtensions);
+                            extensions.AddRange(MimeType.ImageExtensions);
                             break;
                     }
                 }
-                return extensions.ToArray();
+
+                var extensionArray = extensions.Distinct().ToArray();
+
+                return extensionArray;
             }
         }
 
@@ -104,19 +112,27 @@ namespace Micajah.AzureFileService.WebControls
             get
             {
                 string[] extensions = this.FileExtensionsFilter;
+
                 if (extensions.Length > 0)
                 {
-                    if (string.Compare(extensions[0], "video", StringComparison.OrdinalIgnoreCase) != 0)
+                    foreach (string extension in extensions)
                     {
-                        foreach (string ext in extensions)
+                        if (string.Compare(extension, "VIDEO", StringComparison.OrdinalIgnoreCase) != 0)
                         {
-                            string mimeType = MimeMapping.GetMimeMapping(ext);
-                            if (!(MimeType.IsVideoType(mimeType) || MimeType.IsFlash(mimeType)))
-                                return false;
+                            return false;
+                        }
+
+                        string mimeType = MimeMapping.GetMimeMapping(extension);
+
+                        if (!(MimeType.IsVideoType(mimeType) || MimeType.IsFlash(mimeType)))
+                        {
+                            return false;
                         }
                     }
+
                     return (!this.NegateFileExtensionsFilter);
                 }
+
                 return false;
             }
         }
