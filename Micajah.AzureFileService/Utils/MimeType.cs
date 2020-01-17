@@ -433,7 +433,7 @@ namespace Micajah.AzureFileService
                 }
             }
 
-            return extension ?? string.Empty;
+            return extension;
         }
 
         private static string GetImageExtension(string mimeType)
