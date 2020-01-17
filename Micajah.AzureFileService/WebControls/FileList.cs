@@ -44,6 +44,7 @@ namespace Micajah.AzureFileService.WebControls
         private TimeZoneInfo m_TimeZone;
         private static ReadOnlyCollection<string> s_KnownFileExtensions;
         private FileManager m_FileManager;
+        private bool? m_ShowVideoOnly;
 
         #endregion
 
@@ -111,29 +112,32 @@ namespace Micajah.AzureFileService.WebControls
         {
             get
             {
-                string[] extensions = this.FileExtensionsFilter;
-
-                if (extensions.Length > 0)
+                if (!m_ShowVideoOnly.HasValue)
                 {
-                    foreach (string extension in extensions)
+                    m_ShowVideoOnly = false;
+
+                    string[] extensions = this.FileExtensionsFilter;
+
+                    if (extensions.Length > 0)
                     {
-                        if (string.Compare(extension, "VIDEO", StringComparison.OrdinalIgnoreCase) != 0)
+                        foreach (string extension in extensions)
                         {
-                            return false;
+                            if (string.Compare(extension, "VIDEO", StringComparison.OrdinalIgnoreCase) != 0)
+                            {
+                                string mimeType = MimeMapping.GetMimeMapping(extension);
+
+                                if (!(MimeType.IsVideoType(mimeType) || MimeType.IsFlash(mimeType)))
+                                {
+                                    return m_ShowVideoOnly.Value;
+                                }
+                            }
                         }
 
-                        string mimeType = MimeMapping.GetMimeMapping(extension);
-
-                        if (!(MimeType.IsVideoType(mimeType) || MimeType.IsFlash(mimeType)))
-                        {
-                            return false;
-                        }
+                        m_ShowVideoOnly = !NegateFileExtensionsFilter;
                     }
-
-                    return (!this.NegateFileExtensionsFilter);
                 }
 
-                return false;
+                return m_ShowVideoOnly.Value;
             }
         }
 
@@ -155,7 +159,12 @@ namespace Micajah.AzureFileService.WebControls
                 object obj = this.ViewState["FileExtensionsFilter"];
                 return ((obj == null) ? new string[0] : (string[])obj);
             }
-            set { this.ViewState["FileExtensionsFilter"] = value; }
+            set
+            {
+                this.ViewState["FileExtensionsFilter"] = value;
+
+                m_ShowVideoOnly = null;
+            }
         }
 
         /// <summary>

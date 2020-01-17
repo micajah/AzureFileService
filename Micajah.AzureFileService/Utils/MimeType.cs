@@ -51,6 +51,7 @@ namespace Micajah.AzureFileService
 
         #region Members
 
+        private static ReadOnlyCollection<string> s_AudioExtensions;
         private static ReadOnlyCollection<string> s_ImageExtensions;
         private static ReadOnlyCollection<string> s_VideoExtensions;
 
@@ -65,11 +66,14 @@ namespace Micajah.AzureFileService
         {
             get
             {
-                if (s_VideoExtensions == null)
-                    s_VideoExtensions = new ReadOnlyCollection<string>(new string[] {
+                if (s_AudioExtensions == null)
+                {
+                    s_AudioExtensions = new ReadOnlyCollection<string>(new string[] {
                         ".aif", ".aifc", ".aiff", ".au", ".snd", ".mid", ".midi", ".mp3", ".ra", ".ram", ".rpm", ".tsi", ".wav"
                     });
-                return s_VideoExtensions;
+                }
+
+                return s_AudioExtensions;
             }
         }
 
@@ -100,9 +104,12 @@ namespace Micajah.AzureFileService
             get
             {
                 if (s_VideoExtensions == null)
+                {
                     s_VideoExtensions = new ReadOnlyCollection<string>(new string[] {
                         ".asf", ".avi", ".fli", ".flv", ".mov", ".movie", ".mp4", ".mpe", ".mpeg", ".mpg", SwfExtension, ".viv", ".vivo", ".vob", ".wmv"
                     });
+                }
+
                 return s_VideoExtensions;
             }
         }
