@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing.Imaging;
 using System.Linq;
@@ -51,13 +52,34 @@ namespace Micajah.AzureFileService
 
         #region Members
 
+        private static ReadOnlyCollection<string> s_ArchiveExtensions;
         private static ReadOnlyCollection<string> s_AudioExtensions;
+        private static ReadOnlyCollection<string> s_DocumentExtensions;
         private static ReadOnlyCollection<string> s_ImageExtensions;
+        private static ReadOnlyCollection<string> s_TextExtensions;
         private static ReadOnlyCollection<string> s_VideoExtensions;
 
         #endregion
 
         #region Public Properties
+
+        /// <summary>
+        /// The collection of the archive files extensions.
+        /// </summary>
+        public static ReadOnlyCollection<string> ArchiveExtensions
+        {
+            get
+            {
+                if (s_ArchiveExtensions == null)
+                {
+                    s_ArchiveExtensions = new ReadOnlyCollection<string>(new string[] {
+                        ".7z", ".gtar", ".gz", ".rar", ".tar", ".zip"
+                    });
+                }
+
+                return s_ArchiveExtensions;
+            }
+        }
 
         /// <summary>
         /// The collection of the audio files extensions.
@@ -69,11 +91,29 @@ namespace Micajah.AzureFileService
                 if (s_AudioExtensions == null)
                 {
                     s_AudioExtensions = new ReadOnlyCollection<string>(new string[] {
-                        ".aif", ".aifc", ".aiff", ".au", ".snd", ".mid", ".midi", ".mp3", ".ra", ".ram", ".rpm", ".tsi", ".wav"
+                        ".aif", ".aifc", ".aiff", ".au", ".mid", ".midi", ".mp3", ".ogg", ".ra", ".ram", ".rpm", ".snd", ".tsi", ".wav"
                     });
                 }
 
                 return s_AudioExtensions;
+            }
+        }
+
+        /// <summary>
+        /// The collection of the text files extensions.
+        /// </summary>
+        public static ReadOnlyCollection<string> DocumentExtensions
+        {
+            get
+            {
+                if (s_DocumentExtensions == null)
+                {
+                    s_DocumentExtensions = new ReadOnlyCollection<string>(new string[] {
+                        ".pdf", ".doc", ".docx", ".dotx", ".dotm", ".mpp", ".ppt", ".ppt", ".pptx", ".pptm", ".ppsx", ".ppsm", ".potx", ".potm", ".ppam", ".sldx", ".sldm", ".thmx", ".onetoc", ".xls", ".xlsx", ".xlsm", ".xltx", ".xltm", ".xlsb", ".xlam"
+                    });
+                }
+
+                return s_DocumentExtensions;
             }
         }
 
@@ -93,6 +133,24 @@ namespace Micajah.AzureFileService
                     });
                 }
                 return s_ImageExtensions;
+            }
+        }
+
+        /// <summary>
+        /// The collection of the text files extensions.
+        /// </summary>
+        public static ReadOnlyCollection<string> TextExtensions
+        {
+            get
+            {
+                if (s_TextExtensions == null)
+                {
+                    s_TextExtensions = new ReadOnlyCollection<string>(new string[] {
+                        ".csv", ".txt", ".rtf", ".tsv", ".xml"
+                    });
+                }
+
+                return s_TextExtensions;
             }
         }
 
@@ -124,22 +182,48 @@ namespace Micajah.AzureFileService
             {
                 case "AUDIO/X-AIFF":
                     return ".aif";
-                case "AUDIO/BASIC":
-                    return ".snd";
                 case "AUDIO/MIDI":
                     return ".mid";
                 case "AUDIO/MPEG":
                     return ".mp3";
+                case "AUDIO/ogg":
+                    return ".ogg";
                 case "AUDIO/X-REALAUDIO":
                     return ".ra";
                 case "AUDIO/X-PN-REALAUDIO":
                     return ".ram";
                 case "AUDIO/X-PN-REALAUDIO-PLUGIN":
                     return ".rpm";
+                case "AUDIO/BASIC":
+                    return ".snd";
                 case "AUDIO/TSP-AUDIO":
                     return ".tsi";
                 case "AUDIO/X-WAV":
                     return ".wav";
+            }
+            return null;
+        }
+
+        private static string GetArchiveExtension(string mimeType)
+        {
+            switch (mimeType)
+            {
+                case "APPLICATION/X-7Z-COMPRESSED":
+                    return ".7z";
+                case "APPLICATION/X-GTAR":
+                    return ".gtar";
+                case "APPLICATION/X-GZIP":
+                    return ".gz";
+                case "APPLICATION/X-TAR":
+                    return ".tar";
+                case "APPLICATION/X-ZIP-COMPRESSED":
+                    return ".zip";
+                case "APPLICATION/X-ZIP":
+                    return ".zip";
+                case "APPLICATION/ZIP":
+                    return ".zip";
+                case "APPLICATION/X-RAR-COMPRESSED":
+                    return ".rar";
             }
             return null;
         }
@@ -176,10 +260,6 @@ namespace Micajah.AzureFileService
                     return ".dxf";
                 case "APPLICATION/ANDREW-INSET":
                     return ".ez";
-                case "APPLICATION/X-GTAR":
-                    return ".gtar";
-                case "APPLICATION/X-GZIP":
-                    return ".gz";
                 case "APPLICATION/X-HDF":
                     return ".hdf";
                 case "APPLICATION/MAC-BINHEX40":
@@ -245,19 +325,13 @@ namespace Micajah.AzureFileService
                 case "APPLICATION/X-SV4CRC":
                     return ".sv4crc";
                 case "APPLICATION/X-SHOCKWAVE-FLASH":
-                    return ".swf";
-                case "APPLICATION/X-TAR":
-                    return ".tar";
+                    return SwfExtension;
                 case "APPLICATION/X-TCL":
                     return ".tcl";
                 case "APPLICATION/X-TEX":
                     return ".tex";
                 case "APPLICATION/X-TEXINFO":
                     return ".texi";
-                case "APPLICATION/X-ZIP-COMPRESSED":
-                    return ".zip";
-                case "APPLICATION/X-ZIP":
-                    return ".zip";
                 case "APPLICATION/DSPTYPE":
                     return ".tsp";
                 case "APPLICATION/I-DEAS":
@@ -268,32 +342,16 @@ namespace Micajah.AzureFileService
                     return ".vcd";
                 case "APPLICATION/VDA":
                     return ".vda";
-                case "APPLICATION/ZIP":
-                    return ".zip";
             }
-            return GetMicrosoftOfficeExtension(mimeType);
+            return null;
         }
 
-        private static string GetMicrosoftOfficeExtension(string mimeType)
+        private static string GetMicrosoftWordExtension(string mimeType)
         {
             switch (mimeType)
             {
                 case "APPLICATION/MSWORD":
                     return ".doc";
-                case "APPLICATION/MSPOWERPOINT":
-                    return ".ppt";
-                case "APPLICATION/VND.MS-POWERPOINT":
-                    return ".ppt";
-                case "APPLICATION/VND.MS-EXCEL":
-                    return ".xls";
-            }
-            return GetMicrosoftOffice2007Extension(mimeType);
-        }
-
-        private static string GetMicrosoftOffice2007Extension(string mimeType)
-        {
-            switch (mimeType)
-            {
                 case "APPLICATION/VND.OPENXMLFORMATS-OFFICEDOCUMENT.WORDPROCESSINGML.DOCUMENT":
                     return ".docx";
                 case "APPLICATION/VND.MS-WORD.DOCUMENT.MACROENABLED.12":
@@ -302,6 +360,16 @@ namespace Micajah.AzureFileService
                     return ".dotx";
                 case "APPLICATION/VND.MS-WORD.TEMPLATE.MACROENABLED.12":
                     return ".dotm";
+            }
+            return null;
+        }
+
+        private static string GetMicrosoftExcelExtension(string mimeType)
+        {
+            switch (mimeType)
+            {
+                case "APPLICATION/VND.MS-EXCEL":
+                    return ".xls";
                 case "APPLICATION/VND.OPENXMLFORMATS-OFFICEDOCUMENT.SPREADSHEETML.SHEET":
                     return ".xlsx";
                 case "APPLICATION/VND.MS-EXCEL.SHEET.MACROENABLED.12":
@@ -314,6 +382,18 @@ namespace Micajah.AzureFileService
                     return ".xlsb";
                 case "APPLICATION/VND.MS-EXCEL.ADDIN.MACROENABLED.12":
                     return ".xlam";
+            }
+            return null;
+        }
+
+        private static string GetMicrosoftPowerPointExtension(string mimeType)
+        {
+            switch (mimeType)
+            {
+                case "APPLICATION/MSPOWERPOINT":
+                    return ".ppt";
+                case "APPLICATION/VND.MS-POWERPOINT":
+                    return ".ppt";
                 case "APPLICATION/VND.OPENXMLFORMATS-OFFICEDOCUMENT.PRESENTATIONML.PRESENTATION":
                     return ".pptx";
                 case "APPLICATION/VND.MS-POWERPOINT.PRESENTATION.MACROENABLED.12":
@@ -332,12 +412,28 @@ namespace Micajah.AzureFileService
                     return ".sldx";
                 case "APPLICATION/VND.MS-POWERPOINT.SLIDE.MACROENABLED.12":
                     return ".sldm";
-                case "APPLICATION/VND.MS-OFFICETHEME":
-                    return ".thmx";
-                case "APPLICATION/ONENOTE":
-                    return ".onetoc";
             }
             return null;
+        }
+
+        private static string GetMicrosoftOfficeExtension(string mimeType)
+        {
+            string extension = GetMicrosoftWordExtension(mimeType) ?? GetMicrosoftExcelExtension(mimeType) ?? GetMicrosoftPowerPointExtension(mimeType);
+
+            if (extension == null)
+            {
+                switch (mimeType)
+                {
+                    case "APPLICATION/VND.MS-OFFICETHEME":
+                        return ".thmx";
+                    case "APPLICATION/VND.MS-PROJECT":
+                        return ".mpp";
+                    case "APPLICATION/ONENOTE":
+                        return ".onetoc";
+                }
+            }
+
+            return extension ?? string.Empty;
         }
 
         private static string GetImageExtension(string mimeType)
@@ -535,10 +631,10 @@ namespace Micajah.AzureFileService
         }
 
         /// <summary>
-        /// Determines whether the specified MIME type is Microsoft Office.
+        /// Determines whether the specified MIME type is Microsoft Office document.
         /// </summary>
         /// <param name="mimeType">The string that contains the MIME type to check.</param>
-        /// <returns>true, if the specified MIME type is Microsoft Office; otherwise, false.</returns>
+        /// <returns>true, if the specified MIME type is Microsoft Office document; otherwise, false.</returns>
         public static bool IsMicrosoftOffice(string mimeType)
         {
             if (!string.IsNullOrEmpty(mimeType))
@@ -549,6 +645,16 @@ namespace Micajah.AzureFileService
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Determines whether the specified MIME type is PDF or Microsoft Office document.
+        /// </summary>
+        /// <param name="mimeType">The string that contains the MIME type to check.</param>
+        /// <returns>true, if the specified MIME type is PDF or Microsoft Office document; otherwise, false.</returns>
+        public static bool IsDocument(string mimeType)
+        {
+            return IsPdf(mimeType) || IsMicrosoftOffice(mimeType);
         }
 
         /// <summary>
@@ -604,49 +710,78 @@ namespace Micajah.AzureFileService
         /// <returns>The file extension for the MIME type or empty string, if the MIME type is not found.</returns>
         public static string GetFileExtension(string mimeType)
         {
-            if (mimeType == null) return null;
+            string extension = null;
 
-            mimeType = mimeType.ToUpperInvariant();
-            string extension = GetApplicationExtension(mimeType);
-            if (extension == null)
+            if (!string.IsNullOrEmpty(mimeType))
             {
-                extension = GetImageExtension(mimeType);
+                mimeType = mimeType.ToUpperInvariant();
+
+                extension = GetApplicationExtension(mimeType) ?? GetArchiveExtension(mimeType) ?? GetMicrosoftOfficeExtension(mimeType) ?? GetImageExtension(mimeType) ?? GetAudioExtension(mimeType) ??
+                    GetVideoExtension(mimeType) ?? GetTextExtension(mimeType) ?? GetMarkupExtension(mimeType);
+
                 if (extension == null)
                 {
-                    extension = GetAudioExtension(mimeType);
-                    if (extension == null)
+                    switch (mimeType)
                     {
-                        extension = GetVideoExtension(mimeType);
-                        if (extension == null)
-                        {
-                            extension = GetMarkupExtension(mimeType);
-                            if (extension == null)
-                            {
-                                extension = GetTextExtension(mimeType);
-                                if (extension == null)
-                                {
-                                    switch (mimeType)
-                                    {
-                                        case "CHEMICAL/X-PDB":
-                                            return ".pdb";
-                                        case "MODEL/IGES":
-                                            return ".igs";
-                                        case "MODEL/MESH":
-                                            return ".msh";
-                                        case "MODEL/VRML":
-                                            return ".vrml";
-                                        case "WWW/MIME":
-                                            return ".mime";
-                                        case "X-CONFERENCE/X-COOLTALK":
-                                            return ".ice";
-                                    }
-                                }
-                            }
-                        }
+                        case "CHEMICAL/X-PDB":
+                            return ".pdb";
+                        case "MODEL/IGES":
+                            return ".igs";
+                        case "MODEL/MESH":
+                            return ".msh";
+                        case "MODEL/VRML":
+                            return ".vrml";
+                        case "WWW/MIME":
+                            return ".mime";
+                        case "X-CONFERENCE/X-COOLTALK":
+                            return ".ice";
                     }
                 }
             }
-            return ((extension == null) ? string.Empty : extension);
+
+            return extension ?? string.Empty;
+        }
+
+        /// <summary>
+        /// Returns the file extensions by specified MIME type names (archive, audio, document, image, text, video).
+        /// </summary>
+        /// <param name="mimeTypeNames">The array of strings that contains the MIME type names.</param>
+        /// <returns>The file extensions for the MIME type names (archive, audio, document, image, text, video).</returns>
+        public static string[] GetFileExtensions(string[] mimeTypeNames)
+        {
+            List<string> extensions = new List<string>();
+
+            if (mimeTypeNames != null)
+            {
+                foreach (string name in mimeTypeNames)
+                {
+                    switch (name.ToUpperInvariant())
+                    {
+                        case "ARCHIVE":
+                            extensions.AddRange(ArchiveExtensions);
+                            break;
+                        case "AUDIO":
+                            extensions.AddRange(AudioExtensions);
+                            break;
+                        case "DOCUMENT":
+                            extensions.AddRange(DocumentExtensions);
+                            break;
+                        case "IMAGE":
+                            extensions.AddRange(ImageExtensions);
+                            break;
+                        case "TEXT":
+                            extensions.AddRange(TextExtensions);
+                            break;
+                        case "VIDEO":
+                            extensions.AddRange(VideoExtensions);
+                            break;
+                    }
+                }
+            }
+
+            var result = extensions.Distinct().ToArray();
+
+            return result;
         }
 
         #endregion

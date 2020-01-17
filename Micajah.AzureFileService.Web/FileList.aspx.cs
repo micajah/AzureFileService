@@ -19,9 +19,13 @@ namespace Micajah.AzureFileService.Web
                 }
                 IconSizeList.SelectedValue = IconSize.Smaller.ToString();
 
+                ArchiveLink.Attributes["onclick"] = string.Format(CultureInfo.InvariantCulture, "document.getElementById('{0}').value='archive';", FilterTextBox.ClientID);
                 AudioLink.Attributes["onclick"] = string.Format(CultureInfo.InvariantCulture, "document.getElementById('{0}').value='audio';", FilterTextBox.ClientID);
-                VideoLink.Attributes["onclick"] = string.Format(CultureInfo.InvariantCulture, "document.getElementById('{0}').value='video';", FilterTextBox.ClientID);
+                DocumentLink.Attributes["onclick"] = string.Format(CultureInfo.InvariantCulture, "document.getElementById('{0}').value='document';", FilterTextBox.ClientID);
                 ImageLink.Attributes["onclick"] = string.Format(CultureInfo.InvariantCulture, "document.getElementById('{0}').value='image';", FilterTextBox.ClientID);
+                TextLink.Attributes["onclick"] = string.Format(CultureInfo.InvariantCulture, "document.getElementById('{0}').value='text';", FilterTextBox.ClientID);
+                VideoLink.Attributes["onclick"] = string.Format(CultureInfo.InvariantCulture, "document.getElementById('{0}').value='video';", FilterTextBox.ClientID);
+
                 ResetLink.Attributes["onclick"] = string.Format(CultureInfo.InvariantCulture, "document.getElementById('{0}').value='';", FilterTextBox.ClientID);
             }
         }

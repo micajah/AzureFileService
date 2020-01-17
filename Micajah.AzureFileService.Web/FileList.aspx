@@ -9,7 +9,7 @@
             <asp:Label ID="ContainerLengthLabel" runat="server"></asp:Label>
         </p>
     </div>
-    <div class="left">
+    <div class="left" style="width: 40%;">
         <div class="left">
             <p>
                 The files list with the deleting function and thumbnails
@@ -34,7 +34,7 @@
             DateTimeToolTipFormatString="{0:g} (UTC-5)" ShowIcons="True" RenderingMode="Grid">
         </mafs:FileList>
     </div>
-    <div class="right">
+    <div class="right" style="width: 60%;">
         <p>
             The thumbnails list
         </p>
@@ -46,12 +46,16 @@
             <tr>
                 <td>
                     <asp:TextBox ID="FilterTextBox" runat="server" Text="" />&nbsp;
+                    <asp:CheckBox ID="NegateCheckBox" runat="server" Text="Negate" ToolTip="Negate filter" />&nbsp;
+                    <asp:HyperLink ID="ResetLink" runat="server" Text="Reset" ToolTip="Reset filter" NavigateUrl="javascript:void(0);"></asp:HyperLink>&nbsp;
+                    <asp:Button ID="SubmitButton" runat="server" Text="Submit" OnClick="SubmitButton_Click" />
+                    <br />
+                    <asp:HyperLink ID="ArchiveLink" runat="server" Text="Archive" NavigateUrl="javascript:void(0);"></asp:HyperLink>&nbsp;
                     <asp:HyperLink ID="AudioLink" runat="server" Text="Audio" NavigateUrl="javascript:void(0);"></asp:HyperLink>&nbsp;
-                <asp:HyperLink ID="VideoLink" runat="server" Text="Video" NavigateUrl="javascript:void(0);"></asp:HyperLink>&nbsp;
-                <asp:HyperLink ID="ImageLink" runat="server" Text="Images" NavigateUrl="javascript:void(0);"></asp:HyperLink>&nbsp;
-                <asp:CheckBox ID="NegateCheckBox" runat="server" Text="Negate" ToolTip="Negate filter" />&nbsp;
-                <asp:HyperLink ID="ResetLink" runat="server" Text="Reset" ToolTip="Reset filter" NavigateUrl="javascript:void(0);"></asp:HyperLink>&nbsp;
-                <asp:Button ID="SubmitButton" runat="server" Text="Submit" OnClick="SubmitButton_Click" />
+                    <asp:HyperLink ID="DocumentLink" runat="server" Text="Document" NavigateUrl="javascript:void(0);"></asp:HyperLink>&nbsp;
+                    <asp:HyperLink ID="ImageLink" runat="server" Text="Images" NavigateUrl="javascript:void(0);"></asp:HyperLink>&nbsp;
+                    <asp:HyperLink ID="TextLink" runat="server" Text="Text" NavigateUrl="javascript:void(0);"></asp:HyperLink>&nbsp;
+                    <asp:HyperLink ID="VideoLink" runat="server" Text="Video" NavigateUrl="javascript:void(0);"></asp:HyperLink>&nbsp;
                 </td>
             </tr>
         </table>

@@ -22,7 +22,6 @@ namespace Micajah.AzureFileService.WebControls
         private const string NameColumnName = "Name";
         private const string UrlColumnName = "Url";
         private const string LengthInKBColumnName = "LengthInKB";
-        private const string LastModifiedColumnName = "LastModified";
         private const string DeleteCommandName = "Delete";
         private const string OnDeletingClientScript = "return flDel();";
         private const string DeletingClientScript = "function flDel() {{ return window.confirm(\"{0}\"); }}\r\n";
@@ -73,27 +72,13 @@ namespace Micajah.AzureFileService.WebControls
         {
             get
             {
-                List<string> extensions = new List<string>(this.FileExtensionsFilter);
+                List<string> extensions = new List<string>(FileExtensionsFilter);
 
-                foreach (string extension in this.FileExtensionsFilter)
-                {
-                    switch (extension.ToUpperInvariant())
-                    {
-                        case "AUDIO":
-                            extensions.AddRange(MimeType.AudioExtensions);
-                            break;
-                        case "VIDEO":
-                            extensions.AddRange(MimeType.VideoExtensions);
-                            break;
-                        case "IMAGE":
-                            extensions.AddRange(MimeType.ImageExtensions);
-                            break;
-                    }
-                }
+                extensions.AddRange(MimeType.GetFileExtensions(FileExtensionsFilter));
 
-                var extensionArray = extensions.Distinct().ToArray();
+                var result = extensions.Distinct().ToArray();
 
-                return extensionArray;
+                return result;
             }
         }
 
