@@ -503,9 +503,14 @@ namespace Micajah.AzureFileService
         /// <returns>true, if the specified MIME type is Microsoft Office; otherwise, false.</returns>
         public static bool IsMicrosoftOffice(string mimeType)
         {
-            string extension = GetMicrosoftOfficeExtension(mimeType);
+            if (!string.IsNullOrEmpty(mimeType))
+            {
+                string extension = GetMicrosoftOfficeExtension(mimeType.ToUpperInvariant());
 
-            return !string.IsNullOrEmpty(extension);
+                return !string.IsNullOrEmpty(extension);
+            }
+
+            return false;
         }
 
         /// <summary>
