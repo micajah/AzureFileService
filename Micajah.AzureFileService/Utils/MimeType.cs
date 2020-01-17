@@ -396,6 +396,8 @@ namespace Micajah.AzureFileService
         {
             switch (mimeType)
             {
+                case "TEXT/CSV":
+                    return ".csv";
                 case "TEXT/PLAIN":
                     return ".txt";
                 case "TEXT/RTF":
