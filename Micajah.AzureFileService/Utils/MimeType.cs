@@ -56,6 +56,7 @@ namespace Micajah.AzureFileService
         private static ReadOnlyCollection<string> s_AudioExtensions;
         private static ReadOnlyCollection<string> s_DocumentExtensions;
         private static ReadOnlyCollection<string> s_ImageExtensions;
+        private static ReadOnlyCollection<string> s_MessageExtensions;
         private static ReadOnlyCollection<string> s_TextExtensions;
         private static ReadOnlyCollection<string> s_VideoExtensions;
 
@@ -133,6 +134,24 @@ namespace Micajah.AzureFileService
                     });
                 }
                 return s_ImageExtensions;
+            }
+        }
+
+        /// <summary>
+        /// The collection of the message files extensions.
+        /// </summary>
+        public static ReadOnlyCollection<string> MessageExtensions
+        {
+            get
+            {
+                if (s_MessageExtensions == null)
+                {
+                    s_MessageExtensions = new ReadOnlyCollection<string>(new string[] {
+                        ".eml", ".msg"
+                    });
+                }
+
+                return s_MessageExtensions;
             }
         }
 
@@ -342,6 +361,18 @@ namespace Micajah.AzureFileService
                     return ".vcd";
                 case "APPLICATION/VDA":
                     return ".vda";
+            }
+            return null;
+        }
+
+        private static string GetMessageExtension(string mimeType)
+        {
+            switch (mimeType)
+            {
+                case "MESSAGE/RFC822":
+                    return ".eml";
+                case "APPLICATION/VND.MS-OUTLOOK":
+                    return ".msg";
             }
             return null;
         }
@@ -704,6 +735,23 @@ namespace Micajah.AzureFileService
         }
 
         /// <summary>
+        /// Determines whether the specified MIME type is message.
+        /// </summary>
+        /// <param name="mimeType">The string that contains the MIME type to check.</param>
+        /// <returns>true, if the specified MIME type is message; otherwise, false.</returns>
+        public static bool IsMessage(string mimeType)
+        {
+            if (!string.IsNullOrEmpty(mimeType))
+            {
+                string extension = GetMessageExtension(mimeType.ToUpperInvariant());
+
+                return !string.IsNullOrEmpty(extension);
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Returns image format associated to the specified MIME type.
         /// </summary>
         /// <param name="mimeType">The string that contains the MIME type.</param>
@@ -734,7 +782,7 @@ namespace Micajah.AzureFileService
                 mimeType = mimeType.ToUpperInvariant();
 
                 extension = GetApplicationExtension(mimeType) ?? GetArchiveExtension(mimeType) ?? GetMicrosoftOfficeExtension(mimeType) ?? GetImageExtension(mimeType) ?? GetAudioExtension(mimeType) ??
-                    GetVideoExtension(mimeType) ?? GetTextExtension(mimeType) ?? GetMarkupExtension(mimeType);
+                    GetVideoExtension(mimeType) ?? GetTextExtension(mimeType) ?? GetMessageExtension(mimeType) ?? GetMarkupExtension(mimeType);
 
                 if (extension == null)
                 {
@@ -785,6 +833,9 @@ namespace Micajah.AzureFileService
                             break;
                         case "IMAGE":
                             extensions.AddRange(ImageExtensions);
+                            break;
+                        case "MESSAGE":
+                            extensions.AddRange(MessageExtensions);
                             break;
                         case "TEXT":
                             extensions.AddRange(TextExtensions);
