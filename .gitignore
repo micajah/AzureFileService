@@ -109,3 +109,4 @@ Micajah.AzureFileService.Cors/appSettings.config
 .vs
 /packages
 /Tools/Cors/packages
+/Tools/CalculateAzureBlobStorageContainersSize/packages
