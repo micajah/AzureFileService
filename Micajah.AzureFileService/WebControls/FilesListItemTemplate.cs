@@ -61,7 +61,7 @@ namespace Micajah.AzureFileService.WebControls
 
                 link.Text = file.Name;
                 link.NavigateUrl = file.Url;
-                if ((string.Compare(extension, MimeType.SwfExtension, StringComparison.OrdinalIgnoreCase) == 0) || MimeType.IsImageFile(extension))
+                if ((string.Compare(extension, MimeType.SwfExtension, StringComparison.OrdinalIgnoreCase) == 0) || MimeType.IsInGroups(extension, MimeTypeGroups.Image, true))
                 {
                     link.Target = "_blank";
                     link.Attributes["rel"] = "noopener";

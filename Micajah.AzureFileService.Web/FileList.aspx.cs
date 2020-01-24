@@ -10,7 +10,7 @@ namespace Micajah.AzureFileService.Web
         {
             if (!this.IsPostBack)
             {
-                FileList3.FileExtensionsFilter = (string.IsNullOrWhiteSpace(FilterTextBox.Text) ? null : FilterTextBox.Text.Split(','));
+                FileList3.FileExtensionsFilter = (string.IsNullOrWhiteSpace(FilterTextBox.Text) ? null : FilterTextBox.Text.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries));
                 FileList3.NegateFileExtensionsFilter = NegateCheckBox.Checked;
 
                 foreach (string name in Enum.GetNames(typeof(IconSize)))
@@ -19,12 +19,12 @@ namespace Micajah.AzureFileService.Web
                 }
                 IconSizeList.SelectedValue = IconSize.Smaller.ToString();
 
-                ArchiveLink.Attributes["onclick"] = string.Format(CultureInfo.InvariantCulture, "document.getElementById('{0}').value='archive';", FilterTextBox.ClientID);
-                AudioLink.Attributes["onclick"] = string.Format(CultureInfo.InvariantCulture, "document.getElementById('{0}').value='audio';", FilterTextBox.ClientID);
-                DocumentLink.Attributes["onclick"] = string.Format(CultureInfo.InvariantCulture, "document.getElementById('{0}').value='document';", FilterTextBox.ClientID);
-                ImageLink.Attributes["onclick"] = string.Format(CultureInfo.InvariantCulture, "document.getElementById('{0}').value='image';", FilterTextBox.ClientID);
-                TextLink.Attributes["onclick"] = string.Format(CultureInfo.InvariantCulture, "document.getElementById('{0}').value='text';", FilterTextBox.ClientID);
-                VideoLink.Attributes["onclick"] = string.Format(CultureInfo.InvariantCulture, "document.getElementById('{0}').value='video';", FilterTextBox.ClientID);
+                ArchiveLink.Attributes["onclick"] = string.Format(CultureInfo.InvariantCulture, "document.getElementById('{0}').value+=',archive';", FilterTextBox.ClientID);
+                AudioLink.Attributes["onclick"] = string.Format(CultureInfo.InvariantCulture, "document.getElementById('{0}').value+=',audio';", FilterTextBox.ClientID);
+                DocumentLink.Attributes["onclick"] = string.Format(CultureInfo.InvariantCulture, "document.getElementById('{0}').value+=',document';", FilterTextBox.ClientID);
+                ImageLink.Attributes["onclick"] = string.Format(CultureInfo.InvariantCulture, "document.getElementById('{0}').value+=',image';", FilterTextBox.ClientID);
+                TextLink.Attributes["onclick"] = string.Format(CultureInfo.InvariantCulture, "document.getElementById('{0}').value+=',text';", FilterTextBox.ClientID);
+                VideoLink.Attributes["onclick"] = string.Format(CultureInfo.InvariantCulture, "document.getElementById('{0}').value+=',video';", FilterTextBox.ClientID);
 
                 ResetLink.Attributes["onclick"] = string.Format(CultureInfo.InvariantCulture, "document.getElementById('{0}').value='';", FilterTextBox.ClientID);
             }
@@ -50,7 +50,7 @@ namespace Micajah.AzureFileService.Web
 
         protected void SubmitButton_Click(object sender, EventArgs e)
         {
-            FileList3.FileExtensionsFilter = (string.IsNullOrWhiteSpace(FilterTextBox.Text) ? null : FilterTextBox.Text.Split(','));
+            FileList3.FileExtensionsFilter = (string.IsNullOrWhiteSpace(FilterTextBox.Text) ? null : FilterTextBox.Text.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries));
             FileList3.NegateFileExtensionsFilter = NegateCheckBox.Checked;
             FileList3.DataBind();
         }

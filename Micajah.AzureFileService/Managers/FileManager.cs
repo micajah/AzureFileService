@@ -194,14 +194,14 @@ namespace Micajah.AzureFileService
                         string blobName = GetFileId(fileName);
 
                         // Fixes content type.
-                        if (MimeType.IsEmptyOrDefault(tempBlob.Properties.ContentType))
+                        if (MimeType.IsDefaultOrEmpty(tempBlob.Properties.ContentType))
                         {
                             tempBlob.Properties.ContentType = MimeType.GetMimeType(blobName);
 
                             tempBlob.SetProperties();
                         }
 
-                        if (MimeType.IsImage(tempBlob.Properties.ContentType))
+                        if (MimeType.IsInGroups(tempBlob.Properties.ContentType, MimeTypeGroups.Image))
                         {
                             RotateFlipImageByOrientation(tempBlob);
 
@@ -515,7 +515,7 @@ namespace Micajah.AzureFileService
         {
             byte[] bytes = null;
 
-            if (MimeType.IsImage(contentType))
+            if (MimeType.IsInGroups(contentType, MimeTypeGroups.Image))
             {
                 bytes = RotateFlipImageByOrientation(contentType, buffer);
             }
@@ -531,7 +531,7 @@ namespace Micajah.AzureFileService
 
         private static void UploadBlobFromStream(CloudBlockBlob blob, string contentType, Stream source)
         {
-            if (MimeType.IsImage(contentType))
+            if (MimeType.IsInGroups(contentType, MimeTypeGroups.Image))
             {
                 byte[] bytes = RotateFlipImageByOrientation(contentType, source);
 
@@ -837,7 +837,7 @@ namespace Micajah.AzureFileService
         {
             if (!string.IsNullOrEmpty(fileId))
             {
-                if (MimeType.IsImageFile(fileId))
+                if (MimeType.IsInGroups(fileId, MimeTypeGroups.Image, true))
                 {
                     this.DeleteThumbnails(fileId);
                 }

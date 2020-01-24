@@ -8,7 +8,7 @@ using System.Web;
 namespace Micajah.AzureFileService
 {
     /// <summary>
-    /// The MIME (Multipurpose Internet Mail Extensions) types of a file.
+    /// Maps file extensions to content MIME types.
     /// </summary>
     public static class MimeType
     {
@@ -78,12 +78,12 @@ namespace Micajah.AzureFileService
 
         #endregion
 
-        #region Public Properties
+        #region Private Properties
 
         /// <summary>
         /// The MIME mapping for all file extensions.
         /// </summary>
-        public static NameValueCollection Mapping
+        private static NameValueCollection Mapping
         {
             get
             {
@@ -106,7 +106,7 @@ namespace Micajah.AzureFileService
         /// <summary>
         /// The MIME mapping for archive file extensions.
         /// </summary>
-        public static NameValueCollection ArchiveMapping
+        private static NameValueCollection ArchiveMapping
         {
             get
             {
@@ -132,7 +132,7 @@ namespace Micajah.AzureFileService
         /// <summary>
         /// The MIME mapping for audio file extensions.
         /// </summary>
-        public static NameValueCollection AudioMapping
+        private static NameValueCollection AudioMapping
         {
             get
             {
@@ -168,7 +168,7 @@ namespace Micajah.AzureFileService
         /// <summary>
         /// The MIME mapping for Microsoft Office and PDF document file extensions.
         /// </summary>
-        public static NameValueCollection DocumentMapping
+        private static NameValueCollection DocumentMapping
         {
             get
             {
@@ -183,7 +183,7 @@ namespace Micajah.AzureFileService
         /// <summary>
         /// The MIME mapping for Microsoft Office document file extensions.
         /// </summary>
-        public static NameValueCollection MicrosoftOfficeMapping
+        private static NameValueCollection MicrosoftOfficeMapping
         {
             get
             {
@@ -236,7 +236,7 @@ namespace Micajah.AzureFileService
         /// <summary>
         /// The MIME mapping for image file extensions.
         /// </summary>
-        public static NameValueCollection ImageMapping
+        private static NameValueCollection ImageMapping
         {
             get
             {
@@ -285,7 +285,7 @@ namespace Micajah.AzureFileService
         /// <summary>
         /// The MIME mapping for message file extensions.
         /// </summary>
-        public static NameValueCollection MessageMapping
+        private static NameValueCollection MessageMapping
         {
             get
             {
@@ -305,7 +305,7 @@ namespace Micajah.AzureFileService
         /// <summary>
         /// The MIME mapping for text file extensions.
         /// </summary>
-        public static NameValueCollection TextMapping
+        private static NameValueCollection TextMapping
         {
             get
             {
@@ -331,7 +331,7 @@ namespace Micajah.AzureFileService
         /// <summary>
         /// The MIME mapping for video file extensions.
         /// </summary>
-        public static NameValueCollection VideoMapping
+        private static NameValueCollection VideoMapping
         {
             get
             {
@@ -365,7 +365,7 @@ namespace Micajah.AzureFileService
         /// <summary>
         /// The MIME mapping for various file extensions.
         /// </summary>
-        public static NameValueCollection VariousMapping
+        private static NameValueCollection VariousMapping
         {
             get
             {
@@ -461,11 +461,16 @@ namespace Micajah.AzureFileService
             return extension;
         }
 
-        private static string GetMimeType(string fileName, NameValueCollection mapping)
+        private static string GetMimeType(string extension, NameValueCollection mapping)
         {
-            string extension = System.IO.Path.GetExtension(fileName).ToLowerInvariant();
+            string mimeType = null;
 
-            string mimeType = mapping[extension];
+            if (!string.IsNullOrEmpty(extension))
+            {
+                string ext = System.IO.Path.GetExtension(extension).ToLowerInvariant();
+
+                mimeType = mapping[ext];
+            }
 
             if (mimeType != null)
             {
@@ -473,17 +478,68 @@ namespace Micajah.AzureFileService
             }
             else
             {
-                mimeType = MimeMapping.GetMimeMapping(fileName);
+                mimeType = MimeMapping.GetMimeMapping(extension);
             }
 
             return mimeType;
         }
 
-        private static bool IsKnown(string mimeType, NameValueCollection mapping)
+        private static NameValueCollection GetMapping(MimeTypeGroups mimeTypeGroups)
         {
-            string extension = GetExtension(mimeType.ToLowerInvariant(), mapping);
+            NameValueCollection mapping = new NameValueCollection();
 
-            return !string.IsNullOrEmpty(extension);
+            if ((mimeTypeGroups & MimeTypeGroups.Archive) == MimeTypeGroups.Archive)
+            {
+                mapping.Add(ArchiveMapping);
+            }
+
+            if ((mimeTypeGroups & MimeTypeGroups.Audio) == MimeTypeGroups.Audio)
+            {
+                mapping.Add(AudioMapping);
+            }
+
+            if ((mimeTypeGroups & MimeTypeGroups.Document) == MimeTypeGroups.Document)
+            {
+                mapping.Add(DocumentMapping);
+            }
+            else if ((mimeTypeGroups & MimeTypeGroups.MicrosoftOffice) == MimeTypeGroups.MicrosoftOffice)
+            {
+                mapping.Add(MicrosoftOfficeMapping);
+            }
+
+            if ((mimeTypeGroups & MimeTypeGroups.Image) == MimeTypeGroups.Image)
+            {
+                mapping.Add(ImageMapping);
+            }
+
+            if ((mimeTypeGroups & MimeTypeGroups.Message) == MimeTypeGroups.Message)
+            {
+                mapping.Add(MessageMapping);
+            }
+
+            if ((mimeTypeGroups & MimeTypeGroups.Text) == MimeTypeGroups.Text)
+            {
+                mapping.Add(TextMapping);
+            }
+
+            if ((mimeTypeGroups & MimeTypeGroups.Video) == MimeTypeGroups.Video)
+            {
+                mapping.Add(VideoMapping);
+            }
+
+            return mapping;
+        }
+
+        private static bool IsMapped(string mimeType, NameValueCollection mapping)
+        {
+            if (!string.IsNullOrEmpty(mimeType))
+            {
+                string extension = GetExtension(mimeType.ToLowerInvariant(), mapping);
+
+                return !string.IsNullOrEmpty(extension);
+            }
+
+            return false;
         }
 
         #endregion
@@ -522,44 +578,38 @@ namespace Micajah.AzureFileService
         }
 
         /// <summary>
-        /// Returns the file extensions by specified MIME type names (archive, audio, document, image, text, video).
+        /// Returns the file extensions for specified MIME type groups (see MimeTypeGroups enum).
         /// </summary>
-        /// <param name="mimeTypeNames">The array of strings that contains the MIME type names.</param>
-        /// <returns>The file extensions for the MIME type names (archive, audio, document, image, text, video).</returns>
-        public static string[] GetExtensions(string[] mimeTypeNames)
+        /// <param name="mimeTypeGroups">The array of strings that contains the MIME type groups.</param>
+        /// <returns>The file extensions for the MIME groups.</returns>
+        public static string[] GetExtensions(string[] mimeTypeGroups)
         {
-            List<string> extensions = new List<string>();
+            MimeTypeGroups groups = MimeTypeGroups.None;
 
-            if (mimeTypeNames != null)
+            if (mimeTypeGroups != null)
             {
-                foreach (string name in mimeTypeNames)
+                foreach (string s in mimeTypeGroups)
                 {
-                    switch (name.ToLowerInvariant())
+                    if (Enum.TryParse(s, true, out MimeTypeGroups group))
                     {
-                        case "archive":
-                            extensions.AddRange(ArchiveMapping.AllKeys);
-                            break;
-                        case "audio":
-                            extensions.AddRange(AudioMapping.AllKeys);
-                            break;
-                        case "document":
-                            extensions.AddRange(DocumentMapping.AllKeys);
-                            break;
-                        case "image":
-                            extensions.AddRange(ImageMapping.AllKeys);
-                            break;
-                        case "message":
-                            extensions.AddRange(MessageMapping.AllKeys);
-                            break;
-                        case "text":
-                            extensions.AddRange(TextMapping.AllKeys);
-                            break;
-                        case "video":
-                            extensions.AddRange(VideoMapping.AllKeys);
-                            break;
+                        groups |= group;
                     }
                 }
             }
+
+            return GetExtensions(groups);
+        }
+
+        /// <summary>
+        /// Returns the file extensions for specified MIME type groups.
+        /// </summary>
+        /// <param name="mimeTypeGroups">The MIME type groups.</param>
+        /// <returns>The file extensions for the MIME type groups.</returns>
+        public static string[] GetExtensions(MimeTypeGroups mimeTypeGroups)
+        {
+            var mapping = GetMapping(mimeTypeGroups);
+
+            List<string> extensions = new List<string>(mapping.AllKeys);
 
             var result = extensions.Distinct().ToArray();
 
@@ -567,23 +617,23 @@ namespace Micajah.AzureFileService
         }
 
         /// <summary>
-        /// Returns the MIME type for the specified file name.
+        /// Returns the MIME type for the specified file extension or name.
         /// </summary>
-        /// <param name="fileName">The file name that is used to determine the MIME type.</param>
-        /// <returns>The MIME type for the specified file name.</returns>
-        public static string GetMimeType(string fileName)
+        /// <param name="extension">The file extension or name that is used to determine the MIME type.</param>
+        /// <returns>The MIME type for the specified file extension or name.</returns>
+        public static string GetMimeType(string extension)
         {
-            return GetMimeType(fileName, Mapping);
+            return GetMimeType(extension, Mapping);
         }
 
         /// <summary>
-        /// Determines whether the specified MIME type is empty or default (application/octet-stream).
+        /// Determines whether the specified MIME type is default (application/octet-stream) or empty.
         /// </summary>
         /// <param name="mimeType">The string that contains the MIME type to check.</param>
-        /// <returns>true, if the specified MIME type is empty or default (application/octet-stream); otherwise, false.</returns>
-        public static bool IsEmptyOrDefault(string mimeType)
+        /// <returns>true, if the specified MIME type is default or empty; otherwise, false.</returns>
+        public static bool IsDefaultOrEmpty(string mimeType)
         {
-            return string.IsNullOrEmpty(mimeType) || string.Compare(mimeType, Default, StringComparison.OrdinalIgnoreCase) == 0;
+            return string.IsNullOrWhiteSpace(mimeType) || string.Compare(mimeType, Default, StringComparison.OrdinalIgnoreCase) == 0;
         }
 
         /// <summary>
@@ -627,171 +677,86 @@ namespace Micajah.AzureFileService
         }
 
         /// <summary>
-        /// Determines whether the specified MIME type is audio.
+        /// Determines whether the specified MIME type is mapped to one of specified MIME type groups.
         /// </summary>
-        /// <param name="mimeType">The string that contains the MIME type to check.</param>
-        /// <returns>true, if the specified MIME type is audio; otherwise, false.</returns>
-        public static bool IsAudio(string mimeType)
+        /// <param name="mimeType">The MIME type to check.</param>
+        /// <param name="mimeTypeGroups">The MIME type groups.</param>
+        /// <returns>true, if the MIME type is mapped to one of MIME type groups; otherwise, false.</returns>
+        public static bool IsInGroups(string mimeType, MimeTypeGroups mimeTypeGroups)
         {
-            if (!string.IsNullOrEmpty(mimeType))
-                return mimeType.StartsWith(AudioPrefix, StringComparison.OrdinalIgnoreCase);
-            return false;
+            return IsInGroups(mimeType, mimeTypeGroups, false);
         }
 
         /// <summary>
-        /// Determines whether the specified MIME type is image type.
+        /// Determines whether the specified MIME type or file extension or file name is mapped to one of specified MIME type groups.
         /// </summary>
-        /// <param name="mimeType">The string that contains the MIME type to check.</param>
-        /// <returns>true, if the specified MIME type is image type; otherwise, false.</returns>
-        public static bool IsImage(string mimeType)
+        /// <param name="mimeType">The MIME type to check.</param>
+        /// <param name="mimeTypeGroups">The MIME type groups.</param>
+        /// <param name="isExtension">The specified MIME type is file extension or name.</param>
+        /// <returns>true, if the MIME type or file extension or file name is mapped to one of MIME type groups; otherwise, false.</returns>
+        public static bool IsInGroups(string mimeType, MimeTypeGroups mimeTypeGroups, bool isExtension)
         {
-            if (!string.IsNullOrEmpty(mimeType))
-                return mimeType.StartsWith(ImagePrefix, StringComparison.OrdinalIgnoreCase);
-            return false;
-        }
+            NameValueCollection mapping;
 
-        /// <summary>
-        /// Determines whether the specified MIME type is video type.
-        /// </summary>
-        /// <param name="mimeType">The string that contains the MIME type to check.</param>
-        /// <returns>true, if the specified MIME type is video type; otherwise, false.</returns>
-        public static bool IsVideo(string mimeType)
-        {
-            if (!string.IsNullOrEmpty(mimeType))
-                return mimeType.StartsWith(VideoPrefix, StringComparison.OrdinalIgnoreCase);
-            return false;
-        }
+            if (isExtension)
+            {
+                mapping = GetMapping(mimeTypeGroups);
 
-        /// <summary>
-        /// Determines whether the specified MIME type is archive.
-        /// </summary>
-        /// <param name="mimeType">The string that contains the MIME type to check.</param>
-        /// <returns>true, if the specified MIME type is archive; otherwise, false.</returns>
-        public static bool IsArchive(string mimeType)
-        {
-            return IsKnown(mimeType, ArchiveMapping);
-        }
+                mimeType = GetMimeType(mimeType, mapping);
+            }
+            else
+            {
+                if (!string.IsNullOrEmpty(mimeType))
+                {
+                    if ((mimeTypeGroups & MimeTypeGroups.Audio) == MimeTypeGroups.Audio)
+                    {
+                        if (mimeType.StartsWith(AudioPrefix, StringComparison.OrdinalIgnoreCase))
+                        {
+                            return true;
+                        }
+                    }
 
-        /// <summary>
-        /// Determines whether the specified MIME type is Microsoft Office or PDF document.
-        /// </summary>
-        /// <param name="mimeType">The string that contains the MIME type to check.</param>
-        /// <returns>true, if the specified MIME type is Microsoft Office or PDF document; otherwise, false.</returns>
-        public static bool IsDocument(string mimeType)
-        {
-            return IsKnown(mimeType, DocumentMapping);
-        }
+                    if ((mimeTypeGroups & MimeTypeGroups.Image) == MimeTypeGroups.Image)
+                    {
+                        if (mimeType.StartsWith(ImagePrefix, StringComparison.OrdinalIgnoreCase))
+                        {
+                            return true;
+                        }
+                    }
 
-        /// <summary>
-        /// Determines whether the specified MIME type is Microsoft Office document.
-        /// </summary>
-        /// <param name="mimeType">The string that contains the MIME type to check.</param>
-        /// <returns>true, if the specified MIME type is Microsoft Office document; otherwise, false.</returns>
-        public static bool IsMicrosoftOffice(string mimeType)
-        {
-            return IsKnown(mimeType, MicrosoftOfficeMapping);
-        }
+                    if ((mimeTypeGroups & MimeTypeGroups.Video) == MimeTypeGroups.Video)
+                    {
+                        if (mimeType.StartsWith(VideoPrefix, StringComparison.OrdinalIgnoreCase))
+                        {
+                            return true;
+                        }
+                    }
+                }
 
-        /// <summary>
-        /// Determines whether the specified MIME type is message.
-        /// </summary>
-        /// <param name="mimeType">The string that contains the MIME type to check.</param>
-        /// <returns>true, if the specified MIME type is message; otherwise, false.</returns>
-        public static bool IsMessage(string mimeType)
-        {
-            return IsKnown(mimeType, MessageMapping);
-        }
+                mapping = GetMapping(mimeTypeGroups);
+            }
 
-        /// <summary>
-        /// Determines whether the specified MIME type is text.
-        /// </summary>
-        /// <param name="mimeType">The string that contains the MIME type to check.</param>
-        /// <returns>true, if the specified MIME type is text; otherwise, false.</returns>
-        public static bool IsText(string mimeType)
-        {
-            return IsKnown(mimeType, TextMapping);
-        }
-
-        /// <summary>
-        /// Determines whether the specified file is archive.
-        /// </summary>
-        /// <param name="fileName">The string that contains the file name to check.</param>
-        /// <returns>true, if the specified file is archive; otherwise, false.</returns>
-        public static bool IsArchiveFile(string fileName)
-        {
-            return IsArchive(GetMimeType(fileName, ArchiveMapping));
-        }
-
-        /// <summary>
-        /// Determines whether the specified file is audio.
-        /// </summary>
-        /// <param name="fileName">The string that contains the file name to check.</param>
-        /// <returns>true, if the specified file is audio; otherwise, false.</returns>
-        public static bool IsAudioFile(string fileName)
-        {
-            return IsAudio(GetMimeType(fileName, AudioMapping));
-        }
-
-        /// <summary>
-        /// Determines whether the specified file is Microsoft Office or PDF document.
-        /// </summary>
-        /// <param name="fileName">The string that contains the file name to check.</param>
-        /// <returns>true, if the specified file is Microsoft Office or PDF; otherwise, false.</returns>
-        public static bool IsDocumentFile(string fileName)
-        {
-            return IsDocument(GetMimeType(fileName, DocumentMapping));
-        }
-
-        /// <summary>
-        /// Determines whether the specified file is Microsoft Office document.
-        /// </summary>
-        /// <param name="fileName">The string that contains the file name to check.</param>
-        /// <returns>true, if the specified file is Microsoft Office; otherwise, false.</returns>
-        public static bool IsMicrosoftOfficeFile(string fileName)
-        {
-            return IsMicrosoftOffice(GetMimeType(fileName, MicrosoftOfficeMapping));
-        }
-
-        /// <summary>
-        /// Determines whether the specified file is image.
-        /// </summary>
-        /// <param name="fileName">The string that contains the file name to check.</param>
-        /// <returns>true, if the specified file is image; otherwise, false.</returns>
-        public static bool IsImageFile(string fileName)
-        {
-            return IsImage(GetMimeType(fileName, ImageMapping));
-        }
-
-        /// <summary>
-        /// Determines whether the specified file is message.
-        /// </summary>
-        /// <param name="fileName">The string that contains the file name to check.</param>
-        /// <returns>true, if the specified file is message; otherwise, false.</returns>
-        public static bool IsMessageFile(string fileName)
-        {
-            return IsMessage(GetMimeType(fileName, MessageMapping));
-        }
-
-        /// <summary>
-        /// Determines whether the specified file is text.
-        /// </summary>
-        /// <param name="fileName">The string that contains the file name to check.</param>
-        /// <returns>true, if the specified file is text; otherwise, false.</returns>
-        public static bool IsTextFile(string fileName)
-        {
-            return IsText(GetMimeType(fileName, TextMapping));
-        }
-
-        /// <summary>
-        /// Determines whether the specified file is video.
-        /// </summary>
-        /// <param name="fileName">The string that contains the file name to check.</param>
-        /// <returns>true, if the specified file is video; otherwise, false.</returns>
-        public static bool IsVideoFile(string fileName)
-        {
-            return IsVideo(GetMimeType(fileName, VideoMapping));
+            return IsMapped(mimeType, mapping);
         }
 
         #endregion
+    }
+
+    /// <summary>
+    /// MIME type groups.
+    /// </summary>
+    [Flags]
+    [Serializable]
+    public enum MimeTypeGroups
+    {
+        None = 0,
+        Archive = 1,
+        Audio = 2,
+        Document = 4,
+        Image = 8,
+        Message = 16,
+        MicrosoftOffice = 32,
+        Text = 64,
+        Video = 128
     }
 }

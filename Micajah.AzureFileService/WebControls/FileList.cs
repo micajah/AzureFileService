@@ -107,11 +107,11 @@ namespace Micajah.AzureFileService.WebControls
                     {
                         foreach (string extension in extensions)
                         {
-                            if (string.Compare(extension, "video", StringComparison.OrdinalIgnoreCase) != 0)
+                            if (string.Compare(extension, MimeTypeGroups.Video.ToString(), StringComparison.OrdinalIgnoreCase) != 0)
                             {
                                 string mimeType = MimeType.GetMimeType(extension);
 
-                                if (!(MimeType.IsVideo(mimeType) || MimeType.IsFlash(mimeType)))
+                                if (!(MimeType.IsInGroups(mimeType, MimeTypeGroups.Video) || MimeType.IsFlash(mimeType)))
                                 {
                                     return m_ShowVideoOnly.Value;
                                 }
@@ -581,7 +581,7 @@ namespace Micajah.AzureFileService.WebControls
 
         private static string GetNonImageFileTypeIconUrl(string fileName, IconSize iconSize)
         {
-            return (MimeType.IsImageFile(fileName) ? null : GetFileTypeIconUrl(fileName, iconSize));
+            return (MimeType.IsInGroups(fileName, MimeTypeGroups.Image, true) ? null : GetFileTypeIconUrl(fileName, iconSize));
         }
 
         private void ApplyStyle()
@@ -801,7 +801,7 @@ namespace Micajah.AzureFileService.WebControls
                         {
                             link.CssClass = "flFileName";
 
-                            if (MimeType.IsImageFile(file.Name))
+                            if (MimeType.IsInGroups(file.Name, MimeTypeGroups.Image, true))
                             {
                                 string thumbUrl = (this.EnableThumbnails ? this.FileManager.GetThumbnailUrl(file.FileId, 600, 500, 1, true) : file.Url);
                                 string content = string.Format(CultureInfo.InvariantCulture, ToolTipBigHtml, file.Url, file.Name, thumbUrl);
