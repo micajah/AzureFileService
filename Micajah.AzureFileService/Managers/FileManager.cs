@@ -193,14 +193,6 @@ namespace Micajah.AzureFileService
                         string fileName = GetNameFromFileId(tempBlob.Name);
                         string blobName = GetFileId(fileName);
 
-                        // Fixes content type.
-                        if (MimeType.IsDefaultOrEmpty(tempBlob.Properties.ContentType))
-                        {
-                            tempBlob.Properties.ContentType = MimeType.GetMimeType(blobName);
-
-                            tempBlob.SetProperties();
-                        }
-
                         if (MimeType.IsInGroups(tempBlob.Properties.ContentType, MimeTypeGroups.Image))
                         {
                             RotateFlipImageByOrientation(tempBlob);
@@ -353,12 +345,17 @@ namespace Micajah.AzureFileService
 
             string fileId = this.GetFileId(fileName);
 
-            CloudBlockBlob blob = this.Container.GetBlockBlobReference(fileId);
-            blob.Properties.CacheControl = Settings.ClientCacheControl;
-            if (!string.IsNullOrEmpty(contentType))
+            // Fixes content type.
+            if (MimeType.IsDefaultOrEmpty(contentType))
             {
-                blob.Properties.ContentType = contentType;
+                contentType = MimeType.GetMimeType(fileName);
             }
+
+            CloudBlockBlob blob = this.Container.GetBlockBlobReference(fileId);
+
+            blob.Properties.CacheControl = Settings.ClientCacheControl;
+            blob.Properties.ContentType = contentType;
+
             if (MimeType.IsHtml(contentType))
             {
                 blob.Properties.ContentDisposition = "attachment";
@@ -373,9 +370,17 @@ namespace Micajah.AzureFileService
 
             string fileId = string.Format(CultureInfo.InvariantCulture, "{0}/{1}", directoryName, fileName);
 
+            // Fixes content type.
+            if (MimeType.IsDefaultOrEmpty(contentType))
+            {
+                contentType = MimeType.GetMimeType(fileName);
+            }
+
             CloudBlockBlob blob = ContainerManager.TemporaryContainer.GetBlockBlobReference(fileId);
+
             blob.Properties.ContentType = contentType;
             blob.Properties.CacheControl = Settings.ClientCacheControl;
+
             if (MimeType.IsHtml(contentType))
             {
                 blob.Properties.ContentDisposition = "attachment";
