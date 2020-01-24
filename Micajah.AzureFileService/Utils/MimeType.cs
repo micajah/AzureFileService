@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Drawing.Imaging;
 using System.Linq;
+using System.Web;
 
 namespace Micajah.AzureFileService
 {
@@ -14,9 +15,14 @@ namespace Micajah.AzureFileService
         #region Constants
 
         /// <summary>
-        /// image/vnd.microsoft.icon
+        /// text/calendar
         /// </summary>
-        private const string Icon2 = "image/vnd.microsoft.icon";
+        public const string Calendar = "text/calendar";
+
+        /// <summary>
+        /// application/x-shockwave-flash
+        /// </summary>
+        public const string Flash = "application/x-shockwave-flash";
 
         /// <summary>
         /// image/x-icon
@@ -24,9 +30,9 @@ namespace Micajah.AzureFileService
         public const string Icon = "image/x-icon";
 
         /// <summary>
-        /// application/x-shockwave-flash
+        /// image/vnd.microsoft.icon
         /// </summary>
-        public const string Flash = "application/x-shockwave-flash";
+        private const string Icon2 = "image/vnd.microsoft.icon";
 
         /// <summary>
         /// image/jpeg
@@ -39,6 +45,11 @@ namespace Micajah.AzureFileService
         public const string Html = "text/html";
 
         /// <summary>
+        /// Default MIME type application/octet-stream.
+        /// </summary>
+        public const string Default = "application/octet-stream";
+
+        /// <summary>
         /// application/pdf
         /// </summary>
         public const string Pdf = "application/pdf";
@@ -48,146 +59,389 @@ namespace Micajah.AzureFileService
         /// </summary>
         public const string SwfExtension = ".swf";
 
+        private const string AudioPrefix = "audio/";
+        private const string ImagePrefix = "image/";
+        private const string VideoPrefix = "video/";
+
         #endregion
 
         #region Members
 
-        private static ReadOnlyCollection<string> s_ArchiveExtensions;
-        private static ReadOnlyCollection<string> s_AudioExtensions;
-        private static ReadOnlyCollection<string> s_DocumentExtensions;
-        private static ReadOnlyCollection<string> s_ImageExtensions;
-        private static ReadOnlyCollection<string> s_MessageExtensions;
-        private static ReadOnlyCollection<string> s_TextExtensions;
-        private static ReadOnlyCollection<string> s_VideoExtensions;
+        private static NameValueCollection s_ArchiveMapping;
+        private static NameValueCollection s_AudioMapping;
+        private static NameValueCollection s_ImageMapping;
+        private static NameValueCollection s_MessageMapping;
+        private static NameValueCollection s_MicrosoftOfficeMapping;
+        private static NameValueCollection s_TextMapping;
+        private static NameValueCollection s_VideoMapping;
+        private static NameValueCollection s_VariousMapping;
 
         #endregion
 
         #region Public Properties
 
         /// <summary>
-        /// The collection of the archive files extensions.
+        /// The MIME mapping for all file extensions.
         /// </summary>
-        public static ReadOnlyCollection<string> ArchiveExtensions
+        public static NameValueCollection Mapping
         {
             get
             {
-                if (s_ArchiveExtensions == null)
+                NameValueCollection mapping = new NameValueCollection
                 {
-                    s_ArchiveExtensions = new ReadOnlyCollection<string>(new string[] {
-                        ".7z", ".gtar", ".gz", ".rar", ".tar", ".zip"
-                    });
-                }
+                    ArchiveMapping,
+                    AudioMapping,
+                    DocumentMapping,
+                    ImageMapping,
+                    MessageMapping,
+                    TextMapping,
+                    VideoMapping,
+                    VariousMapping
+                };
 
-                return s_ArchiveExtensions;
+                return mapping;
             }
         }
 
         /// <summary>
-        /// The collection of the audio files extensions.
+        /// The MIME mapping for archive file extensions.
         /// </summary>
-        public static ReadOnlyCollection<string> AudioExtensions
+        public static NameValueCollection ArchiveMapping
         {
             get
             {
-                if (s_AudioExtensions == null)
+                if (s_ArchiveMapping == null)
                 {
-                    s_AudioExtensions = new ReadOnlyCollection<string>(new string[] {
-                        ".aif", ".aifc", ".aiff", ".au", ".mid", ".midi", ".mp3", ".ogg", ".ra", ".ram", ".rpm", ".snd", ".tsi", ".wav"
-                    });
+                    s_ArchiveMapping = new NameValueCollection
+                    {
+                        { ".7z", "application/x-7z-compressed" },
+                        { ".gtar", "application/x-gtar" },
+                        { ".gz", "application/x-gzip" },
+                        { ".rar", "application/x-rar-compressed" },
+                        { ".tar", "application/x-tar" },
+                        { ".zip", "application/zip" },
+                        { ".zip", "application/x-zip" },
+                        { ".zip", "application/x-zip-compressed" }
+                    };
                 }
 
-                return s_AudioExtensions;
+                return s_ArchiveMapping;
             }
         }
 
         /// <summary>
-        /// The collection of the text files extensions.
+        /// The MIME mapping for audio file extensions.
         /// </summary>
-        public static ReadOnlyCollection<string> DocumentExtensions
+        public static NameValueCollection AudioMapping
         {
             get
             {
-                if (s_DocumentExtensions == null)
+                if (s_AudioMapping == null)
                 {
-                    s_DocumentExtensions = new ReadOnlyCollection<string>(new string[] {
-                        ".pdf", ".doc", ".docx", ".dotx", ".dotm", ".mpp", ".ppt", ".ppt", ".pptx", ".pptm", ".ppsx", ".ppsm", ".potx", ".potm", ".ppam", ".sldx", ".sldm", ".thmx", ".onetoc", ".xls", ".xlsx", ".xlsm", ".xltx", ".xltm", ".xlsb", ".xlam"
-                    });
+                    s_AudioMapping = new NameValueCollection
+                    {
+                        { ".aif", "audio/aiff" },
+                        { ".aif", "audio/x-aiff" },
+                        { ".aifc", "audio/aiff" },
+                        { ".aifc", "audio/x-aiff" },
+                        { ".aiff", "audio/aiff" },
+                        { ".aiff", "audio/x-aiff" },
+                        { ".au", "audio/basic" },
+                        { ".mid", "audio/midi" },
+                        { ".midi", "audio/midi" },
+                        { ".mp3", "audio/mpeg" },
+                        { ".ogg", "audio/ogg" },
+                        { ".ra", "audio/x-realaudio" },
+                        { ".ram", "audio/x-pn-realaudio" },
+                        { ".rpm", "audio/x-pn-realaudio-plugin" },
+                        { ".snd", "audio/basic" },
+                        { ".tsi", "audio/tsp-audio" },
+                        { ".wav", "audio/wav" },
+                        { ".wav", "audio/x-wav" }
+                    };
                 }
 
-                return s_DocumentExtensions;
+                return s_AudioMapping;
             }
         }
 
         /// <summary>
-        /// The collection of the image files extensions.
+        /// The MIME mapping for Microsoft Office and PDF document file extensions.
         /// </summary>
-        public static ReadOnlyCollection<string> ImageExtensions
+        public static NameValueCollection DocumentMapping
         {
             get
             {
-                if (s_ImageExtensions == null)
-                {
-                    s_ImageExtensions = new ReadOnlyCollection<string>(new string[] {
-                        ".art", ".bmp", ".cod", ".cmx", ".gif", ".ico", ".ief", ".jfif", ".jpg", ".mac",
-                        ".pbm", ".pgm", ".pic", ".png", ".pnm", ".pnt", ".ppm", ".qti", ".ras", ".rgb", ".rf",
-                        ".tif", ".tiff", ".wbmp", ".wdp", ".xbm", ".xpm", ".xwd"
-                    });
-                }
-                return s_ImageExtensions;
+                var mapping = MicrosoftOfficeMapping;
+
+                mapping.Add(".pdf", Pdf);
+
+                return mapping;
             }
         }
 
         /// <summary>
-        /// The collection of the message files extensions.
+        /// The MIME mapping for Microsoft Office document file extensions.
         /// </summary>
-        public static ReadOnlyCollection<string> MessageExtensions
+        public static NameValueCollection MicrosoftOfficeMapping
         {
             get
             {
-                if (s_MessageExtensions == null)
+                if (s_MicrosoftOfficeMapping == null)
                 {
-                    s_MessageExtensions = new ReadOnlyCollection<string>(new string[] {
-                        ".eml", ".msg"
-                    });
+                    s_MicrosoftOfficeMapping = new NameValueCollection
+                    {
+                        // Word
+                        { ".doc", "application/msword" },
+                        { ".docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document" },
+                        { ".docm", "application/vnd.ms-word.document.macroenabled.12" },
+                        { ".dotx", "application/vnd.openxmlformats-officedocument.wordprocessingml.template" },
+                        { ".dotm", "application/vnd.ms-word.template.macroenabled.12" },
+
+                        // Excel
+                        { ".xls", "application/vnd.ms-excel" },
+                        { ".xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" },
+                        { ".xlsm", "application/vnd.ms-excel.sheet.macroenabled.12" },
+                        { ".xltx", "application/vnd.openxmlformats-officedocument.spreadsheetml.template" },
+                        { ".xltm", "application/vnd.ms-excel.template.macroenabled.12" },
+                        { ".xlsb", "application/vnd.ms-excel.sheet.binary.macroenabled.12" },
+                        { ".xlam", "application/vnd.ms-excel.addin.macroenabled.12" },
+
+                        // Power Point
+                        { ".ppt", "application/vnd.ms-powerpoint" },
+                        { ".ppt", "application/mspowerpoint" },
+                        { ".pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation" },
+                        { ".pptm", "application/vnd.ms-powerpoint.presentation.macroenabled.12" },
+                        { ".ppsx", "application/vnd.openxmlformats-officedocument.presentationml.slideshow" },
+                        { ".ppsm", "application/vnd.ms-powerpoint.slideshow.macroenabled.12" },
+                        { ".potx", "application/vnd.openxmlformats-officedocument.presentationml.template" },
+                        { ".potm", "application/vnd.ms-powerpoint.template.macroenabled.12" },
+                        { ".ppam", "application/vnd.ms-powerpoint.addin.macroenabled.12" },
+                        { ".sldx", "application/vnd.openxmlformats-officedocument.presentationml.slide" },
+                        { ".sldm", "application/vnd.ms-powerpoint.slide.macroenabled.12" },
+
+                        // Other
+                        { ".mpp", "application/vnd.ms-project" },
+                        { ".rtf", "text/rtf" },
+                        { ".rtf", "application/rtf" },
+                        { ".onetoc", "application/onenote" },
+                        { ".thmx", "application/vnd.ms-officetheme" }
+                    };
                 }
 
-                return s_MessageExtensions;
+                return s_MicrosoftOfficeMapping;
             }
         }
 
         /// <summary>
-        /// The collection of the text files extensions.
+        /// The MIME mapping for image file extensions.
         /// </summary>
-        public static ReadOnlyCollection<string> TextExtensions
+        public static NameValueCollection ImageMapping
         {
             get
             {
-                if (s_TextExtensions == null)
+                if (s_ImageMapping == null)
                 {
-                    s_TextExtensions = new ReadOnlyCollection<string>(new string[] {
-                        ".csv", ".txt", ".rtf", ".tsv", ".xml"
-                    });
+                    s_ImageMapping = new NameValueCollection
+                    {
+                        { ".art", "image/x-jg" },
+                        { ".bmp", "image/bmp" },
+                        { ".cod", "image/cis-cod" },
+                        { ".cmx", "image/x-cmx" },
+                        { ".gif", "image/gif" },
+                        { ".ico", Icon },
+                        { ".ico", Icon2 },
+                        { ".ief", "image/ief" },
+                        { ".jfif", "image/pjpeg" },
+                        { ".jpg", Jpeg },
+                        { ".jpe", Jpeg },
+                        { ".jpeg", Jpeg },
+                        { ".mac", "image/x-macpaint" },
+                        { ".pbm", "image/x-portable-bitmap" },
+                        { ".pgm", "image/x-portable-graymap" },
+                        { ".pic", "image/pict" },
+                        { ".png", "image/png" },
+                        { ".pnm", "image/x-portable-anymap" },
+                        { ".pnt", "image/x-macpaint" },
+                        { ".pntg", "image/x-macpaint" },
+                        { ".ppm", "image/x-portable-pixmap" },
+                        { ".qti", "image/x-quicktime" },
+                        { ".ras", "image/cmu-raster" },
+                        { ".rgb", "image/x-rgb" },
+                        { ".rf", "image/vnd.rn-realflash" },
+                        { ".tif", "image/tiff" },
+                        { ".tiff", "image/tiff" },
+                        { ".wbmp", "image/vnd.wap.wbmp" },
+                        { ".wdp", "image/vnd.ms-photo" },
+                        { ".xbm", "image/x-xbitmap" },
+                        { ".xpm", "image/x-xpixmap" },
+                        { ".xwd", "image/x-xwindowdump" }
+                    };
                 }
-
-                return s_TextExtensions;
+                return s_ImageMapping;
             }
         }
 
         /// <summary>
-        /// The collection of the video files extensions.
+        /// The MIME mapping for message file extensions.
         /// </summary>
-        public static ReadOnlyCollection<string> VideoExtensions
+        public static NameValueCollection MessageMapping
         {
             get
             {
-                if (s_VideoExtensions == null)
+                if (s_MessageMapping == null)
                 {
-                    s_VideoExtensions = new ReadOnlyCollection<string>(new string[] {
-                        ".asf", ".avi", ".fli", ".flv", ".mov", ".movie", ".mp4", ".mpe", ".mpeg", ".mpg", SwfExtension, ".viv", ".vivo", ".vob", ".wmv"
-                    });
+                    s_MessageMapping = new NameValueCollection
+                    {
+                        { ".eml", "message/rfc822" },
+                        { ".msg", "application/vnd.ms-outlook" }
+                    };
                 }
 
-                return s_VideoExtensions;
+                return s_MessageMapping;
+            }
+        }
+
+        /// <summary>
+        /// The MIME mapping for text file extensions.
+        /// </summary>
+        public static NameValueCollection TextMapping
+        {
+            get
+            {
+                if (s_TextMapping == null)
+                {
+                    s_TextMapping = new NameValueCollection
+                    {
+                        { ".csv", "text/csv" },
+                        { ".ics", Calendar },
+                        { ".ical", Calendar },
+                        { ".ifb", Calendar },
+                        { ".rtx", "text/richtext" },
+                        { ".tsv", "text/tab-separated-values" },
+                        { ".txt", "text/plain" },
+                        { ".xml", "text/xml" }
+                    };
+                }
+
+                return s_TextMapping;
+            }
+        }
+
+        /// <summary>
+        /// The MIME mapping for video file extensions.
+        /// </summary>
+        public static NameValueCollection VideoMapping
+        {
+            get
+            {
+                if (s_VideoMapping == null)
+                {
+                    s_VideoMapping = new NameValueCollection
+                    {
+                        { ".asf", "video/x-ms-asf" },
+                        { ".avi", "video/x-msvideo" },
+                        { ".fli", "video/x-fli" },
+                        { ".flv", "video/x-flv" },
+                        { ".mov", "video/quicktime" },
+                        { ".movie", "video/x-sgi-movie" },
+                        { ".mp4", "video/mp4" },
+                        { ".mpe", "video/mpeg" },
+                        { ".mpeg", "video/mpeg" },
+                        { ".mpg", "video/mpeg" },
+                        { ".qt", "video/quicktime" },
+                        { ".viv", "video/vnd.vivo" },
+                        { ".vivo", "video/vnd.vivo" },
+                        { ".vob", "video/x-ms-vob" },
+                        { ".wmv", "video/x-ms-wmv" },
+                        { SwfExtension, "application/x-shockwave-flash" }
+                    };
+                }
+
+                return s_VideoMapping;
+            }
+        }
+
+        /// <summary>
+        /// The MIME mapping for various file extensions.
+        /// </summary>
+        public static NameValueCollection VariousMapping
+        {
+            get
+            {
+                if (s_VariousMapping == null)
+                {
+                    s_VariousMapping = new NameValueCollection
+                    {
+                        { ".ps", "application/postscript" },
+                        { ".bcpio", "application/x-bcpio" },
+                        { ".bin", Default },
+                        { ".ccad", "application/clariscad" },
+                        { ".cdf", "application/x-netcdf" },
+                        { ".cpio", "application/x-cpio" },
+                        { ".cpt", "application/mac-compactpro" },
+                        { ".csh", "application/x-csh" },
+                        { ".dir", "application/x-director" },
+                        { ".drw", "application/drafting" },
+                        { ".dvi", "application/x-dvi" },
+                        { ".dwg", "application/acad" },
+                        { ".dxf", "application/dxf" },
+                        { ".ez", "application/andrew-inset" },
+                        { ".hdf", "application/x-hdf" },
+                        { ".hqx", "application/mac-binhex40" },
+                        { ".ips", "application/x-ipscript" },
+                        { ".ipx", "application/x-ipix" },
+                        { ".js", "application/javascript" },
+                        { ".js", "application/x-javascript" },
+                        { ".js", "text/javascript" },
+                        { ".latex", "application/x-latex" },
+                        { ".lsp", "application/x-lisp" },
+                        { ".man", "application/x-troff-man" },
+                        { ".me", "application/x-troff-me" },
+                        { ".mif", "application/vnd.mif" },
+                        { ".ms", "application/x-troff-ms" },
+                        { ".oda", "application/oda" },
+                        { ".pgn", "application/x-chess-pgn" },
+                        { ".pre", "application/x-freelance" },
+                        { ".prt", "application/pro_eng" },
+                        { ".roff", "application/x-troff" },
+                        { ".scm", "application/x-lotusscreencam" },
+                        { ".set", "application/set" },
+                        { ".sh", "application/x-sh" },
+                        { ".xap", "application/x-silverlight" },
+                        { ".shar", "application/x-shar" },
+                        { ".sit", "application/x-stuffit" },
+                        { ".skd", "application/x-koan" },
+                        { ".smi", "application/smil" },
+                        { ".sol", "application/solids" },
+                        { ".spl", "application/x-futuresplash" },
+                        { ".src", "application/x-wais-source" },
+                        { ".stp", "application/step" },
+                        { ".stl", "application/sla" },
+                        { ".sv4cpio", "application/x-sv4cpio" },
+                        { ".sv4crc", "application/x-sv4crc" },
+                        { ".tcl", "application/x-tcl" },
+                        { ".tex", "application/x-tex" },
+                        { ".texi", "application/x-texinfo" },
+                        { ".tsp", "application/dsptype" },
+                        { ".unv", "application/i-deas" },
+                        { ".ustar", "application/x-ustar" },
+                        { ".vcd", "application/x-cdlink" },
+                        { ".vda", "application/vda" },
+                        { ".css", "text/css" },
+                        { ".etx", "text/x-setext" },
+                        { ".htm", "text/html" },
+                        { ".sgm", "text/sgml" },
+                        { ".pdb", "chemical/x-pdb" },
+                        { ".igs", "model/iges" },
+                        { ".msh", "model/mesh" },
+                        { ".vrml", "model/vrml" },
+                        { ".mime", "www/mime" },
+                        { ".ice", "x-conference/x-cooltalk" }
+                    };
+                }
+
+                return s_VariousMapping;
             }
         }
 
@@ -195,407 +449,142 @@ namespace Micajah.AzureFileService
 
         #region Private Methods
 
-        private static string GetAudioExtension(string mimeType)
+        private static string GetExtension(string mimeType, NameValueCollection mapping)
         {
-            switch (mimeType)
-            {
-                case "AUDIO/X-AIFF":
-                    return ".aif";
-                case "AUDIO/MIDI":
-                    return ".mid";
-                case "AUDIO/MPEG":
-                    return ".mp3";
-                case "AUDIO/ogg":
-                    return ".ogg";
-                case "AUDIO/X-REALAUDIO":
-                    return ".ra";
-                case "AUDIO/X-PN-REALAUDIO":
-                    return ".ram";
-                case "AUDIO/X-PN-REALAUDIO-PLUGIN":
-                    return ".rpm";
-                case "AUDIO/BASIC":
-                    return ".snd";
-                case "AUDIO/TSP-AUDIO":
-                    return ".tsi";
-                case "AUDIO/X-WAV":
-                    return ".wav";
-            }
-            return null;
-        }
+            string extension = null;
 
-        private static string GetArchiveExtension(string mimeType)
-        {
-            switch (mimeType)
+            if (!string.IsNullOrEmpty(mimeType))
             {
-                case "APPLICATION/X-7Z-COMPRESSED":
-                    return ".7z";
-                case "APPLICATION/X-GTAR":
-                    return ".gtar";
-                case "APPLICATION/X-GZIP":
-                    return ".gz";
-                case "APPLICATION/X-TAR":
-                    return ".tar";
-                case "APPLICATION/X-ZIP-COMPRESSED":
-                    return ".zip";
-                case "APPLICATION/X-ZIP":
-                    return ".zip";
-                case "APPLICATION/ZIP":
-                    return ".zip";
-                case "APPLICATION/X-RAR-COMPRESSED":
-                    return ".rar";
-            }
-            return null;
-        }
-
-        private static string GetApplicationExtension(string mimeType)
-        {
-            switch (mimeType)
-            {
-                case "APPLICATION/POSTSCRIPT":
-                    return ".ps";
-                case "APPLICATION/X-BCPIO":
-                    return ".bcpio";
-                case "APPLICATION/OCTET-STREAM":
-                    return ".bin";
-                case "APPLICATION/CLARISCAD":
-                    return ".ccad";
-                case "APPLICATION/X-NETCDF":
-                    return ".cdf";
-                case "APPLICATION/X-CPIO":
-                    return ".cpio";
-                case "APPLICATION/MAC-COMPACTPRO":
-                    return ".cpt";
-                case "APPLICATION/X-CSH":
-                    return ".csh";
-                case "APPLICATION/X-DIRECTOR":
-                    return ".dir";
-                case "APPLICATION/DRAFTING":
-                    return ".drw";
-                case "APPLICATION/X-DVI":
-                    return ".dvi";
-                case "APPLICATION/ACAD":
-                    return ".dwg";
-                case "APPLICATION/DXF":
-                    return ".dxf";
-                case "APPLICATION/ANDREW-INSET":
-                    return ".ez";
-                case "APPLICATION/X-HDF":
-                    return ".hdf";
-                case "APPLICATION/MAC-BINHEX40":
-                    return ".hqx";
-                case "APPLICATION/X-IPSCRIPT":
-                    return ".ips";
-                case "APPLICATION/X-IPIX":
-                    return ".ipx";
-                case "APPLICATION/X-JAVASCRIPT":
-                    return ".js";
-                case "APPLICATION/X-LATEX":
-                    return ".latex";
-                case "APPLICATION/X-LISP":
-                    return ".lsp";
-                case "APPLICATION/X-TROFF-MAN":
-                    return ".man";
-                case "APPLICATION/X-TROFF-ME":
-                    return ".me";
-                case "APPLICATION/VND.MIF":
-                    return ".mif";
-                case "APPLICATION/X-TROFF-MS":
-                    return ".ms";
-                case "APPLICATION/ODA":
-                    return ".oda";
-                case "APPLICATION/PDF":
-                    return ".pdf";
-                case "APPLICATION/X-CHESS-PGN":
-                    return ".pgn";
-                case "APPLICATION/X-FREELANCE":
-                    return ".pre";
-                case "APPLICATION/PRO_ENG":
-                    return ".prt";
-                case "APPLICATION/X-TROFF":
-                    return ".roff";
-                case "APPLICATION/X-LOTUSSCREENCAM":
-                    return ".scm";
-                case "APPLICATION/SET":
-                    return ".set";
-                case "APPLICATION/X-SH":
-                    return ".sh";
-                case "APPLICATION/X-SILVERLIGHT":
-                    return ".xap";
-                case "APPLICATION/X-SHAR":
-                    return ".shar";
-                case "APPLICATION/X-STUFFIT":
-                    return ".sit";
-                case "APPLICATION/X-KOAN":
-                    return ".skd";
-                case "APPLICATION/SMIL":
-                    return ".smi";
-                case "APPLICATION/SOLIDS":
-                    return ".sol";
-                case "APPLICATION/X-FUTURESPLASH":
-                    return ".spl";
-                case "APPLICATION/X-WAIS-SOURCE":
-                    return ".src";
-                case "APPLICATION/STEP":
-                    return ".stp";
-                case "APPLICATION/SLA":
-                    return ".stl";
-                case "APPLICATION/X-SV4CPIO":
-                    return ".sv4cpio";
-                case "APPLICATION/X-SV4CRC":
-                    return ".sv4crc";
-                case "APPLICATION/X-SHOCKWAVE-FLASH":
-                    return SwfExtension;
-                case "APPLICATION/X-TCL":
-                    return ".tcl";
-                case "APPLICATION/X-TEX":
-                    return ".tex";
-                case "APPLICATION/X-TEXINFO":
-                    return ".texi";
-                case "APPLICATION/DSPTYPE":
-                    return ".tsp";
-                case "APPLICATION/I-DEAS":
-                    return ".unv";
-                case "APPLICATION/X-USTAR":
-                    return ".ustar";
-                case "APPLICATION/X-CDLINK":
-                    return ".vcd";
-                case "APPLICATION/VDA":
-                    return ".vda";
-            }
-            return null;
-        }
-
-        private static string GetMessageExtension(string mimeType)
-        {
-            switch (mimeType)
-            {
-                case "MESSAGE/RFC822":
-                    return ".eml";
-                case "APPLICATION/VND.MS-OUTLOOK":
-                    return ".msg";
-            }
-            return null;
-        }
-
-        private static string GetMicrosoftWordExtension(string mimeType)
-        {
-            switch (mimeType)
-            {
-                case "APPLICATION/MSWORD":
-                    return ".doc";
-                case "APPLICATION/VND.OPENXMLFORMATS-OFFICEDOCUMENT.WORDPROCESSINGML.DOCUMENT":
-                    return ".docx";
-                case "APPLICATION/VND.MS-WORD.DOCUMENT.MACROENABLED.12":
-                    return ".docm";
-                case "APPLICATION/VND.OPENXMLFORMATS-OFFICEDOCUMENT.WORDPROCESSINGML.TEMPLATE":
-                    return ".dotx";
-                case "APPLICATION/VND.MS-WORD.TEMPLATE.MACROENABLED.12":
-                    return ".dotm";
-            }
-            return null;
-        }
-
-        private static string GetMicrosoftExcelExtension(string mimeType)
-        {
-            switch (mimeType)
-            {
-                case "APPLICATION/VND.MS-EXCEL":
-                    return ".xls";
-                case "APPLICATION/VND.OPENXMLFORMATS-OFFICEDOCUMENT.SPREADSHEETML.SHEET":
-                    return ".xlsx";
-                case "APPLICATION/VND.MS-EXCEL.SHEET.MACROENABLED.12":
-                    return ".xlsm";
-                case "APPLICATION/VND.OPENXMLFORMATS-OFFICEDOCUMENT.SPREADSHEETML.TEMPLATE":
-                    return ".xltx";
-                case "APPLICATION/VND.MS-EXCEL.TEMPLATE.MACROENABLED.12":
-                    return ".xltm";
-                case "APPLICATION/VND.MS-EXCEL.SHEET.BINARY.MACROENABLED.12":
-                    return ".xlsb";
-                case "APPLICATION/VND.MS-EXCEL.ADDIN.MACROENABLED.12":
-                    return ".xlam";
-            }
-            return null;
-        }
-
-        private static string GetMicrosoftPowerPointExtension(string mimeType)
-        {
-            switch (mimeType)
-            {
-                case "APPLICATION/MSPOWERPOINT":
-                    return ".ppt";
-                case "APPLICATION/VND.MS-POWERPOINT":
-                    return ".ppt";
-                case "APPLICATION/VND.OPENXMLFORMATS-OFFICEDOCUMENT.PRESENTATIONML.PRESENTATION":
-                    return ".pptx";
-                case "APPLICATION/VND.MS-POWERPOINT.PRESENTATION.MACROENABLED.12":
-                    return ".pptm";
-                case "APPLICATION/VND.OPENXMLFORMATS-OFFICEDOCUMENT.PRESENTATIONML.SLIDESHOW":
-                    return ".ppsx";
-                case "APPLICATION/VND.MS-POWERPOINT.SLIDESHOW.MACROENABLED.12":
-                    return ".ppsm";
-                case "APPLICATION/VND.OPENXMLFORMATS-OFFICEDOCUMENT.PRESENTATIONML.TEMPLATE":
-                    return ".potx";
-                case "APPLICATION/VND.MS-POWERPOINT.TEMPLATE.MACROENABLED.12":
-                    return ".potm";
-                case "APPLICATION/VND.MS-POWERPOINT.ADDIN.MACROENABLED.12":
-                    return ".ppam";
-                case "APPLICATION/VND.OPENXMLFORMATS-OFFICEDOCUMENT.PRESENTATIONML.SLIDE":
-                    return ".sldx";
-                case "APPLICATION/VND.MS-POWERPOINT.SLIDE.MACROENABLED.12":
-                    return ".sldm";
-            }
-            return null;
-        }
-
-        private static string GetMicrosoftOfficeExtension(string mimeType)
-        {
-            string extension = GetMicrosoftWordExtension(mimeType) ?? GetMicrosoftExcelExtension(mimeType) ?? GetMicrosoftPowerPointExtension(mimeType);
-
-            if (extension == null)
-            {
-                switch (mimeType)
-                {
-                    case "APPLICATION/VND.MS-OFFICETHEME":
-                        return ".thmx";
-                    case "APPLICATION/VND.MS-PROJECT":
-                        return ".mpp";
-                    case "APPLICATION/ONENOTE":
-                        return ".onetoc";
-                }
+                extension = mapping.AllKeys.FirstOrDefault(key => mapping[key].Split(',').Contains(mimeType));
             }
 
             return extension;
         }
 
-        private static string GetImageExtension(string mimeType)
+        private static string GetMimeType(string fileName, NameValueCollection mapping)
         {
-            switch (mimeType)
+            string extension = System.IO.Path.GetExtension(fileName).ToLowerInvariant();
+
+            string mimeType = mapping[extension];
+
+            if (mimeType != null)
             {
-                case "IMAGE/BMP":
-                    return ".bmp";
-                case "IMAGE/CIS-COD":
-                    return ".cod";
-                case "IMAGE/GIF":
-                    return ".gif";
-                case "IMAGE/IEF":
-                    return ".ief";
-                case "IMAGE/JPEG":
-                    return ".jpg";
-                case "IMAGE/PJPEG":
-                    return ".jfif";
-                case "IMAGE/X-CMX":
-                    return ".cmx";
-                case "IMAGE/X-JG":
-                    return ".art";
-                case "IMAGE/X-ICON":
-                    return ".ico";
-                case "IMAGE/X-MACPAINT":
-                    return ".mac";
-                case "IMAGE/X-PORTABLE-BITMAP":
-                    return ".pbm";
-                case "IMAGE/X-PORTABLE-GRAYMAP":
-                    return ".pgm";
-                case "IMAGE/PICT":
-                    return ".pic";
-                case "IMAGE/PNG":
-                    return ".png";
-                case "IMAGE/X-PORTABLE-ANYMAP":
-                    return ".pnm";
-                case "IMAGE/X-PORTABLE-PIXMAP":
-                    return ".ppm";
-                case "IMAGE/X-QUICKTIME":
-                    return ".qti";
-                case "IMAGE/CMU-RASTER":
-                    return ".ras";
-                case "IMAGE/VND.RN-REALFLASH":
-                    return ".rf";
-                case "IMAGE/X-RGB":
-                    return ".rgb";
-                case "IMAGE/TIFF":
-                    return ".tif";
-                case "IMAGE/VND.WAP.WBMP":
-                    return ".wbmp";
-                case "IMAGE/VND.MS-PHOTO":
-                    return ".wdp";
-                case "IMAGE/X-XBITMAP":
-                    return ".xbm";
-                case "IMAGE/X-XPIXMAP":
-                    return ".xpm";
-                case "IMAGE/X-XWINDOWDUMP":
-                    return ".xwd";
+                mimeType = mimeType.Split(',')[0];
             }
-            return null;
+            else
+            {
+                mimeType = MimeMapping.GetMimeMapping(fileName);
+            }
+
+            return mimeType;
         }
 
-        private static string GetMarkupExtension(string mimeType)
+        private static bool IsKnown(string mimeType, NameValueCollection mapping)
         {
-            switch (mimeType)
-            {
-                case "TEXT/CSS":
-                    return ".css";
-                case "TEXT/X-SETEXT":
-                    return ".etx";
-                case "TEXT/HTML":
-                    return ".htm";
-                case "TEXT/SGML":
-                    return ".sgm";
-            }
-            return null;
-        }
+            string extension = GetExtension(mimeType.ToLowerInvariant(), mapping);
 
-        private static string GetTextExtension(string mimeType)
-        {
-            switch (mimeType)
-            {
-                case "TEXT/CSV":
-                    return ".csv";
-                case "TEXT/PLAIN":
-                    return ".txt";
-                case "TEXT/RTF":
-                    return ".rtf";
-                case "TEXT/RICHTEXT":
-                    return ".rtx";
-                case "TEXT/TAB-SEPARATED-VALUES":
-                    return ".tsv";
-                case "TEXT/XML":
-                    return ".xml";
-            }
-            return null;
-        }
-
-        private static string GetVideoExtension(string mimeType)
-        {
-            switch (mimeType)
-            {
-                case "VIDEO/X-MSVIDEO":
-                    return ".avi";
-                case "VIDEO/X-FLI":
-                    return ".fli";
-                case "VIDEO/QUICKTIME":
-                    return ".qt";
-                case "VIDEO/X-SGI-MOVIE":
-                    return ".movie";
-                case "VIDEO/MP4":
-                    return ".mp4";
-                case "VIDEO/MPEG":
-                    return ".mpg";
-                case "VIDEO/VND.VIVO":
-                    return ".viv";
-                case "VIDEO/X-MS-VOB":
-                    return ".vob";
-                case "VIDEO/X-MS-ASF":
-                    return ".asf";
-                case "VIDEO/X-MS-WMV":
-                    return ".wmv";
-                case "VIDEO/X-FLV":
-                    return ".flv";
-            }
-            return null;
+            return !string.IsNullOrEmpty(extension);
         }
 
         #endregion
 
         #region Public Methods
+
+        /// <summary>
+        /// Returns image format associated to the specified MIME type.
+        /// </summary>
+        /// <param name="mimeType">The string that contains the MIME type.</param>
+        /// <returns>An image format, if it is found; otherwise null reference.</returns>
+        public static ImageFormat GetImageFormat(string mimeType)
+        {
+            ImageCodecInfo[] imageCodecs = ImageCodecInfo.GetImageEncoders();
+
+            ImageCodecInfo imageCodec = imageCodecs.FirstOrDefault(codec => codec.MimeType == mimeType);
+
+            return imageCodec != null ? new ImageFormat(imageCodec.FormatID) : null;
+        }
+
+        /// <summary>
+        /// Returns the file extension by specified MIME type.
+        /// </summary>
+        /// <param name="mimeType">The string that contains the MIME type.</param>
+        /// <returns>The file extension for the MIME type or empty string, if the MIME type is not found.</returns>
+        public static string GetExtension(string mimeType)
+        {
+            string extension = null;
+
+            if (!string.IsNullOrEmpty(mimeType))
+            {
+                extension = GetExtension(mimeType.ToLowerInvariant(), Mapping);
+            }
+
+            return extension ?? string.Empty;
+        }
+
+        /// <summary>
+        /// Returns the file extensions by specified MIME type names (archive, audio, document, image, text, video).
+        /// </summary>
+        /// <param name="mimeTypeNames">The array of strings that contains the MIME type names.</param>
+        /// <returns>The file extensions for the MIME type names (archive, audio, document, image, text, video).</returns>
+        public static string[] GetExtensions(string[] mimeTypeNames)
+        {
+            List<string> extensions = new List<string>();
+
+            if (mimeTypeNames != null)
+            {
+                foreach (string name in mimeTypeNames)
+                {
+                    switch (name.ToLowerInvariant())
+                    {
+                        case "archive":
+                            extensions.AddRange(ArchiveMapping.AllKeys);
+                            break;
+                        case "audio":
+                            extensions.AddRange(AudioMapping.AllKeys);
+                            break;
+                        case "document":
+                            extensions.AddRange(DocumentMapping.AllKeys);
+                            break;
+                        case "image":
+                            extensions.AddRange(ImageMapping.AllKeys);
+                            break;
+                        case "message":
+                            extensions.AddRange(MessageMapping.AllKeys);
+                            break;
+                        case "text":
+                            extensions.AddRange(TextMapping.AllKeys);
+                            break;
+                        case "video":
+                            extensions.AddRange(VideoMapping.AllKeys);
+                            break;
+                    }
+                }
+            }
+
+            var result = extensions.Distinct().ToArray();
+
+            return result;
+        }
+
+        /// <summary>
+        /// Returns the MIME type for the specified file name.
+        /// </summary>
+        /// <param name="fileName">The file name that is used to determine the MIME type.</param>
+        /// <returns>The MIME type for the specified file name.</returns>
+        public static string GetMimeType(string fileName)
+        {
+            return GetMimeType(fileName, Mapping);
+        }
+
+        /// <summary>
+        /// Determines whether the specified MIME type is empty or default (application/octet-stream).
+        /// </summary>
+        /// <param name="mimeType">The string that contains the MIME type to check.</param>
+        /// <returns>true, if the specified MIME type is empty or default (application/octet-stream); otherwise, false.</returns>
+        public static bool IsEmptyOrDefault(string mimeType)
+        {
+            return string.IsNullOrEmpty(mimeType) || string.Compare(mimeType, Default, StringComparison.OrdinalIgnoreCase) == 0;
+        }
 
         /// <summary>
         /// Determines whether the specified MIME type is flash.
@@ -615,30 +604,6 @@ namespace Micajah.AzureFileService
         public static bool IsHtml(string mimeType)
         {
             return (string.Compare(mimeType, Html, StringComparison.OrdinalIgnoreCase) == 0);
-        }
-
-        /// <summary>
-        /// Determines whether the specified MIME type is image type.
-        /// </summary>
-        /// <param name="mimeType">The string that contains the MIME type to check.</param>
-        /// <returns>true, if the specified MIME type is image type; otherwise, false.</returns>
-        public static bool IsImageType(string mimeType)
-        {
-            if (!string.IsNullOrEmpty(mimeType))
-                return mimeType.StartsWith("image/", StringComparison.OrdinalIgnoreCase);
-            return false;
-        }
-
-        /// <summary>
-        /// Determines whether the specified MIME type is video type.
-        /// </summary>
-        /// <param name="mimeType">The string that contains the MIME type to check.</param>
-        /// <returns>true, if the specified MIME type is video type; otherwise, false.</returns>
-        public static bool IsVideoType(string mimeType)
-        {
-            if (!string.IsNullOrEmpty(mimeType))
-                return mimeType.StartsWith("video/", StringComparison.OrdinalIgnoreCase);
-            return false;
         }
 
         /// <summary>
@@ -662,46 +627,38 @@ namespace Micajah.AzureFileService
         }
 
         /// <summary>
-        /// Determines whether the specified MIME type is Microsoft Office document.
+        /// Determines whether the specified MIME type is audio.
         /// </summary>
         /// <param name="mimeType">The string that contains the MIME type to check.</param>
-        /// <returns>true, if the specified MIME type is Microsoft Office document; otherwise, false.</returns>
-        public static bool IsMicrosoftOffice(string mimeType)
+        /// <returns>true, if the specified MIME type is audio; otherwise, false.</returns>
+        public static bool IsAudio(string mimeType)
         {
             if (!string.IsNullOrEmpty(mimeType))
-            {
-                string extension = GetMicrosoftOfficeExtension(mimeType.ToUpperInvariant());
-
-                return !string.IsNullOrEmpty(extension);
-            }
-
+                return mimeType.StartsWith(AudioPrefix, StringComparison.OrdinalIgnoreCase);
             return false;
         }
 
         /// <summary>
-        /// Determines whether the specified MIME type is PDF or Microsoft Office document.
+        /// Determines whether the specified MIME type is image type.
         /// </summary>
         /// <param name="mimeType">The string that contains the MIME type to check.</param>
-        /// <returns>true, if the specified MIME type is PDF or Microsoft Office document; otherwise, false.</returns>
-        public static bool IsDocument(string mimeType)
+        /// <returns>true, if the specified MIME type is image type; otherwise, false.</returns>
+        public static bool IsImage(string mimeType)
         {
-            return IsPdf(mimeType) || IsMicrosoftOffice(mimeType);
+            if (!string.IsNullOrEmpty(mimeType))
+                return mimeType.StartsWith(ImagePrefix, StringComparison.OrdinalIgnoreCase);
+            return false;
         }
 
         /// <summary>
-        /// Determines whether the specified MIME type is text.
+        /// Determines whether the specified MIME type is video type.
         /// </summary>
         /// <param name="mimeType">The string that contains the MIME type to check.</param>
-        /// <returns>true, if the specified MIME type is text; otherwise, false.</returns>
-        public static bool IsText(string mimeType)
+        /// <returns>true, if the specified MIME type is video type; otherwise, false.</returns>
+        public static bool IsVideo(string mimeType)
         {
             if (!string.IsNullOrEmpty(mimeType))
-            {
-                string extension = GetTextExtension(mimeType.ToUpperInvariant());
-
-                return !string.IsNullOrEmpty(extension);
-            }
-
+                return mimeType.StartsWith(VideoPrefix, StringComparison.OrdinalIgnoreCase);
             return false;
         }
 
@@ -712,26 +669,27 @@ namespace Micajah.AzureFileService
         /// <returns>true, if the specified MIME type is archive; otherwise, false.</returns>
         public static bool IsArchive(string mimeType)
         {
-            if (!string.IsNullOrEmpty(mimeType))
-            {
-                string extension = GetArchiveExtension(mimeType.ToUpperInvariant());
-
-                return !string.IsNullOrEmpty(extension);
-            }
-
-            return false;
+            return IsKnown(mimeType, ArchiveMapping);
         }
 
         /// <summary>
-        /// Determines whether the specified MIME type is audio.
+        /// Determines whether the specified MIME type is Microsoft Office or PDF document.
         /// </summary>
         /// <param name="mimeType">The string that contains the MIME type to check.</param>
-        /// <returns>true, if the specified MIME type is audio; otherwise, false.</returns>
-        public static bool IsAudio(string mimeType)
+        /// <returns>true, if the specified MIME type is Microsoft Office or PDF document; otherwise, false.</returns>
+        public static bool IsDocument(string mimeType)
         {
-            if (!string.IsNullOrEmpty(mimeType))
-                return mimeType.StartsWith("audio/", StringComparison.OrdinalIgnoreCase);
-            return false;
+            return IsKnown(mimeType, DocumentMapping);
+        }
+
+        /// <summary>
+        /// Determines whether the specified MIME type is Microsoft Office document.
+        /// </summary>
+        /// <param name="mimeType">The string that contains the MIME type to check.</param>
+        /// <returns>true, if the specified MIME type is Microsoft Office document; otherwise, false.</returns>
+        public static bool IsMicrosoftOffice(string mimeType)
+        {
+            return IsKnown(mimeType, MicrosoftOfficeMapping);
         }
 
         /// <summary>
@@ -741,115 +699,97 @@ namespace Micajah.AzureFileService
         /// <returns>true, if the specified MIME type is message; otherwise, false.</returns>
         public static bool IsMessage(string mimeType)
         {
-            if (!string.IsNullOrEmpty(mimeType))
-            {
-                string extension = GetMessageExtension(mimeType.ToUpperInvariant());
-
-                return !string.IsNullOrEmpty(extension);
-            }
-
-            return false;
+            return IsKnown(mimeType, MessageMapping);
         }
 
         /// <summary>
-        /// Returns image format associated to the specified MIME type.
+        /// Determines whether the specified MIME type is text.
         /// </summary>
-        /// <param name="mimeType">The string that contains the MIME type.</param>
-        /// <returns>An image format, if it is found; otherwise null reference.</returns>
-        public static ImageFormat GetImageFormat(string mimeType)
+        /// <param name="mimeType">The string that contains the MIME type to check.</param>
+        /// <returns>true, if the specified MIME type is text; otherwise, false.</returns>
+        public static bool IsText(string mimeType)
         {
-            ImageCodecInfo[] imageCodecs = ImageCodecInfo.GetImageEncoders();
-            ImageCodecInfo imageCodec = imageCodecs.First(codec => codec.MimeType == mimeType);
-            if (imageCodec != null)
-            {
-                return new ImageFormat(imageCodec.FormatID);
-            }
-
-            return null;
+            return IsKnown(mimeType, TextMapping);
         }
 
         /// <summary>
-        /// Returns a file extension by specified MIME type.
+        /// Determines whether the specified file is archive.
         /// </summary>
-        /// <param name="mimeType">The string that contains the MIME type.</param>
-        /// <returns>The file extension for the MIME type or empty string, if the MIME type is not found.</returns>
-        public static string GetFileExtension(string mimeType)
+        /// <param name="fileName">The string that contains the file name to check.</param>
+        /// <returns>true, if the specified file is archive; otherwise, false.</returns>
+        public static bool IsArchiveFile(string fileName)
         {
-            string extension = null;
-
-            if (!string.IsNullOrEmpty(mimeType))
-            {
-                mimeType = mimeType.ToUpperInvariant();
-
-                extension = GetApplicationExtension(mimeType) ?? GetArchiveExtension(mimeType) ?? GetMicrosoftOfficeExtension(mimeType) ?? GetImageExtension(mimeType) ?? GetAudioExtension(mimeType) ??
-                    GetVideoExtension(mimeType) ?? GetTextExtension(mimeType) ?? GetMessageExtension(mimeType) ?? GetMarkupExtension(mimeType);
-
-                if (extension == null)
-                {
-                    switch (mimeType)
-                    {
-                        case "CHEMICAL/X-PDB":
-                            return ".pdb";
-                        case "MODEL/IGES":
-                            return ".igs";
-                        case "MODEL/MESH":
-                            return ".msh";
-                        case "MODEL/VRML":
-                            return ".vrml";
-                        case "WWW/MIME":
-                            return ".mime";
-                        case "X-CONFERENCE/X-COOLTALK":
-                            return ".ice";
-                    }
-                }
-            }
-
-            return extension ?? string.Empty;
+            return IsArchive(GetMimeType(fileName, ArchiveMapping));
         }
 
         /// <summary>
-        /// Returns the file extensions by specified MIME type names (archive, audio, document, image, text, video).
+        /// Determines whether the specified file is audio.
         /// </summary>
-        /// <param name="mimeTypeNames">The array of strings that contains the MIME type names.</param>
-        /// <returns>The file extensions for the MIME type names (archive, audio, document, image, text, video).</returns>
-        public static string[] GetFileExtensions(string[] mimeTypeNames)
+        /// <param name="fileName">The string that contains the file name to check.</param>
+        /// <returns>true, if the specified file is audio; otherwise, false.</returns>
+        public static bool IsAudioFile(string fileName)
         {
-            List<string> extensions = new List<string>();
+            return IsAudio(GetMimeType(fileName, AudioMapping));
+        }
 
-            if (mimeTypeNames != null)
-            {
-                foreach (string name in mimeTypeNames)
-                {
-                    switch (name.ToUpperInvariant())
-                    {
-                        case "ARCHIVE":
-                            extensions.AddRange(ArchiveExtensions);
-                            break;
-                        case "AUDIO":
-                            extensions.AddRange(AudioExtensions);
-                            break;
-                        case "DOCUMENT":
-                            extensions.AddRange(DocumentExtensions);
-                            break;
-                        case "IMAGE":
-                            extensions.AddRange(ImageExtensions);
-                            break;
-                        case "MESSAGE":
-                            extensions.AddRange(MessageExtensions);
-                            break;
-                        case "TEXT":
-                            extensions.AddRange(TextExtensions);
-                            break;
-                        case "VIDEO":
-                            extensions.AddRange(VideoExtensions);
-                            break;
-                    }
-                }
-            }
+        /// <summary>
+        /// Determines whether the specified file is Microsoft Office or PDF document.
+        /// </summary>
+        /// <param name="fileName">The string that contains the file name to check.</param>
+        /// <returns>true, if the specified file is Microsoft Office or PDF; otherwise, false.</returns>
+        public static bool IsDocumentFile(string fileName)
+        {
+            return IsDocument(GetMimeType(fileName, DocumentMapping));
+        }
 
-            var result = extensions.Distinct().ToArray();
+        /// <summary>
+        /// Determines whether the specified file is Microsoft Office document.
+        /// </summary>
+        /// <param name="fileName">The string that contains the file name to check.</param>
+        /// <returns>true, if the specified file is Microsoft Office; otherwise, false.</returns>
+        public static bool IsMicrosoftOfficeFile(string fileName)
+        {
+            return IsMicrosoftOffice(GetMimeType(fileName, MicrosoftOfficeMapping));
+        }
 
-            return result;
+        /// <summary>
+        /// Determines whether the specified file is image.
+        /// </summary>
+        /// <param name="fileName">The string that contains the file name to check.</param>
+        /// <returns>true, if the specified file is image; otherwise, false.</returns>
+        public static bool IsImageFile(string fileName)
+        {
+            return IsImage(GetMimeType(fileName, ImageMapping));
+        }
+
+        /// <summary>
+        /// Determines whether the specified file is message.
+        /// </summary>
+        /// <param name="fileName">The string that contains the file name to check.</param>
+        /// <returns>true, if the specified file is message; otherwise, false.</returns>
+        public static bool IsMessageFile(string fileName)
+        {
+            return IsMessage(GetMimeType(fileName, MessageMapping));
+        }
+
+        /// <summary>
+        /// Determines whether the specified file is text.
+        /// </summary>
+        /// <param name="fileName">The string that contains the file name to check.</param>
+        /// <returns>true, if the specified file is text; otherwise, false.</returns>
+        public static bool IsTextFile(string fileName)
+        {
+            return IsText(GetMimeType(fileName, TextMapping));
+        }
+
+        /// <summary>
+        /// Determines whether the specified file is video.
+        /// </summary>
+        /// <param name="fileName">The string that contains the file name to check.</param>
+        /// <returns>true, if the specified file is video; otherwise, false.</returns>
+        public static bool IsVideoFile(string fileName)
+        {
+            return IsVideo(GetMimeType(fileName, VideoMapping));
         }
 
         #endregion

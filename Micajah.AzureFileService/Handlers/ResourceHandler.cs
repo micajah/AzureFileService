@@ -89,7 +89,7 @@ namespace Micajah.AzureFileService
                             if (bytes != null)
                             {
                                 context.Response.Clear();
-                                context.Response.ContentType = MimeMapping.GetMimeMapping(resourceName);
+                                context.Response.ContentType = MimeType.GetMimeType(resourceName);
                                 context.Response.Cache.SetExpires(DateTime.UtcNow.AddYears(1));
                                 context.Response.Cache.SetCacheability(HttpCacheability.Public);
                                 if (bytes.Length > 0)

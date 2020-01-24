@@ -1,6 +1,5 @@
 ﻿using Micajah.AzureFileService.Properties;
 using System;
-using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 
@@ -62,7 +61,7 @@ namespace Micajah.AzureFileService.WebControls
 
                 link.Text = file.Name;
                 link.NavigateUrl = file.Url;
-                if ((string.Compare(extension, MimeType.SwfExtension, StringComparison.OrdinalIgnoreCase) == 0) || MimeType.IsImageType(MimeMapping.GetMimeMapping(extension)))
+                if ((string.Compare(extension, MimeType.SwfExtension, StringComparison.OrdinalIgnoreCase) == 0) || MimeType.IsImageFile(extension))
                 {
                     link.Target = "_blank";
                     link.Attributes["rel"] = "noopener";

@@ -480,7 +480,7 @@ namespace Micajah.AzureFileService.WebControls
                 }
                 else
                 {
-                    string fileExtension = MimeType.GetFileExtension(mimeType);
+                    string fileExtension = MimeType.GetExtension(mimeType);
 
                     if (string.Compare(item, fileExtension, StringComparison.OrdinalIgnoreCase) == 0)
                     {

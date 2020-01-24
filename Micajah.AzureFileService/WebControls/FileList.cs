@@ -74,7 +74,7 @@ namespace Micajah.AzureFileService.WebControls
             {
                 List<string> extensions = new List<string>(FileExtensionsFilter);
 
-                extensions.AddRange(MimeType.GetFileExtensions(FileExtensionsFilter));
+                extensions.AddRange(MimeType.GetExtensions(FileExtensionsFilter));
 
                 var result = extensions.Distinct().ToArray();
 
@@ -107,11 +107,11 @@ namespace Micajah.AzureFileService.WebControls
                     {
                         foreach (string extension in extensions)
                         {
-                            if (string.Compare(extension, "VIDEO", StringComparison.OrdinalIgnoreCase) != 0)
+                            if (string.Compare(extension, "video", StringComparison.OrdinalIgnoreCase) != 0)
                             {
-                                string mimeType = MimeMapping.GetMimeMapping(extension);
+                                string mimeType = MimeType.GetMimeType(extension);
 
-                                if (!(MimeType.IsVideoType(mimeType) || MimeType.IsFlash(mimeType)))
+                                if (!(MimeType.IsVideo(mimeType) || MimeType.IsFlash(mimeType)))
                                 {
                                     return m_ShowVideoOnly.Value;
                                 }
@@ -581,7 +581,7 @@ namespace Micajah.AzureFileService.WebControls
 
         private static string GetNonImageFileTypeIconUrl(string fileName, IconSize iconSize)
         {
-            return (MimeType.IsImageType(MimeMapping.GetMimeMapping(fileName)) ? null : GetFileTypeIconUrl(fileName, iconSize));
+            return (MimeType.IsImageFile(fileName) ? null : GetFileTypeIconUrl(fileName, iconSize));
         }
 
         private void ApplyStyle()
@@ -801,7 +801,7 @@ namespace Micajah.AzureFileService.WebControls
                         {
                             link.CssClass = "flFileName";
 
-                            if (MimeType.IsImageType(MimeMapping.GetMimeMapping(file.Name)))
+                            if (MimeType.IsImageFile(file.Name))
                             {
                                 string thumbUrl = (this.EnableThumbnails ? this.FileManager.GetThumbnailUrl(file.FileId, 600, 500, 1, true) : file.Url);
                                 string content = string.Format(CultureInfo.InvariantCulture, ToolTipBigHtml, file.Url, file.Name, thumbUrl);

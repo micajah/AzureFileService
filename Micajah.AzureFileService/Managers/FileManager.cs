@@ -193,7 +193,15 @@ namespace Micajah.AzureFileService
                         string fileName = GetNameFromFileId(tempBlob.Name);
                         string blobName = GetFileId(fileName);
 
-                        if (MimeType.IsImageType(tempBlob.Properties.ContentType))
+                        // Fixes content type.
+                        if (MimeType.IsEmptyOrDefault(tempBlob.Properties.ContentType))
+                        {
+                            tempBlob.Properties.ContentType = MimeType.GetMimeType(blobName);
+
+                            tempBlob.SetProperties();
+                        }
+
+                        if (MimeType.IsImage(tempBlob.Properties.ContentType))
                         {
                             RotateFlipImageByOrientation(tempBlob);
 
@@ -376,11 +384,6 @@ namespace Micajah.AzureFileService
             return blob;
         }
 
-        private static bool IsImageBlob(string fileId)
-        {
-            return MimeType.IsImageType(MimeMapping.GetMimeMapping(fileId));
-        }
-
         private static List<IListBlobItem> ListBlobs(CloudBlobContainer container, string prefix, bool useFlatBlobListing = false)
         {
             List<IListBlobItem> list = null;
@@ -512,7 +515,7 @@ namespace Micajah.AzureFileService
         {
             byte[] bytes = null;
 
-            if (MimeType.IsImageType(contentType))
+            if (MimeType.IsImage(contentType))
             {
                 bytes = RotateFlipImageByOrientation(contentType, buffer);
             }
@@ -528,7 +531,7 @@ namespace Micajah.AzureFileService
 
         private static void UploadBlobFromStream(CloudBlockBlob blob, string contentType, Stream source)
         {
-            if (MimeType.IsImageType(contentType))
+            if (MimeType.IsImage(contentType))
             {
                 byte[] bytes = RotateFlipImageByOrientation(contentType, source);
 
@@ -834,7 +837,7 @@ namespace Micajah.AzureFileService
         {
             if (!string.IsNullOrEmpty(fileId))
             {
-                if (IsImageBlob(fileId))
+                if (MimeType.IsImageFile(fileId))
                 {
                     this.DeleteThumbnails(fileId);
                 }
@@ -1008,13 +1011,13 @@ namespace Micajah.AzureFileService
                     }
 
                     contentType = parts2[0];
-                    fileName = Guid.NewGuid().ToString("N").Substring(0, 12) + MimeType.GetFileExtension(contentType);
+                    fileName = Guid.NewGuid().ToString("N").Substring(0, 12) + MimeType.GetExtension(contentType);
                 }
                 else if (fileUrl.StartsWith(Uri.UriSchemeHttp + Uri.SchemeDelimiter, StringComparison.OrdinalIgnoreCase) ||
                     fileUrl.StartsWith(Uri.UriSchemeHttps + Uri.SchemeDelimiter, StringComparison.OrdinalIgnoreCase))
                 {
                     fileName = Path.GetFileName(fileUrl.Split('?')[0]);
-                    contentType = MimeMapping.GetMimeMapping(fileName);
+                    contentType = MimeType.GetMimeType(fileName);
 
                     string responseContentType = null;
 
@@ -1030,7 +1033,7 @@ namespace Micajah.AzureFileService
 
                     if (!string.IsNullOrEmpty(responseContentType) && string.Compare(responseContentType, contentType, StringComparison.OrdinalIgnoreCase) != 0)
                     {
-                        fileName = Path.GetFileNameWithoutExtension(fileName) + MimeType.GetFileExtension(responseContentType);
+                        fileName = Path.GetFileNameWithoutExtension(fileName) + MimeType.GetExtension(responseContentType);
                         contentType = responseContentType;
                     }
                 }
