@@ -172,7 +172,7 @@ namespace Micajah.AzureFileService
         {
             get
             {
-                var mapping = MicrosoftOfficeMapping;
+                var mapping = new NameValueCollection(MicrosoftOfficeMapping);
 
                 mapping.Add(".pdf", Pdf);
 
