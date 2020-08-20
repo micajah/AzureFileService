@@ -295,11 +295,19 @@ namespace Micajah.AzureFileService
             string objectType = parts[0];
             string objectId = parts[1];
 
-            string url = blob.Uri.ToString();
+
+            string sas = string.Empty;
             if (readAccessPolicy != null)
             {
-                string sas = blob.GetSharedAccessSignature(readAccessPolicy);
-                url = string.Format(CultureInfo.InvariantCulture, "{0}{1}", url, sas);
+                sas = blob.GetSharedAccessSignature(readAccessPolicy);
+            }
+
+            string url = string.Format(CultureInfo.InvariantCulture, "{0}{1}", blob.Uri, sas);
+
+            string secondaryUrl = null;
+            if (!string.IsNullOrWhiteSpace(Settings.FileSecondaryUrl))
+            {
+                secondaryUrl = string.Format(CultureInfo.InvariantCulture, "{0}{1}{2}", Settings.FileSecondaryUrl, blob.Uri.AbsolutePath, sas);
             }
 
             return new File()
@@ -310,6 +318,7 @@ namespace Micajah.AzureFileService
                 ContentType = props.ContentType,
                 FullName = blob.Name,
                 Url = url,
+                SecondaryUrl = secondaryUrl,
                 LastModified = props.LastModified.Value.DateTime,
                 ObjectType = objectType,
                 ObjectId = objectId

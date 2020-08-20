@@ -37,6 +37,11 @@ namespace Micajah.AzureFileService
         public string Url { get; set; }
 
         /// <summary>
+        /// Gets or sets the file's secondary URI.
+        /// </summary>
+        public string SecondaryUrl { get; set; }
+
+        /// <summary>
         /// Gets or sets the time, in coordinated universal time (UTC), when the file was last modified.
         /// </summary>
         public DateTime LastModified { get; set; }

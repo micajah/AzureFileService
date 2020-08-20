@@ -8,6 +8,7 @@ namespace Micajah.AzureFileService
     {
         #region Constants
 
+        private const string FileSecondaryUrlKey = "mafs:FileSecondaryUrl";
         private const string SharedAccessExpiryTimeKey = "mafs:SharedAccessExpiryTime";
         private const string ClientCacheExpiryTimeKey = "mafs:ClientCacheExpiryTime";
         private const string StorageConnectionStringKey = "mafs:StorageConnectionString";
@@ -37,6 +38,15 @@ namespace Micajah.AzureFileService
         #endregion
 
         #region Public Properties
+
+        public static string FileSecondaryUrl
+        {
+            get
+            {
+                string value = WebConfigurationManager.AppSettings[FileSecondaryUrlKey];
+                return value;
+            }
+        }
 
         public static int SharedAccessExpiryTime
         {
