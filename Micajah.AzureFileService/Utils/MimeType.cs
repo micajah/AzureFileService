@@ -321,13 +321,20 @@ namespace Micajah.AzureFileService
                         { ".rtx", "text/richtext" },
                         { ".tsv", "text/tab-separated-values" },
                         { ".txt", "text/plain" },
+
                         { ".vcf", "text/vcard" },
                         { ".vcf", "text/x-vcard" },
+
                         { ".xml", "text/xml" },
+
                         { ".yaml", "text/yaml" },
                         { ".yaml", "text/x-yaml" },
                         { ".yaml", "application/yaml" },
-                        { ".yaml", "application/x-yaml" }
+                        { ".yaml", "application/x-yaml" },
+
+                        { ".csr", "application/pkcs10" },
+                        { ".pem", "application/pkcs10" },
+                        { ".p10", "application/pkcs10" }
                     };
                 }
 
