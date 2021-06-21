@@ -2031,7 +2031,6 @@
                             }
                         }
                     }
-                    Dropzone._tryDoPostBackTimer = null;
                     Dropzone._originalDoPostBack(Dropzone._eventTarget, Dropzone._eventArgument);
                 }
             };
