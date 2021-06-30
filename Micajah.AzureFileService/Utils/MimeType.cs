@@ -172,9 +172,24 @@ namespace Micajah.AzureFileService
         {
             get
             {
-                var mapping = new NameValueCollection(MicrosoftOfficeMapping);
+                var mapping = new NameValueCollection
+                {
+                    MicrosoftOfficeMapping,
 
-                mapping.Add(".pdf", Pdf);
+                    { ".pdf", Pdf },
+
+                    // Illustrator
+                    { ".ai", "application/postscript" },
+                    { ".ai", Pdf },
+
+                    // Photoshop
+                    { ".psd", "image/vnd.adobe.photoshop" },
+                    { ".psd", "image/x-photoshop" },
+                    { ".psd", "image/psd" },
+                    { ".psd", "application/x-photoshop" },
+                    { ".psd", "application/photoshop" },
+                    { ".psd", "application/psd" }
+                };
 
                 return mapping;
             }
@@ -275,7 +290,7 @@ namespace Micajah.AzureFileService
                         { ".wdp", "image/vnd.ms-photo" },
                         { ".xbm", "image/x-xbitmap" },
                         { ".xpm", "image/x-xpixmap" },
-                        { ".xwd", "image/x-xwindowdump" }
+                        { ".xwd", "image/x-xwindowdump" },
                     };
                 }
                 return s_ImageMapping;
