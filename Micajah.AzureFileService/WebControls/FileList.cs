@@ -738,7 +738,11 @@ namespace Micajah.AzureFileService.WebControls
         {
             this.FilesCount = 0;
 
-            Collection<File> files = this.FileManager.GetFiles(this.FileExtensionsFilterInternal, this.NegateFileExtensionsFilter);
+            Collection<File> files = this.FileManager.GetFiles(new FileSearchOptions()
+            {
+                ExtensionsFilter = this.FileExtensionsFilterInternal,
+                NegateExtensionsFilter = this.NegateFileExtensionsFilter
+            });
 
             if (Grid != null)
             {

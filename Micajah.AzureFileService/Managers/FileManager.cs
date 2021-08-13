@@ -47,11 +47,6 @@ namespace Micajah.AzureFileService
         {
             get
             {
-                if (string.IsNullOrEmpty(this.ObjectType) && string.IsNullOrEmpty(this.ObjectId))
-                {
-                    return null;
-                }
-
                 return GetBlobPath(this.ObjectType, this.ObjectId);
             }
         }
@@ -264,7 +259,12 @@ namespace Micajah.AzureFileService
 
         private static string GetBlobPath(string objectType, string objectId)
         {
-            return string.Format(CultureInfo.InvariantCulture, "{0}/{1}/", objectType, objectId);
+            if (string.IsNullOrEmpty(objectId))
+            {
+                return string.IsNullOrEmpty(objectType) ? null : $"{objectType}/";
+            }
+
+            return $"{objectType}/{objectId}/";
         }
 
         private static string GetBlobNameFormat(string objectType, string objectId)
@@ -295,7 +295,6 @@ namespace Micajah.AzureFileService
             string objectType = parts[0];
             string objectId = parts[1];
 
-
             string sas = string.Empty;
             if (readAccessPolicy != null)
             {
@@ -325,11 +324,14 @@ namespace Micajah.AzureFileService
             };
         }
 
-        private Collection<File> GetFiles(bool useFlatBlobListing, SharedAccessBlobPolicy readAccessPolicy)
+        private Collection<File> GetFiles(FileSearchOptions searchOptions, SharedAccessBlobPolicy readAccessPolicy)
         {
             List<File> files = new List<File>();
 
-            IEnumerable<IListBlobItem> blobList = ListBlobs(this.Container, this.BlobPath, useFlatBlobListing);
+            List<string> extensionsList = searchOptions.ExtensionsFilter == null ? new List<string>() : new List<string>(searchOptions.ExtensionsFilter);
+            bool extensionsIsNotEmpty = extensionsList.Count > 0;
+
+            IEnumerable<IListBlobItem> blobList = ListBlobs(this.Container, this.BlobPath, searchOptions.AllFiles);
             foreach (IListBlobItem item in blobList)
             {
                 CloudBlockBlob blob = item as CloudBlockBlob;
@@ -337,8 +339,20 @@ namespace Micajah.AzureFileService
                 {
                     if (blob.BlobType == BlobType.BlockBlob)
                     {
-                        File file = GetFileInfo(blob, readAccessPolicy);
-                        files.Add(file);
+                        bool add = true;
+                        if (extensionsIsNotEmpty)
+                        {
+                            string extension = Path.GetExtension(blob.Name).ToLowerInvariant();
+                            bool match = extensionsList.Contains(extension);
+
+                            add = (((!searchOptions.NegateExtensionsFilter) && match) || (searchOptions.NegateExtensionsFilter && (!match)));
+                        }
+
+                        if (add)
+                        {
+                            File file = GetFileInfo(blob, readAccessPolicy);
+                            files.Add(file);
+                        }
                     }
                 }
             }
@@ -398,13 +412,11 @@ namespace Micajah.AzureFileService
             return blob;
         }
 
-        private static List<IListBlobItem> ListBlobs(CloudBlobContainer container, string prefix, bool useFlatBlobListing = false)
+        private static IEnumerable<IListBlobItem> ListBlobs(CloudBlobContainer container, string prefix, bool useFlatBlobListing = false)
         {
-            List<IListBlobItem> list = null;
-
             try
             {
-                list = new List<IListBlobItem>(container.ListBlobs(prefix, useFlatBlobListing));
+                return container.ListBlobs(prefix, useFlatBlobListing);
             }
             catch (StorageException ex)
             {
@@ -425,8 +437,6 @@ namespace Micajah.AzureFileService
 
                 throw;
             }
-
-            return list;
         }
 
         private static void RotateFlipImageByOrientation(CloudBlockBlob blob)
@@ -763,81 +773,38 @@ namespace Micajah.AzureFileService
             return null;
         }
 
-        public Collection<File> GetAllFiles()
-        {
-            return GetFiles(true, this.ReadAccessPolicy);
-        }
-
-        public Collection<File> GetAllFiles(int sharedAccessExpiryTime)
-        {
-            SharedAccessBlobPolicy readAccessPolicy = CreateReadAccessPolicy(sharedAccessExpiryTime);
-
-            return GetFiles(true, readAccessPolicy);
-        }
-
         public Collection<File> GetFiles()
         {
-            return GetFiles(false, this.ReadAccessPolicy);
+            return GetFiles(new FileSearchOptions());
         }
 
-        public Collection<File> GetFiles(int sharedAccessExpiryTime)
+        public Collection<File> GetFiles(FileSearchOptions searchOptions)
         {
-            SharedAccessBlobPolicy readAccessPolicy = CreateReadAccessPolicy(sharedAccessExpiryTime);
-
-            return GetFiles(false, readAccessPolicy);
+            return GetFiles(searchOptions, ReadAccessPolicy);
         }
 
-        public Collection<File> GetFiles(string[] extensions, bool negate)
+        public Collection<File> GetFiles(int readAccessExpiryTime)
         {
-            List<File> files = new List<File>();
+            return GetFiles(new FileSearchOptions(), readAccessExpiryTime);
+        }
 
-            List<string> extensionsList = null;
-            if (extensions == null)
-            {
-                extensionsList = new List<string>();
-            }
-            else
-            {
-                extensionsList = new List<string>(extensions);
-            }
-            bool extensionsIsNotEmpty = (extensionsList.Count > 0);
+        public Collection<File> GetFiles(FileSearchOptions searchOptions, int readAccessExpiryTime)
+        {
+            SharedAccessBlobPolicy readAccessPolicy = CreateReadAccessPolicy(readAccessExpiryTime);
 
-            IEnumerable<IListBlobItem> blobList = ListBlobs(this.Container, this.BlobPath);
-            foreach (IListBlobItem item in blobList)
-            {
-                CloudBlockBlob blob = item as CloudBlockBlob;
-                if (blob != null)
-                {
-                    if (blob.BlobType == BlobType.BlockBlob)
-                    {
-                        bool add = true;
-                        if (extensionsIsNotEmpty)
-                        {
-                            string extension = Path.GetExtension(blob.Name).ToLowerInvariant();
-                            bool match = extensionsList.Contains(extension);
-
-                            add = (((!negate) && match) || (negate && (!match)));
-                        }
-
-                        if (add)
-                        {
-                            File file = GetFileInfo(blob);
-                            files.Add(file);
-                        }
-                    }
-                }
-            }
-
-            files.Sort(CompareFilesByLastModifiedAndName);
-
-            return new Collection<File>(files);
+            return GetFiles(searchOptions, readAccessPolicy);
         }
 
         public string[] GetFileNames()
         {
+            return GetFileNames(new FileSearchOptions());
+        }
+
+        public string[] GetFileNames(FileSearchOptions searchOptions)
+        {
             List<string> names = new List<string>();
 
-            Collection<File> files = this.GetFiles();
+            Collection<File> files = GetFiles(searchOptions);
 
             foreach (File file in files)
             {
