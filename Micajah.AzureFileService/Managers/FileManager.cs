@@ -344,7 +344,7 @@ namespace Micajah.AzureFileService
             {
                 file.SecondaryUrl = sasUrl == null
                     ? $"{Settings.FileSecondaryUrl}{blob.Uri.AbsolutePath}"
-                    : $"{Settings.FileSecondaryUrl}{blob.Uri.AbsolutePath}{sasUrl.Split('?')[1]}";
+                    : $"{Settings.FileSecondaryUrl}{blob.Uri.AbsolutePath}?{sasUrl.Split('?')[1]}";
             }
         }
 
