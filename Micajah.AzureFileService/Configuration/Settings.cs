@@ -52,9 +52,8 @@ namespace Micajah.AzureFileService
         {
             get
             {
-                int minutes = DefaultSharedAccessExpiryTime;
                 string str = WebConfigurationManager.AppSettings[SharedAccessExpiryTimeKey];
-                if (!int.TryParse(str, out minutes))
+                if (!int.TryParse(str, out int minutes))
                 {
                     minutes = DefaultSharedAccessExpiryTime;
                 }
@@ -66,9 +65,8 @@ namespace Micajah.AzureFileService
         {
             get
             {
-                int minutes = DefaultClientCacheExpiryTime;
                 string str = WebConfigurationManager.AppSettings[ClientCacheExpiryTimeKey];
-                if (!int.TryParse(str, out minutes))
+                if (!int.TryParse(str, out int minutes))
                 {
                     minutes = DefaultClientCacheExpiryTime;
                 }
@@ -98,9 +96,8 @@ namespace Micajah.AzureFileService
         {
             get
             {
-                int maxFileSize = DefaultMaxFileSize;
                 string str = WebConfigurationManager.AppSettings[MaxFileSizeKey];
-                if (!int.TryParse(str, out maxFileSize))
+                if (!int.TryParse(str, out int maxFileSize))
                 {
                     maxFileSize = DefaultMaxFileSize;
                 }

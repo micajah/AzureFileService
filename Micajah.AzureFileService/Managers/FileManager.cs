@@ -1,5 +1,7 @@
-﻿using Microsoft.Azure.Storage;
-using Microsoft.Azure.Storage.Blob;
+﻿using Azure;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
+using Azure.Storage.Sas;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -7,6 +9,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Web;
@@ -17,9 +20,12 @@ namespace Micajah.AzureFileService
     {
         #region Members
 
+        private static BlobServiceClient s_ServiceClient;
+        private static BlobContainerClient s_TemporaryContainer;
+
         private string m_ContainerName;
-        private SharedAccessBlobPolicy m_ReadAccessPolicy;
-        private CloudBlobContainer m_Container;
+        private BlobSasBuilder m_ReadPermissions;
+        private BlobContainerClient m_Container;
 
         #endregion
 
@@ -27,8 +33,8 @@ namespace Micajah.AzureFileService
 
         public FileManager(string containerName, string objectType, string objectId)
         {
-            this.ObjectType = objectType;
-            this.ObjectId = objectId;
+            ObjectType = objectType;
+            ObjectId = objectId;
 
             m_ContainerName = containerName;
         }
@@ -36,56 +42,79 @@ namespace Micajah.AzureFileService
         public FileManager(string containerName, bool containerPublicAccess, string objectType, string objectId) :
             this(containerName, objectType, objectId)
         {
-            this.ContainerPublicAccess = containerPublicAccess;
+            ContainerPublicAccess = containerPublicAccess;
         }
 
         #endregion
 
         #region Private Properties
 
-        private string BlobPath
-        {
-            get
-            {
-                return GetBlobPath(this.ObjectType, this.ObjectId);
-            }
-        }
+        private string BlobPath => GetBlobPath(ObjectType, ObjectId);
 
-        private string BlobNameFormat
-        {
-            get
-            {
-                return GetBlobNameFormat(this.ObjectType, this.ObjectId);
-            }
-        }
+        private string BlobNameFormat => GetBlobNameFormat(ObjectType, ObjectId);
 
-        private CloudBlobContainer Container
+        private BlobContainerClient Container
         {
             get
             {
                 if (m_Container == null)
                 {
-                    m_Container = ContainerManager.GetContainerReference(this.ContainerName);
+                    m_Container = ServiceClient.GetBlobContainerClient(ContainerName);
                 }
                 return m_Container;
             }
         }
 
-        private SharedAccessBlobPolicy ReadAccessPolicy
+        private static BlobContainerClient TemporaryContainer
         {
             get
             {
-                if (m_ReadAccessPolicy == null)
+                if (s_TemporaryContainer == null)
                 {
-                    m_ReadAccessPolicy = CreateReadAccessPolicy();
+                    s_TemporaryContainer = ServiceClient.GetBlobContainerClient(Settings.TemporaryContainerName);
+
+                    s_TemporaryContainer.CreateIfNotExists();
                 }
-                return m_ReadAccessPolicy;
+                return s_TemporaryContainer;
+            }
+        }
+
+        private BlobSasBuilder ReadPermissions
+        {
+            get
+            {
+                if (m_ReadPermissions == null)
+                {
+                    m_ReadPermissions = CreateReadPermissions();
+                }
+                return m_ReadPermissions;
+            }
+        }
+
+        #endregion
+
+        #region Internal Properties
+
+        internal static BlobServiceClient ServiceClient
+        {
+            get
+            {
+                if (s_ServiceClient == null)
+                {
+                    s_ServiceClient = new BlobServiceClient(Settings.StorageConnectionString);
+                }
+                return s_ServiceClient;
             }
         }
 
         #endregion
 
         #region Public Properties
+
+        /// <summary>
+        /// Gets the base URI for the Blob service client at the primary location.
+        /// </summary>
+        public static string ServiceClientBaseUrl => ServiceClient.Uri.ToString();
 
         /// <summary>
         /// Gets or sets the name of the container where the files are stored.
@@ -124,7 +153,7 @@ namespace Micajah.AzureFileService
 
         private static int CompareFilesByLastModifiedAndName(File x, File y)
         {
-            int result = 0;
+            int result;
 
             if (x == null)
             {
@@ -146,93 +175,106 @@ namespace Micajah.AzureFileService
             return result;
         }
 
-        private static SharedAccessBlobPolicy CreateReadAccessPolicy()
+        private static BlobSasBuilder CreateReadPermissions()
         {
-            return CreateReadAccessPolicy(Settings.SharedAccessExpiryTime);
+            return CreateReadPermissions(Settings.SharedAccessExpiryTime);
         }
 
-        private static SharedAccessBlobPolicy CreateReadAccessPolicy(int sharedAccessExpiryTime)
+        private static BlobSasBuilder CreateReadPermissions(int sharedAccessExpiryTime)
         {
-            SharedAccessBlobPolicy policy = new SharedAccessBlobPolicy
-            {
-                Permissions = SharedAccessBlobPermissions.Read,
-                SharedAccessExpiryTime = DateTime.UtcNow.AddMinutes(sharedAccessExpiryTime)
-            };
+            BlobSasBuilder policy = new BlobSasBuilder(BlobContainerSasPermissions.Read, DateTime.UtcNow.AddMinutes(sharedAccessExpiryTime));
 
             return policy;
         }
 
-        private static SharedAccessBlobPolicy CreateWriteDeleteAccessPolicy()
+        private static BlobSasBuilder CreateWriteDeletePermissions()
         {
-            SharedAccessBlobPolicy policy = new SharedAccessBlobPolicy
-            {
-                Permissions = SharedAccessBlobPermissions.Write | SharedAccessBlobPermissions.Delete,
-                SharedAccessExpiryTime = DateTime.UtcNow.AddMinutes(Settings.SharedAccessExpiryTime)
-            };
+            BlobSasBuilder policy = new BlobSasBuilder(BlobContainerSasPermissions.Write | BlobContainerSasPermissions.Delete, DateTime.UtcNow.AddMinutes(Settings.SharedAccessExpiryTime));
 
             return policy;
         }
 
         private void CopyTemporaryFiles(string directoryName, bool deleteTemporaryFiles)
         {
-            directoryName += "/";
+            var temporaryBlobItems = GetBlockBlobs(TemporaryContainer, directoryName + "/");
 
-            IEnumerable<IListBlobItem> temporaryBlobList = ListBlobs(ContainerManager.TemporaryContainer, directoryName);
-            foreach (IListBlobItem item in temporaryBlobList)
+            foreach (var tempBlobItem in temporaryBlobItems)
             {
-                CloudBlockBlob tempBlob = item as CloudBlockBlob;
-                if (tempBlob != null)
+                string fileName = GetNameFromFileId(tempBlobItem.Name);
+                string blobName = GetFileId(fileName);
+
+                var blob = Container.GetBlobClient(blobName);
+                var tempBlob = TemporaryContainer.GetBlobClient(tempBlobItem.Name);
+
+                if (MimeType.IsInGroups(tempBlobItem.Properties.ContentType, MimeTypeGroups.Image))
                 {
-                    if (tempBlob.BlobType == BlobType.BlockBlob)
+                    Stream source = null;
+
+                    try
                     {
-                        string fileName = GetNameFromFileId(tempBlob.Name);
-                        string blobName = GetFileId(fileName);
+                        var downloadResult = tempBlob.DownloadContent().Value;
 
-                        if (MimeType.IsInGroups(tempBlob.Properties.ContentType, MimeTypeGroups.Image))
+                        source = downloadResult.Content.ToStream();
+
+                        byte[] bytes = RotateFlipImageByOrientation(tempBlobItem.Properties.ContentType, source);
+
+                        if (bytes == null)
                         {
-                            RotateFlipImageByOrientation(tempBlob);
-
-                            if (deleteTemporaryFiles)
-                            {
-                                this.DeleteThumbnails(blobName);
-                            }
+                            bytes = downloadResult.Content.ToArray();
                         }
 
-                        CloudBlockBlob blob = this.Container.GetBlockBlobReference(blobName);
-                        blob.StartCopy(tempBlob);
-
-                        if (deleteTemporaryFiles)
+                        if (bytes != null)
                         {
-                            tempBlob.Delete();
+                            var uploadOptions = new BlobUploadOptions
+                            {
+                                HttpHeaders = new BlobHttpHeaders
+                                {
+                                    ContentType = tempBlobItem.Properties.ContentType,
+                                    CacheControl = Settings.ClientCacheControl
+                                }
+                            };
+
+                            blob.Upload(new BinaryData(bytes), uploadOptions);
                         }
                     }
+                    finally
+                    {
+                        source?.Dispose();
+                    }
+
+                    DeleteThumbnails(blobName);
+                }
+                else
+                {
+                    blob.StartCopyFromUri(tempBlob.Uri);
+                }
+
+                if (deleteTemporaryFiles)
+                {
+                    tempBlob.Delete();
                 }
             }
         }
 
         private void CopyFiles(string objectId, bool delete)
         {
-            string newBlobNameFormat = GetBlobNameFormat(this.ObjectType, objectId);
+            string newBlobNameFormat = GetBlobNameFormat(ObjectType, objectId);
 
-            IEnumerable<IListBlobItem> blobList = ListBlobs(this.Container, this.BlobPath);
-            foreach (IListBlobItem item in blobList)
+            var blobItems = GetBlockBlobs(Container, BlobPath);
+
+            foreach (var blobItem in blobItems)
             {
-                CloudBlockBlob blob = item as CloudBlockBlob;
-                if (blob != null)
+                string fileName = GetNameFromFileId(blobItem.Name);
+                string newBlobName = string.Format(CultureInfo.InvariantCulture, newBlobNameFormat, fileName);
+
+                var blob = Container.GetBlobClient(blobItem.Name);
+                var newBlob = Container.GetBlobClient(newBlobName);
+
+                newBlob.StartCopyFromUri(blob.Uri);
+
+                if (delete)
                 {
-                    if (blob.BlobType == BlobType.BlockBlob)
-                    {
-                        string fileName = GetNameFromFileId(blob.Name);
-                        string newBlobName = string.Format(CultureInfo.InvariantCulture, newBlobNameFormat, fileName);
-
-                        CloudBlockBlob newBlob = this.Container.GetBlockBlobReference(newBlobName);
-                        newBlob.StartCopy(blob);
-
-                        if (delete)
-                        {
-                            this.DeleteFile(blob.Name);
-                        }
-                    }
+                    DeleteFile(blobItem.Name);
                 }
             }
         }
@@ -243,16 +285,15 @@ namespace Micajah.AzureFileService
             string prefix = fileId.Replace(fileName, string.Empty);
             fileName = "/" + fileName;
 
-            IEnumerable<IListBlobItem> thumbnailBlobList = ListBlobs(this.Container, prefix, true);
-            foreach (IListBlobItem item in thumbnailBlobList)
+            var blobItems = GetBlockBlobs(Container, prefix, true);
+
+            foreach (var blobItem in blobItems)
             {
-                CloudBlockBlob blob = item as CloudBlockBlob;
-                if (blob != null)
+                if (blobItem.Name != fileId && blobItem.Name.EndsWith(fileName, StringComparison.OrdinalIgnoreCase))
                 {
-                    if (blob.Name.EndsWith(fileName, StringComparison.OrdinalIgnoreCase))
-                    {
-                        blob.Delete();
-                    }
+                    var blob = Container.GetBlobClient(blobItem.Name);
+
+                    blob.Delete();
                 }
             }
         }
@@ -274,86 +315,108 @@ namespace Micajah.AzureFileService
 
         private string GetFileId(string fileName)
         {
-            string fileId = string.Format(CultureInfo.InvariantCulture, this.BlobNameFormat, fileName);
+            string fileId = string.Format(CultureInfo.InvariantCulture, BlobNameFormat, fileName);
 
             return fileId;
         }
 
-        private File GetFileInfo(CloudBlockBlob blob)
+        private static void FillFileInfo(File file, BlobClient blob, BlobSasBuilder readPermissions)
         {
-            return GetFileInfo(blob, (this.ContainerPublicAccess ? null : this.ReadAccessPolicy));
-        }
-
-        private static File GetFileInfo(CloudBlockBlob blob, SharedAccessBlobPolicy readAccessPolicy)
-        {
-            BlobProperties props = blob.Properties;
+            file.FileId = blob.Name;
+            file.FullName = blob.Name;
 
             string[] parts = blob.Name.Split('/');
             int length = parts.Length;
 
-            string fileName = parts[length - 1];
-            string objectType = parts[0];
-            string objectId = parts[1];
+            file.Name = parts[length - 1];
+            file.ObjectType = parts[0];
+            file.ObjectId = parts[1];
 
-            string sas = string.Empty;
-            if (readAccessPolicy != null)
+            string sasUrl = null;
+            if (readPermissions != null)
             {
-                sas = blob.GetSharedAccessSignature(readAccessPolicy);
+                sasUrl = blob.GenerateSasUri(readPermissions).ToString();
             }
 
-            string url = string.Format(CultureInfo.InvariantCulture, "{0}{1}", blob.Uri, sas);
+            file.Url = sasUrl ?? blob.Uri.ToString();
 
-            string secondaryUrl = null;
             if (!string.IsNullOrWhiteSpace(Settings.FileSecondaryUrl))
             {
-                secondaryUrl = string.Format(CultureInfo.InvariantCulture, "{0}{1}{2}", Settings.FileSecondaryUrl, blob.Uri.AbsolutePath, sas);
+                file.SecondaryUrl = sasUrl == null
+                    ? $"{Settings.FileSecondaryUrl}{blob.Uri.AbsolutePath}"
+                    : $"{Settings.FileSecondaryUrl}{blob.Uri.AbsolutePath}{sasUrl.Split('?')[1]}";
             }
-
-            return new File()
-            {
-                FileId = blob.Name,
-                Name = fileName,
-                Length = props.Length,
-                ContentType = props.ContentType,
-                FullName = blob.Name,
-                Url = url,
-                SecondaryUrl = secondaryUrl,
-                LastModified = props.LastModified.Value.DateTime,
-                ObjectType = objectType,
-                ObjectId = objectId
-            };
         }
 
-        private Collection<File> GetFiles(FileSearchOptions searchOptions, SharedAccessBlobPolicy readAccessPolicy)
+        private static File GetFileInfo(BlobClient blob, BlobSasBuilder readPermissions)
+        {
+            File file = null;
+
+            if (blob.Exists())
+            {
+                var props = blob.GetProperties().Value;
+
+                file = GetFileInfo(blob, readPermissions, props);
+            }
+
+            return file;
+        }
+
+        private static File GetFileInfo(BlobClient blob, BlobSasBuilder readPermissions, BlobProperties blobProperties)
+        {
+            File file = new File
+            {
+                Length = blobProperties.ContentLength,
+                ContentType = blobProperties.ContentType,
+                LastModified = blobProperties.LastModified.DateTime
+            };
+
+            FillFileInfo(file, blob, readPermissions);
+
+            return file;
+        }
+
+        private static File GetFileInfo(BlobClient blob, BlobSasBuilder readPermissions, BlobItemProperties blobItemProperties)
+        {
+            File file = new File
+            {
+                Length = blobItemProperties.ContentLength.GetValueOrDefault(),
+                ContentType = blobItemProperties.ContentType,
+                LastModified = blobItemProperties.LastModified.GetValueOrDefault().DateTime
+            };
+
+            FillFileInfo(file, blob, readPermissions);
+
+            return file;
+        }
+
+        private Collection<File> GetFiles(FileSearchOptions searchOptions, BlobSasBuilder readPermissions)
         {
             List<File> files = new List<File>();
 
             List<string> extensionsList = searchOptions.ExtensionsFilter == null ? new List<string>() : new List<string>(searchOptions.ExtensionsFilter);
             bool extensionsIsNotEmpty = extensionsList.Count > 0;
 
-            IEnumerable<IListBlobItem> blobList = ListBlobs(this.Container, this.BlobPath, searchOptions.AllFiles);
-            foreach (IListBlobItem item in blobList)
+            var blobItems = GetBlockBlobs(Container, BlobPath, searchOptions.AllFiles);
+
+            foreach (var blobItem in blobItems)
             {
-                CloudBlockBlob blob = item as CloudBlockBlob;
-                if (blob != null)
+                bool add = true;
+                if (extensionsIsNotEmpty)
                 {
-                    if (blob.BlobType == BlobType.BlockBlob)
-                    {
-                        bool add = true;
-                        if (extensionsIsNotEmpty)
-                        {
-                            string extension = Path.GetExtension(blob.Name).ToLowerInvariant();
-                            bool match = extensionsList.Contains(extension);
+                    string extension = Path.GetExtension(blobItem.Name).ToLowerInvariant();
+                    bool match = extensionsList.Contains(extension);
 
-                            add = (((!searchOptions.NegateExtensionsFilter) && match) || (searchOptions.NegateExtensionsFilter && (!match)));
-                        }
+                    add = (((!searchOptions.NegateExtensionsFilter) && match) || (searchOptions.NegateExtensionsFilter && (!match)));
+                }
 
-                        if (add)
-                        {
-                            File file = GetFileInfo(blob, readAccessPolicy);
-                            files.Add(file);
-                        }
-                    }
+                if (add)
+                {
+                    var blob = Container.GetBlobClient(blobItem.Name);
+
+                    File file = GetFileInfo(blob, readPermissions, blobItem.Properties);
+
+                    files.Add(file);
                 }
             }
 
@@ -362,132 +425,25 @@ namespace Micajah.AzureFileService
             return new Collection<File>(files);
         }
 
-        private CloudBlockBlob GetFileReference(string fileName, string contentType)
+        private static BlobHttpHeaders CreateBlobHttpHeaders(string contentType, string fileName)
         {
-            fileName = EscapeInvalidChars(fileName);
-
-            string fileId = this.GetFileId(fileName);
-
-            // Fixes content type.
             if (MimeType.IsDefaultOrEmpty(contentType))
             {
                 contentType = MimeType.GetMimeType(fileName);
             }
 
-            CloudBlockBlob blob = this.Container.GetBlockBlobReference(fileId);
-
-            blob.Properties.CacheControl = Settings.ClientCacheControl;
-            blob.Properties.ContentType = contentType;
+            var blobHttpHeaders = new BlobHttpHeaders
+            {
+                ContentType = contentType,
+                CacheControl = Settings.ClientCacheControl
+            };
 
             if (MimeType.IsHtml(contentType))
             {
-                blob.Properties.ContentDisposition = "attachment";
+                blobHttpHeaders.ContentDisposition = "attachment";
             }
 
-            return blob;
-        }
-
-        private static CloudBlockBlob GetTemporaryFileReference(string fileName, string contentType, string directoryName)
-        {
-            fileName = EscapeInvalidChars(fileName);
-
-            string fileId = string.Format(CultureInfo.InvariantCulture, "{0}/{1}", directoryName, fileName);
-
-            // Fixes content type.
-            if (MimeType.IsDefaultOrEmpty(contentType))
-            {
-                contentType = MimeType.GetMimeType(fileName);
-            }
-
-            CloudBlockBlob blob = ContainerManager.TemporaryContainer.GetBlockBlobReference(fileId);
-
-            blob.Properties.ContentType = contentType;
-            blob.Properties.CacheControl = Settings.ClientCacheControl;
-
-            if (MimeType.IsHtml(contentType))
-            {
-                blob.Properties.ContentDisposition = "attachment";
-            }
-
-            return blob;
-        }
-
-        private static IEnumerable<IListBlobItem> ListBlobs(CloudBlobContainer container, string prefix, bool useFlatBlobListing = false)
-        {
-            try
-            {
-                return container.ListBlobs(prefix, useFlatBlobListing);
-            }
-            catch (StorageException ex)
-            {
-                RequestResult requestInfo = ex.RequestInformation;
-                if (requestInfo != null)
-                {
-                    StorageExtendedErrorInformation errorInfo = requestInfo.ExtendedErrorInformation;
-                    if (errorInfo != null)
-                    {
-                        if (errorInfo.ErrorCode.StartsWith("Container", StringComparison.Ordinal))
-                        {
-                            string errorMessage = string.Format(CultureInfo.InvariantCulture, "{0} The container name is \"{1}\".", requestInfo.HttpStatusMessage, container.Name);
-
-                            throw new StorageException(errorMessage, ex);
-                        }
-                    }
-                }
-
-                throw;
-            }
-        }
-
-        private static void RotateFlipImageByOrientation(CloudBlockBlob blob)
-        {
-            MemoryStream source = null;
-
-            try
-            {
-                if (blob.Properties.Length > 0)
-                {
-                    source = new MemoryStream();
-                    blob.DownloadToStream(source);
-
-                    byte[] bytes = RotateFlipImageByOrientation(blob.Properties.ContentType, source);
-
-                    if (bytes != null)
-                    {
-                        int count = bytes.Length;
-                        blob.UploadFromByteArray(bytes, 0, count);
-                    }
-                }
-            }
-            finally
-            {
-                if (source != null)
-                {
-                    source.Dispose();
-                }
-            }
-        }
-
-        private static byte[] RotateFlipImageByOrientation(string contentType, byte[] buffer)
-        {
-            MemoryStream source = null;
-
-            try
-            {
-                if (buffer.Length > 0)
-                {
-                    source = new MemoryStream(buffer);
-                }
-
-                return RotateFlipImageByOrientation(contentType, source);
-            }
-            finally
-            {
-                if (source != null)
-                {
-                    source.Dispose();
-                }
-            }
+            return blobHttpHeaders;
         }
 
         private static byte[] RotateFlipImageByOrientation(string contentType, Stream source)
@@ -497,84 +453,109 @@ namespace Micajah.AzureFileService
 
             try
             {
-                if (source != null)
+                if (source != null && source.Length > 0)
                 {
-                    if (source.Length > 0)
+                    source.Position = 0;
+
+                    image = Image.FromStream(source);
+
+                    if (image.RotateFlipByOrientation())
                     {
-                        source.Position = 0;
+                        ImageFormat imageFormat = MimeType.GetImageFormat(contentType) ?? ImageFormat.Jpeg;
 
-                        image = Image.FromStream(source);
+                        output = new MemoryStream();
+                        image.Save(output, imageFormat);
+                        output.Position = 0;
 
-                        if (image.RotateFlipByOrientation())
-                        {
-                            ImageFormat imageFormat = MimeType.GetImageFormat(contentType) ?? ImageFormat.Jpeg;
-
-                            output = new MemoryStream();
-                            image.Save(output, imageFormat);
-                            output.Position = 0;
-
-                            return output.ToArray();
-                        }
+                        return output.ToArray();
                     }
                 }
             }
             catch (Exception) { }
             finally
             {
-                if (output != null)
-                {
-                    output.Dispose();
-                }
-
-                if (image != null)
-                {
-                    image.Dispose();
-                }
+                output?.Dispose();
+                image?.Dispose();
             }
 
             return null;
         }
 
-        private static void UploadBlobFromByteArray(CloudBlockBlob blob, string contentType, byte[] buffer)
+        private static void UploadBlobFromStream(BlobClient blob, string fileName, string contentType, Stream source)
         {
-            byte[] bytes = null;
-
-            if (MimeType.IsInGroups(contentType, MimeTypeGroups.Image))
+            var uploadOptions = new BlobUploadOptions
             {
-                bytes = RotateFlipImageByOrientation(contentType, buffer);
-            }
+                HttpHeaders = CreateBlobHttpHeaders(contentType, fileName)
+            };
 
-            if (bytes == null)
-            {
-                bytes = buffer;
-            }
-
-            int count = bytes.Length;
-            blob.UploadFromByteArray(bytes, 0, count);
-        }
-
-        private static void UploadBlobFromStream(CloudBlockBlob blob, string contentType, Stream source)
-        {
             if (MimeType.IsInGroups(contentType, MimeTypeGroups.Image))
             {
                 byte[] bytes = RotateFlipImageByOrientation(contentType, source);
 
                 if (bytes != null)
                 {
-                    int count = bytes.Length;
-                    blob.UploadFromByteArray(bytes, 0, count);
+                    blob.Upload(new BinaryData(bytes), uploadOptions);
 
                     return;
                 }
             }
 
             source.Position = 0;
-            blob.UploadFromStream(source);
+
+            blob.Upload(source, uploadOptions);
         }
 
         #endregion
 
         #region Internal Methods
+
+        internal static IEnumerable<BlobItem> GetBlockBlobs(BlobContainerClient containerClient, string prefix, bool useFlatBlobListing = false)
+        {
+            try
+            {
+                List<BlobItem> list = new List<BlobItem>();
+
+                if (useFlatBlobListing || string.IsNullOrWhiteSpace(prefix))
+                {
+                    var blobPages = containerClient.GetBlobs(prefix: prefix).AsPages();
+
+                    foreach (var blobPage in blobPages)
+                    {
+                        var blobItems = blobPage.Values.Where(x => x.Properties.BlobType == BlobType.Block);
+
+                        list.AddRange(blobItems);
+                    }
+                }
+                else
+                {
+                    var blobPages = containerClient.GetBlobsByHierarchy(prefix: prefix, delimiter: "/").AsPages();
+
+                    foreach (var blobPage in blobPages)
+                    {
+                        foreach (var blobItem in blobPage.Values)
+                        {
+                            if (blobItem.Blob?.Properties.BlobType == BlobType.Block)
+                            {
+                                list.Add(blobItem.Blob);
+                            }
+                        }
+                    }
+                }
+
+                return list;
+            }
+            catch (RequestFailedException ex)
+            {
+                if (ex.ErrorCode == BlobErrorCode.ContainerNotFound)
+                {
+                    string errorMessage = $"The container \"{containerClient.Name}\" does not exist.";
+
+                    throw new RequestFailedException(errorMessage, ex);
+                }
+
+                throw;
+            }
+        }
 
         internal static string GetNameFromFileId(string fileId)
         {
@@ -624,54 +605,52 @@ namespace Micajah.AzureFileService
         {
             byte[] bytes = null;
 
-            string thumbBlobName = string.Format(CultureInfo.InvariantCulture, "{0}/{1}/{2}x{3}x{4}/{5}", this.ObjectType, this.ObjectId, width, height, align, fileName);
-            CloudBlockBlob thumbBlob = this.Container.GetBlockBlobReference(thumbBlobName);
+            string thumbBlobName = $"{ObjectType}/{ObjectId}/{width}x{height}x{align}/{fileName}";
+
+            var thumbBlob = Container.GetBlobClient(thumbBlobName);
 
             if (thumbBlob.Exists())
             {
-                long length = thumbBlob.Properties.Length;
-                bytes = new byte[length];
-                thumbBlob.DownloadToByteArray(bytes, 0);
+                var downloadResult = thumbBlob.DownloadContent().Value;
+
+                bytes = downloadResult.Content.ToArray();
             }
             else
             {
-                CloudBlockBlob blob = this.Container.GetBlockBlobReference(fileId);
+                var imageBlob = Container.GetBlobClient(fileId);
 
-                if (blob.Exists() && blob.Properties.Length > 0)
+                if (imageBlob.Exists())
                 {
-                    MemoryStream imageStream = null;
-                    Stream thumbStream = null;
+                    Stream imageStream = null;
+                    MemoryStream thumbStream = null;
 
                     try
                     {
-                        imageStream = new MemoryStream();
-                        blob.DownloadToStream(imageStream);
-                        imageStream.Position = 0;
+                        var downloadResult = imageBlob.DownloadContent().Value;
+                        imageStream = downloadResult.Content.ToStream();
 
                         thumbStream = new MemoryStream();
                         Thumbnail.Create(imageStream, width, height, align, thumbStream);
 
-                        thumbBlob.Properties.ContentType = MimeType.Jpeg;
-                        thumbBlob.Properties.CacheControl = Settings.ClientCacheControl;
-                        thumbBlob.UploadFromStream(thumbStream);
+                        var uploadOptions = new BlobUploadOptions
+                        {
+                            HttpHeaders = new BlobHttpHeaders
+                            {
+                                ContentType = MimeType.Jpeg,
+                                CacheControl = Settings.ClientCacheControl
+                            }
+                        };
+
+                        thumbBlob.Upload(thumbStream, uploadOptions);
 
                         thumbStream.Position = 0;
 
-                        long length = thumbStream.Length;
-                        BinaryReader reader = new BinaryReader(thumbStream);
-                        bytes = reader.ReadBytes((int)length);
+                        bytes = thumbStream.ToArray();
                     }
                     finally
                     {
-                        if (imageStream != null)
-                        {
-                            imageStream.Dispose();
-                        }
-
-                        if (thumbStream != null)
-                        {
-                            thumbStream.Dispose();
-                        }
+                        imageStream?.Dispose();
+                        thumbStream?.Dispose();
                     }
                 }
             }
@@ -681,11 +660,13 @@ namespace Micajah.AzureFileService
 
         internal static string GetTemporaryFilesUrlFormat(string directoryName)
         {
-            SharedAccessBlobPolicy writeDeleteAccessPolicy = CreateWriteDeleteAccessPolicy();
+            var writeDeletePermissions = CreateWriteDeletePermissions();
 
-            string sas = ContainerManager.TemporaryContainer.GetSharedAccessSignature(writeDeleteAccessPolicy);
+            string sasUrl = TemporaryContainer.GenerateSasUri(writeDeletePermissions).ToString();
 
-            return string.Format(CultureInfo.InvariantCulture, "{0}/{1}/{{0}}{2}", ContainerManager.TemporaryContainer.Uri.AbsoluteUri, directoryName, sas);
+            string urlFormat = sasUrl.Replace("?", $"/{directoryName}/{{0}}?");
+
+            return urlFormat;
         }
 
         #endregion
@@ -694,53 +675,43 @@ namespace Micajah.AzureFileService
 
         public File GetFileInfo(string fileId)
         {
-            CloudBlockBlob blob = this.Container.GetBlockBlobReference(fileId);
-            if (blob.Exists())
-            {
-                return GetFileInfo(blob);
-            }
+            var blob = Container.GetBlobClient(fileId);
 
-            return null;
+            return GetFileInfo(blob, ContainerPublicAccess ? null : ReadPermissions);
         }
 
         public File GetFileInfo(string fileId, int sharedAccessExpiryTime)
         {
-            CloudBlockBlob blob = this.Container.GetBlockBlobReference(fileId);
-            if (blob.Exists())
-            {
-                SharedAccessBlobPolicy readAccessPolicy = CreateReadAccessPolicy(sharedAccessExpiryTime);
+            var blob = Container.GetBlobClient(fileId);
 
-                return GetFileInfo(blob, readAccessPolicy);
-            }
-
-            return null;
+            return GetFileInfo(blob, sharedAccessExpiryTime > 0 ? CreateReadPermissions(sharedAccessExpiryTime) : null);
         }
 
         public File GetFileInfoByName(string fileName)
         {
-            string fileId = this.GetFileId(fileName);
+            string fileId = GetFileId(fileName);
 
-            return this.GetFileInfo(fileId);
+            return GetFileInfo(fileId);
         }
 
         public File GetFileInfoByName(string fileName, int sharedAccessExpiryTime)
         {
-            string fileId = this.GetFileId(fileName);
+            string fileId = GetFileId(fileName);
 
-            return this.GetFileInfo(fileId, sharedAccessExpiryTime);
+            return GetFileInfo(fileId, sharedAccessExpiryTime);
         }
 
         public byte[] GetFile(string fileId)
         {
             byte[] bytes = null;
 
-            CloudBlockBlob blob = this.Container.GetBlockBlobReference(fileId);
+            var blob = Container.GetBlobClient(fileId);
+
             if (blob.Exists())
             {
-                long length = blob.Properties.Length;
-                bytes = new byte[length];
+                var downloadResult = blob.DownloadContent().Value;
 
-                blob.DownloadToByteArray(bytes, 0);
+                bytes = downloadResult.Content.ToArray();
             }
 
             return bytes;
@@ -748,9 +719,9 @@ namespace Micajah.AzureFileService
 
         public byte[] GetFileByName(string fileName)
         {
-            string fileId = this.GetFileId(fileName);
+            string fileId = GetFileId(fileName);
 
-            return this.GetFile(fileId);
+            return GetFile(fileId);
         }
 
         public static byte[] GetFileByUrl(string url)
@@ -780,7 +751,7 @@ namespace Micajah.AzureFileService
 
         public Collection<File> GetFiles(FileSearchOptions searchOptions)
         {
-            return GetFiles(searchOptions, ReadAccessPolicy);
+            return GetFiles(searchOptions, ReadPermissions);
         }
 
         public Collection<File> GetFiles(int readAccessExpiryTime)
@@ -790,9 +761,7 @@ namespace Micajah.AzureFileService
 
         public Collection<File> GetFiles(FileSearchOptions searchOptions, int readAccessExpiryTime)
         {
-            SharedAccessBlobPolicy readAccessPolicy = CreateReadAccessPolicy(readAccessExpiryTime);
-
-            return GetFiles(searchOptions, readAccessPolicy);
+            return GetFiles(searchOptions, CreateReadPermissions(readAccessExpiryTime));
         }
 
         public string[] GetFileNames()
@@ -820,38 +789,32 @@ namespace Micajah.AzureFileService
             {
                 if (MimeType.IsInGroups(fileId, MimeTypeGroups.Image, true))
                 {
-                    this.DeleteThumbnails(fileId);
+                    DeleteThumbnails(fileId);
                 }
-                else
-                {
-                    CloudBlockBlob blob = this.Container.GetBlockBlobReference(fileId);
-                    blob.Delete();
-                }
+
+                var blob = Container.GetBlobClient(fileId);
+
+                blob.Delete();
             }
         }
 
         public void DeleteFiles()
         {
-            IEnumerable<IListBlobItem> blobList = ListBlobs(this.Container, this.BlobPath);
-            foreach (IListBlobItem item in blobList)
+            var blobItems = GetBlockBlobs(Container, BlobPath);
+
+            foreach (var blobItem in blobItems)
             {
-                CloudBlockBlob blob = item as CloudBlockBlob;
-                if (blob != null)
-                {
-                    if (blob.BlobType == BlobType.BlockBlob)
-                    {
-                        this.DeleteFile(blob.Name);
-                    }
-                }
+                DeleteFile(blobItem.Name);
             }
         }
 
         public bool DownloadToFile(string fileId, string path)
         {
-            CloudBlockBlob blob = this.Container.GetBlockBlobReference(fileId);
+            var blob = Container.GetBlobClient(fileId);
+
             if (blob.Exists())
             {
-                blob.DownloadToFile(path, FileMode.Create);
+                blob.DownloadTo(path);
 
                 return true;
             }
@@ -863,14 +826,17 @@ namespace Micajah.AzureFileService
         {
             string fileName = GetNameFromFileId(fileId);
 
-            return this.GetThumbnail(fileId, fileName, width, height, align);
+            return GetThumbnail(fileId, fileName, width, height, align);
         }
 
         public string GetThumbnailUrl(string fileId, int width, int height, int align, bool createApplicationAbsoluteUrl)
         {
-            return string.Format(CultureInfo.InvariantCulture
-                , ((createApplicationAbsoluteUrl ? VirtualPathUtility.ToAbsolute(FileHandler.VirtualPath) : FileHandler.VirtualPath) + "?d={0}")
-                , HttpServerUtility.UrlTokenEncode(Encoding.UTF8.GetBytes(string.Format(CultureInfo.InvariantCulture, "{0}|{1}|{2}|{3}|{4}", fileId, width, height, align, this.ContainerName))));
+            string url = createApplicationAbsoluteUrl
+                ? VirtualPathUtility.ToAbsolute(FileHandler.VirtualPath)
+                : FileHandler.VirtualPath;
+            string d = HttpServerUtility.UrlTokenEncode(Encoding.UTF8.GetBytes($"{fileId}|{width}|{height}|{align}|{ContainerName}"));
+
+            return $"{url}?d={d}";
         }
 
         public void CopyFiles(string objectId)
@@ -897,33 +863,30 @@ namespace Micajah.AzureFileService
         {
             if (!string.IsNullOrEmpty(fileId))
             {
-                CloudBlockBlob blob = this.Container.GetBlockBlobReference(fileId);
-                if (blob != null)
+                var blob = Container.GetBlobClient(fileId);
+
+                if (blob.Exists())
                 {
-                    if (blob.BlobType == BlobType.BlockBlob)
-                    {
-                        fileName = EscapeInvalidChars(fileName);
+                    string fileName2 = EscapeInvalidChars(fileName);
+                    string newBlobName = GetFileId(fileName2);
 
-                        string newBlobName = GetFileId(fileName);
+                    var newBlob = Container.GetBlobClient(newBlobName);
 
-                        CloudBlockBlob newBlob = this.Container.GetBlockBlobReference(newBlobName);
-                        newBlob.StartCopy(blob);
+                    newBlob.StartCopyFromUri(blob.Uri);
 
-                        this.DeleteFile(blob.Name);
-                    }
+                    DeleteFile(blob.Name);
                 }
             }
         }
 
         public string UploadFile(string fileName, string contentType, byte[] buffer)
         {
-            if (buffer != null)
+            if (buffer != null && buffer.Length > 0)
             {
-                CloudBlockBlob blob = this.GetFileReference(fileName, contentType);
-
-                UploadBlobFromByteArray(blob, contentType, buffer);
-
-                return blob.Name;
+                using (MemoryStream stream = new MemoryStream(buffer))
+                {
+                    return UploadFile(fileName, contentType, stream);
+                }
             }
 
             return null;
@@ -933,9 +896,13 @@ namespace Micajah.AzureFileService
         {
             if (source != null)
             {
-                CloudBlockBlob blob = this.GetFileReference(fileName, contentType);
+                string fileName2 = EscapeInvalidChars(fileName);
 
-                UploadBlobFromStream(blob, contentType, source);
+                string fileId = GetFileId(fileName2);
+
+                var blob = Container.GetBlobClient(fileId);
+
+                UploadBlobFromStream(blob, fileName, contentType, source);
 
                 return blob.Name;
             }
@@ -1025,7 +992,7 @@ namespace Micajah.AzureFileService
                     {
                         if (!validator.Invoke(contentType))
                         {
-                            throw new System.IO.InvalidDataException(string.Format(CultureInfo.InvariantCulture, "Invalid content type \"{0}\".", contentType));
+                            throw new InvalidDataException(string.Format(CultureInfo.InvariantCulture, "Invalid content type \"{0}\".", contentType));
                         }
                     }
 
@@ -1038,37 +1005,26 @@ namespace Micajah.AzureFileService
 
         public static File GetTemporaryFileInfo(string fileId)
         {
-            CloudBlockBlob blob = ContainerManager.TemporaryContainer.GetBlockBlobReference(fileId);
-            if (blob.Exists())
-            {
-                SharedAccessBlobPolicy readAccessPolicy = CreateReadAccessPolicy();
+            var blob = TemporaryContainer.GetBlobClient(fileId);
 
-                return GetFileInfo(blob, readAccessPolicy);
-            }
-
-            return null;
+            return GetFileInfo(blob, CreateReadPermissions());
         }
 
         public static Collection<File> GetTemporaryFiles(string directoryName)
         {
-            directoryName += "/";
-
             List<File> files = new List<File>();
 
-            SharedAccessBlobPolicy readAccessPolicy = CreateReadAccessPolicy();
+            var readPermissions = CreateReadPermissions();
 
-            IEnumerable<IListBlobItem> blobList = ListBlobs(ContainerManager.TemporaryContainer, directoryName);
-            foreach (IListBlobItem item in blobList)
+            var blobItems = GetBlockBlobs(TemporaryContainer, directoryName + "/");
+
+            foreach (var blobItem in blobItems)
             {
-                CloudBlockBlob blob = item as CloudBlockBlob;
-                if (blob != null)
-                {
-                    if (blob.BlobType == BlobType.BlockBlob)
-                    {
-                        File file = GetFileInfo(blob, readAccessPolicy);
-                        files.Add(file);
-                    }
-                }
+                var blob = TemporaryContainer.GetBlobClient(blobItem.Name);
+
+                File file = GetFileInfo(blob, readPermissions, blobItem.Properties);
+
+                files.Add(file);
             }
 
             files.Sort(CompareFilesByLastModifiedAndName);
@@ -1093,28 +1049,24 @@ namespace Micajah.AzureFileService
 
         public static void DeleteTemporaryFiles(string directoryName)
         {
-            directoryName += "/";
+            var blobItems = GetBlockBlobs(TemporaryContainer, directoryName + "/");
 
-            IEnumerable<IListBlobItem> blobList = ListBlobs(ContainerManager.TemporaryContainer, directoryName);
-            foreach (IListBlobItem item in blobList)
+            foreach (var blobItem in blobItems)
             {
-                CloudBlockBlob blob = item as CloudBlockBlob;
-                if (blob != null)
-                {
-                    blob.Delete();
-                }
+                var blob = TemporaryContainer.GetBlobClient(blobItem.Name);
+
+                blob.Delete();
             }
         }
 
         public static string UploadTemporaryFile(string fileName, string contentType, byte[] buffer, string directoryName)
         {
-            if (buffer != null)
+            if (buffer != null && buffer.Length > 0)
             {
-                CloudBlockBlob blob = GetTemporaryFileReference(fileName, contentType, directoryName);
-
-                UploadBlobFromByteArray(blob, contentType, buffer);
-
-                return blob.Name;
+                using (MemoryStream stream = new MemoryStream(buffer))
+                {
+                    return UploadTemporaryFile(fileName, contentType, stream, directoryName);
+                }
             }
 
             return null;
@@ -1124,9 +1076,13 @@ namespace Micajah.AzureFileService
         {
             if (source != null)
             {
-                CloudBlockBlob blob = GetTemporaryFileReference(fileName, contentType, directoryName);
+                string fileName2 = EscapeInvalidChars(fileName);
 
-                UploadBlobFromStream(blob, contentType, source);
+                string fileId = $"{directoryName}/{fileName2}";
+
+                var blob = TemporaryContainer.GetBlobClient(fileId);
+
+                UploadBlobFromStream(blob, fileName, contentType, source);
 
                 return blob.Name;
             }
