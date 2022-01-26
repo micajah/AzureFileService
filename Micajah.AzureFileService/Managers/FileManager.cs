@@ -251,7 +251,7 @@ namespace Micajah.AzureFileService
 
                 if (deleteTemporaryFiles)
                 {
-                    tempBlob.Delete();
+                    tempBlob.DeleteIfExists();
                 }
             }
         }
@@ -293,7 +293,7 @@ namespace Micajah.AzureFileService
                 {
                     var blob = Container.GetBlobClient(blobItem.Name);
 
-                    blob.Delete();
+                    blob.DeleteIfExists();
                 }
             }
         }
@@ -794,7 +794,7 @@ namespace Micajah.AzureFileService
 
                 var blob = Container.GetBlobClient(fileId);
 
-                blob.Delete();
+                blob.DeleteIfExists();
             }
         }
 
@@ -1055,7 +1055,7 @@ namespace Micajah.AzureFileService
             {
                 var blob = TemporaryContainer.GetBlobClient(blobItem.Name);
 
-                blob.Delete();
+                blob.DeleteIfExists();
             }
         }
 
