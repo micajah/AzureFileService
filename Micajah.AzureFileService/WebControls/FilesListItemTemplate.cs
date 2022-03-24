@@ -17,8 +17,8 @@ namespace Micajah.AzureFileService.WebControls
 
             #region Members
 
-            private ListItemType m_ItemType;
-            private FileList m_FileList;
+            private readonly ListItemType m_ItemType;
+            private readonly FileList m_FileList;
 
             private LinkButton DeleteLink;
             private Image Picture;
@@ -121,10 +121,25 @@ namespace Micajah.AzureFileService.WebControls
             {
                 GC.SuppressFinalize(this);
 
-                DeleteLink?.Dispose();
-                Picture?.Dispose();
-                PictureLink?.Dispose();
-                PicturePanel?.Dispose();
+                if (DeleteLink != null)
+                {
+                    DeleteLink.Dispose();
+                }
+
+                if (Picture != null)
+                {
+                    Picture.Dispose();
+                }
+
+                if (PictureLink != null)
+                {
+                    PictureLink.Dispose();
+                }
+
+                if (PicturePanel != null)
+                {
+                    PicturePanel.Dispose();
+                }
             }
 
             #endregion

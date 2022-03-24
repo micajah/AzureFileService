@@ -22,10 +22,10 @@ namespace Micajah.AzureFileService.WebControls
 
             #region Members
 
-            private ListItemType m_ItemType;
-            private FileList m_FileList;
-            private int m_PictureWidth;
-            private int m_PictureHeight;
+            private readonly ListItemType m_ItemType;
+            private readonly FileList m_FileList;
+            private readonly int m_PictureWidth;
+            private readonly int m_PictureHeight;
 
             private LinkButton DeleteLink;
             private Image Picture;
@@ -47,7 +47,7 @@ namespace Micajah.AzureFileService.WebControls
                 if (m_FileList.ShowVideoOnly)
                 {
                     m_PictureWidth = VideoThumbnailWidth;
-                    m_PictureHeight = VideoThumbnailWidth;
+                    m_PictureHeight = VideoThumbnailHeight;
                 }
             }
 
