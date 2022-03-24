@@ -50,7 +50,7 @@ namespace Micajah.AzureFileService.WebControls
                 {
                     string contentType = MimeType.GetMimeType(file.Extension);
 
-                    url = MimeType.IsHeif(contentType) ? m_FileList.FileManager.GetThumbnailUrl(file.FileId, 600, 500, 0, true) : file.Url;
+                    url = MimeType.IsHeif(contentType) ? m_FileList.FileManager.GetThumbnailUrl(file.FileId, 0, 0, 0, true) : file.Url;
                 }
 
                 img.ImageUrl = url;
