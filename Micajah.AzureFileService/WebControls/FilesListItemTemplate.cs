@@ -41,14 +41,18 @@ namespace Micajah.AzureFileService.WebControls
 
             private void Image_DataBinding(object sender, EventArgs e)
             {
-                Image img = (sender as Image);
+                Image img = sender as Image;
                 File file = (File)DataBinder.GetDataItem(img.NamingContainer);
 
                 string url = GetNonImageFileTypeIconUrl(file.Name, IconSize.Bigger);
+
                 if (url == null)
                 {
-                    url = file.Url;
+                    string contentType = MimeType.GetMimeType(file.Extension);
+
+                    url = MimeType.IsHeif(contentType) ? m_FileList.FileManager.GetThumbnailUrl(file.FileId, 600, 500, 0, true) : file.Url;
                 }
+
                 img.ImageUrl = url;
             }
 
@@ -117,25 +121,10 @@ namespace Micajah.AzureFileService.WebControls
             {
                 GC.SuppressFinalize(this);
 
-                if (DeleteLink != null)
-                {
-                    DeleteLink.Dispose();
-                }
-
-                if (Picture != null)
-                {
-                    Picture.Dispose();
-                }
-
-                if (PictureLink != null)
-                {
-                    PictureLink.Dispose();
-                }
-
-                if (PicturePanel != null)
-                {
-                    PicturePanel.Dispose();
-                }
+                DeleteLink?.Dispose();
+                Picture?.Dispose();
+                PictureLink?.Dispose();
+                PicturePanel?.Dispose();
             }
 
             #endregion

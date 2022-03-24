@@ -63,7 +63,7 @@ namespace Micajah.AzureFileService.WebControls
             get
             {
                 if (s_KnownFileExtensions == null)
-                    s_KnownFileExtensions = new ReadOnlyCollection<string>(new string[] { "generic", "avi", "bmp", "doc", "docx", "gif", "htm", "html", "jpg", "mov", "mp3", "mpg", "ogg", "pdf", "png", "ppt", "pptx", "txt", "xls", "xlsx", "wav", "wma", "wmv", "zip" });
+                    s_KnownFileExtensions = new ReadOnlyCollection<string>(new string[] { "generic", "avi", "bmp", "doc", "docx", "gif", "heic", "heif", "htm", "html", "jpg", "mov", "mp3", "mpg", "ogg", "pdf", "png", "ppt", "pptx", "txt", "xls", "xlsx", "wav", "wma", "wmv", "zip" });
                 return s_KnownFileExtensions;
             }
         }
@@ -142,7 +142,7 @@ namespace Micajah.AzureFileService.WebControls
             get
             {
                 object obj = this.ViewState["FileExtensionsFilter"];
-                return ((obj == null) ? new string[0] : (string[])obj);
+                return (obj == null) ? new string[0] : (string[])obj;
             }
             set
             {
@@ -163,7 +163,7 @@ namespace Micajah.AzureFileService.WebControls
             get
             {
                 object obj = this.ViewState["Culture"];
-                return ((obj == null) ? CultureInfo.CurrentCulture : (CultureInfo)obj);
+                return (obj == null) ? CultureInfo.CurrentCulture : (CultureInfo)obj;
             }
             set { this.ViewState["Culture"] = value; }
         }
@@ -179,7 +179,7 @@ namespace Micajah.AzureFileService.WebControls
             get
             {
                 object obj = this.ViewState["DateTimeToolTipFormatString"];
-                return ((obj == null) ? "{0:MMM d, yyyy H:mm}" : (string)obj);
+                return (obj == null) ? "{0:MMM d, yyyy H:mm}" : (string)obj;
             }
             set { this.ViewState["DateTimeToolTipFormatString"] = value; }
         }
@@ -195,7 +195,7 @@ namespace Micajah.AzureFileService.WebControls
             get
             {
                 object obj = this.ViewState["DateTimeFormatString"];
-                return ((obj == null) ? "{0:d-MMM-yyyy}" : (string)obj);
+                return (obj == null) ? "{0:d-MMM-yyyy}" : (string)obj;
             }
             set { this.ViewState["DateTimeFormatString"] = value; }
         }
@@ -211,7 +211,7 @@ namespace Micajah.AzureFileService.WebControls
             get
             {
                 object obj = this.ViewState["DeleteButtonText"];
-                return ((obj == null) ? Resources.FileList_DeleteText : (string)obj);
+                return (obj == null) ? Resources.FileList_DeleteText : (string)obj;
             }
             set { this.ViewState["DeleteButtonText"] = value; }
         }
@@ -227,7 +227,7 @@ namespace Micajah.AzureFileService.WebControls
             get
             {
                 string str = (string)ViewState["TimeZoneId"];
-                return (string.IsNullOrEmpty(str) ? "Eastern Standard Time" : str);
+                return string.IsNullOrEmpty(str) ? "Eastern Standard Time" : str;
             }
             set { ViewState["TimeZoneId"] = value; }
         }
@@ -267,7 +267,7 @@ namespace Micajah.AzureFileService.WebControls
             get
             {
                 object obj = ViewState["EnableDeleting"];
-                return ((obj == null) ? true : (bool)obj);
+                return (obj == null) ? true : (bool)obj;
             }
             set { ViewState["EnableDeleting"] = value; }
         }
@@ -283,7 +283,7 @@ namespace Micajah.AzureFileService.WebControls
             get
             {
                 object obj = ViewState["EnableDeletingConfirmation"];
-                return ((obj == null) ? true : (bool)obj);
+                return (obj == null) ? true : (bool)obj;
             }
             set { ViewState["EnableDeletingConfirmation"] = value; }
         }
@@ -299,7 +299,7 @@ namespace Micajah.AzureFileService.WebControls
             get
             {
                 object obj = this.ViewState["EnableThumbnails"];
-                return ((obj == null) ? true : (bool)obj);
+                return (obj == null) ? true : (bool)obj;
             }
             set { this.ViewState["EnableThumbnails"] = value; }
         }
@@ -313,7 +313,7 @@ namespace Micajah.AzureFileService.WebControls
             get
             {
                 object obj = ViewState["FilesCount"];
-                return ((obj == null) ? 0 : (int)obj);
+                return (obj == null) ? 0 : (int)obj;
             }
             private set { ViewState["FilesCount"] = value; }
         }
@@ -329,7 +329,7 @@ namespace Micajah.AzureFileService.WebControls
             get
             {
                 object obj = this.ViewState["IconSize"];
-                return ((obj == null) ? IconSize.Smaller : (IconSize)obj);
+                return (obj == null) ? IconSize.Smaller : (IconSize)obj;
             }
             set { this.ViewState["IconSize"] = value; }
         }
@@ -340,7 +340,7 @@ namespace Micajah.AzureFileService.WebControls
         [Browsable(false)]
         public bool IsEmpty
         {
-            get { return (this.FilesCount == 0); }
+            get { return this.FilesCount == 0; }
         }
 
         /// <summary>
@@ -354,7 +354,7 @@ namespace Micajah.AzureFileService.WebControls
             get
             {
                 object obj = ViewState["NegateFileExtensionsFilter"];
-                return ((obj == null) ? false : (bool)obj);
+                return (obj == null) ? false : (bool)obj;
             }
             set { ViewState["NegateFileExtensionsFilter"] = value; }
         }
@@ -370,7 +370,7 @@ namespace Micajah.AzureFileService.WebControls
             get
             {
                 object obj = this.ViewState["RenderingMode"];
-                return ((obj == null) ? FileListRenderingMode.Grid : (FileListRenderingMode)obj);
+                return (obj == null) ? FileListRenderingMode.Grid : (FileListRenderingMode)obj;
             }
             set { this.ViewState["RenderingMode"] = value; }
         }
@@ -386,7 +386,7 @@ namespace Micajah.AzureFileService.WebControls
             get
             {
                 object obj = this.ViewState["RepeatColumns"];
-                return ((obj == null) ? 4 : (int)obj);
+                return (obj == null) ? 4 : (int)obj;
             }
             set { this.ViewState["RepeatColumns"] = value; }
         }
@@ -402,7 +402,7 @@ namespace Micajah.AzureFileService.WebControls
             get
             {
                 object obj = this.ViewState["RepeatDirection"];
-                return ((obj == null) ? RepeatDirection.Horizontal : (RepeatDirection)obj);
+                return (obj == null) ? RepeatDirection.Horizontal : (RepeatDirection)obj;
             }
             set { this.ViewState["RepeatDirection"] = value; }
         }
@@ -418,7 +418,7 @@ namespace Micajah.AzureFileService.WebControls
             get
             {
                 object obj = this.ViewState["ShowFileToolTip"];
-                return ((obj == null) ? true : (bool)obj);
+                return (obj == null) ? true : (bool)obj;
             }
             set { this.ViewState["ShowFileToolTip"] = value; }
         }
@@ -434,7 +434,7 @@ namespace Micajah.AzureFileService.WebControls
             get
             {
                 object obj = this.ViewState["ShowIcons"];
-                return (((obj == null) ? false : (bool)obj) && (this.IconSize != IconSize.NotSet));
+                return ((obj == null) ? false : (bool)obj) && (this.IconSize != IconSize.NotSet);
             }
             set { this.ViewState["ShowIcons"] = value; }
         }
@@ -450,7 +450,7 @@ namespace Micajah.AzureFileService.WebControls
             get
             {
                 object obj = this.ViewState["ShowViewAllAtOnceLink"];
-                return ((obj == null) ? true : (bool)obj);
+                return (obj == null) ? true : (bool)obj;
             }
             set { this.ViewState["ShowViewAllAtOnceLink"] = value; }
         }
@@ -466,7 +466,7 @@ namespace Micajah.AzureFileService.WebControls
             get
             {
                 object obj = this.ViewState["Width"];
-                return ((obj == null) ? Unit.Empty : (Unit)obj);
+                return (obj == null) ? Unit.Empty : (Unit)obj;
             }
             set { this.ViewState["Width"] = value; }
         }
@@ -502,7 +502,7 @@ namespace Micajah.AzureFileService.WebControls
             get
             {
                 object obj = this.ViewState["ContainerPublicAccess"];
-                return ((obj == null) ? false : (bool)obj);
+                return (obj == null) ? false : (bool)obj;
             }
             set
             {
@@ -576,12 +576,12 @@ namespace Micajah.AzureFileService.WebControls
         {
             string extension = Path.GetExtension(fileName).ToLowerInvariant().TrimStart('.');
             string webResourceNameFormatString = string.Format(CultureInfo.InvariantCulture, "Images.Icons{0}x{0}.{{0}}.gif", (int)iconSize);
-            return ResourceHandler.GetWebResourceUrl(string.Format(CultureInfo.InvariantCulture, webResourceNameFormatString, (KnownFileExtensions.Contains(extension) ? extension : KnownFileExtensions[0])), true);
+            return ResourceHandler.GetWebResourceUrl(string.Format(CultureInfo.InvariantCulture, webResourceNameFormatString, KnownFileExtensions.Contains(extension) ? extension : KnownFileExtensions[0]), true);
         }
 
         private static string GetNonImageFileTypeIconUrl(string fileName, IconSize iconSize)
         {
-            return (MimeType.IsInGroups(fileName, MimeTypeGroups.Image, true) ? null : GetFileTypeIconUrl(fileName, iconSize));
+            return MimeType.IsInGroups(fileName, MimeTypeGroups.Image, true) ? null : GetFileTypeIconUrl(fileName, iconSize);
         }
 
         private void ApplyStyle()
@@ -591,7 +591,7 @@ namespace Micajah.AzureFileService.WebControls
                 if (!this.Width.IsEmpty)
                 {
                     Grid.Width = this.Width;
-                    Grid.Columns[(this.ShowIcons ? 1 : 0)].ItemStyle.Width = Unit.Percentage(100);
+                    Grid.Columns[this.ShowIcons ? 1 : 0].ItemStyle.Width = Unit.Percentage(100);
                 }
 
                 Grid.CellPadding = -1;
@@ -760,7 +760,7 @@ namespace Micajah.AzureFileService.WebControls
 
         private void DataList_DeleteCommand(object source, DataListCommandEventArgs e)
         {
-            DeleteFile((string)(List.DataKeys[e.Item.ItemIndex]));
+            DeleteFile((string)List.DataKeys[e.Item.ItemIndex]);
         }
 
         private void Grid_RowDataBound(object sender, GridViewRowEventArgs e)
@@ -807,7 +807,7 @@ namespace Micajah.AzureFileService.WebControls
 
                             if (MimeType.IsInGroups(file.Name, MimeTypeGroups.Image, true))
                             {
-                                string thumbUrl = (this.EnableThumbnails ? this.FileManager.GetThumbnailUrl(file.FileId, 600, 500, 1, true) : file.Url);
+                                string thumbUrl = this.EnableThumbnails ? this.FileManager.GetThumbnailUrl(file.FileId, 600, 500, 1, true) : file.Url;
                                 string content = string.Format(CultureInfo.InvariantCulture, ToolTipBigHtml, file.Url, file.Name, thumbUrl);
 
                                 link.Attributes["data-ot"] = content;
@@ -969,7 +969,7 @@ namespace Micajah.AzureFileService.WebControls
                 if (ViewAllAtOnceLink != null)
                 {
                     ViewAllAtOnceLink.NavigateUrl = this.ViewAllAtOnceLinkNavigateUrl;
-                    ViewAllAtOnceLink.Visible = (!this.IsEmpty);
+                    ViewAllAtOnceLink.Visible = !this.IsEmpty;
                 }
 
                 base.RenderControl(writer);

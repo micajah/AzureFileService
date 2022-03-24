@@ -1,3 +1,4 @@
+using ImageMagick;
 using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -119,19 +120,36 @@ namespace Micajah.AzureFileService
 
         #region Public Methods
 
-        public static void Create(Stream source, int width, int height, int align, Stream output)
+        public static void Create(Stream source, string fileName, int width, int height, int align, Stream output)
         {
             if (output == null)
             {
                 return;
             }
 
+            MemoryStream stream = null;
             Image sourceImage = null;
             Bitmap scaledImage = null;
             Bitmap outputImage = null;
 
             try
             {
+                string contentType = MimeType.GetMimeType(fileName);
+
+                if (MimeType.IsHeif(contentType))
+                {
+                    stream = new MemoryStream();
+
+                    using (var image = new MagickImage(source))
+                    {
+                        image.Format = MagickFormat.Jpeg;
+
+                        image.Write(stream);
+                    }
+
+                    source = stream;
+                }
+
                 sourceImage = Image.FromStream(source);
 
                 int sourceWidth = sourceImage.Width;
@@ -166,7 +184,7 @@ namespace Micajah.AzureFileService
                     GetAlignPosition(align, maxWidth, maxHeight, outputWidth, outputHeight, ref x, ref y);
 
                     outputImage = new Bitmap(maxWidth, maxHeight);
-                    DrawImage((Image)scaledImage, x, y, outputWidth, outputHeight, outputImage);
+                    DrawImage(scaledImage, x, y, outputWidth, outputHeight, outputImage);
                     outputImage.Save(output, System.Drawing.Imaging.ImageFormat.Jpeg);
                 }
                 else
@@ -176,20 +194,10 @@ namespace Micajah.AzureFileService
             }
             finally
             {
-                if (sourceImage != null)
-                {
-                    sourceImage.Dispose();
-                }
-
-                if (scaledImage != null)
-                {
-                    scaledImage.Dispose();
-                }
-
-                if (outputImage != null)
-                {
-                    outputImage.Dispose();
-                }
+                stream?.Dispose();
+                sourceImage?.Dispose();
+                scaledImage?.Dispose();
+                outputImage?.Dispose();
             }
         }
 

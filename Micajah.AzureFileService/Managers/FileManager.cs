@@ -630,7 +630,7 @@ namespace Micajah.AzureFileService
                         imageStream = downloadResult.Content.ToStream();
 
                         thumbStream = new MemoryStream();
-                        Thumbnail.Create(imageStream, width, height, align, thumbStream);
+                        Thumbnail.Create(imageStream, fileName, width, height, align, thumbStream);
 
                         var uploadOptions = new BlobUploadOptions
                         {
