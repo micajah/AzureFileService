@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Text;
 using System.Web;
 
@@ -36,14 +37,21 @@ namespace Micajah.AzureFileService
             context.Response.Cache.SetExpires(DateTime.UtcNow.AddMinutes(Settings.ClientCacheExpiryTime).ToLocalTime());
             context.Response.ContentType = contentType;
 
-            string contentDisposition = string.Empty;
-            string userAgent = string.Empty;
+            string userAgent = context.Request.UserAgent != null ? context.Request.UserAgent : string.Empty;
 
-            if (context.Request.UserAgent != null)
+            string[] jpegExtensions = MimeType.GetExtensions(MimeType.Jpeg);
+
+            if (jpegExtensions != null)
             {
-                userAgent = context.Request.UserAgent;
+                string extension = Path.GetExtension(fileName);
+
+                if (Array.IndexOf(jpegExtensions, extension) == -1)
+                {
+                    fileName += MimeType.GetExtension(MimeType.Jpeg);
+                }
             }
 
+            string contentDisposition;
             if (context.Request.Browser.IsBrowser("IE") || userAgent.Contains("Chrome"))
                 contentDisposition = "filename=\"" + fileName.ToHex() + "\";";
             else if (userAgent.Contains("Safari"))
