@@ -72,6 +72,7 @@ namespace Micajah.AzureFileService
 
         #region Members
 
+        private static NameValueCollection s_Mapping;
         private static NameValueCollection s_ArchiveMapping;
         private static NameValueCollection s_AudioMapping;
         private static NameValueCollection s_ImageMapping;
@@ -92,19 +93,22 @@ namespace Micajah.AzureFileService
         {
             get
             {
-                NameValueCollection mapping = new NameValueCollection
+                if (s_Mapping == null)
                 {
-                    ArchiveMapping,
-                    AudioMapping,
-                    DocumentMapping,
-                    ImageMapping,
-                    MessageMapping,
-                    TextMapping,
-                    VideoMapping,
-                    VariousMapping
-                };
+                    s_Mapping = new NameValueCollection
+                    {
+                        ArchiveMapping,
+                        AudioMapping,
+                        DocumentMapping,
+                        ImageMapping,
+                        MessageMapping,
+                        TextMapping,
+                        VideoMapping,
+                        VariousMapping
+                    };
+                }
 
-                return mapping;
+                return s_Mapping;
             }
         }
 
@@ -493,6 +497,8 @@ namespace Micajah.AzureFileService
 
             if (!string.IsNullOrEmpty(mimeType))
             {
+                mimeType = mimeType.ToLowerInvariant();
+
                 extension = mapping.AllKeys.FirstOrDefault(key => mapping[key].Split(',').Contains(mimeType));
             }
 
@@ -570,14 +576,9 @@ namespace Micajah.AzureFileService
 
         private static bool IsMapped(string mimeType, NameValueCollection mapping)
         {
-            if (!string.IsNullOrEmpty(mimeType))
-            {
-                string extension = GetExtension(mimeType.ToLowerInvariant(), mapping);
+            string extension = GetExtension(mimeType, mapping);
 
-                return !string.IsNullOrEmpty(extension);
-            }
-
-            return false;
+            return !string.IsNullOrEmpty(extension);
         }
 
         #endregion
@@ -605,14 +606,28 @@ namespace Micajah.AzureFileService
         /// <returns>The file extension for the MIME type or empty string, if the MIME type is not found.</returns>
         public static string GetExtension(string mimeType)
         {
-            string extension = null;
+            string extension = GetExtension(mimeType, Mapping);
+
+            return extension ?? string.Empty;
+        }
+
+        /// <summary>
+        /// Returns the array of file extensions by specified MIME type.
+        /// </summary>
+        /// <param name="mimeType">The string that contains the MIME type.</param>
+        /// <returns>The array of file extensions for the MIME type or null, if the MIME type is not found.</returns>
+        public static string[] GetExtensions(string mimeType)
+        {
+            string[] extensions = null;
 
             if (!string.IsNullOrEmpty(mimeType))
             {
-                extension = GetExtension(mimeType.ToLowerInvariant(), Mapping);
+                mimeType = mimeType.ToLowerInvariant();
+
+                extensions = Mapping.AllKeys.Where(key => Mapping[key].Split(',').Contains(mimeType)).ToArray();
             }
 
-            return extension ?? string.Empty;
+            return extensions;
         }
 
         /// <summary>
