@@ -82,6 +82,8 @@ namespace Micajah.AzureFileService
         private static NameValueCollection s_VideoMapping;
         private static NameValueCollection s_VariousMapping;
 
+        private static string[] s_JpegExtensions;
+
         #endregion
 
         #region Private Properties
@@ -303,7 +305,7 @@ namespace Micajah.AzureFileService
                         { ".wdp", "image/vnd.ms-photo" },
                         { ".xbm", "image/x-xbitmap" },
                         { ".xpm", "image/x-xpixmap" },
-                        { ".xwd", "image/x-xwindowdump" },
+                        { ".xwd", "image/x-xwindowdump" }
                     };
                 }
                 return s_ImageMapping;
@@ -489,6 +491,23 @@ namespace Micajah.AzureFileService
 
         #endregion
 
+        #region Internal Properties
+
+        internal static string[] JpegExtensions
+        {
+            get
+            {
+                if (s_JpegExtensions == null)
+                {
+                    s_JpegExtensions = GetExtensions(Jpeg, ImageMapping);
+                }
+
+                return s_JpegExtensions;
+            }
+        }
+
+        #endregion
+
         #region Private Methods
 
         private static string GetExtension(string mimeType, NameValueCollection mapping)
@@ -502,7 +521,21 @@ namespace Micajah.AzureFileService
                 extension = mapping.AllKeys.FirstOrDefault(key => mapping[key].Split(',').Contains(mimeType));
             }
 
-            return extension;
+            return extension ?? string.Empty;
+        }
+
+        private static string[] GetExtensions(string mimeType, NameValueCollection mapping)
+        {
+            string[] extensions = null;
+
+            if (!string.IsNullOrEmpty(mimeType))
+            {
+                mimeType = mimeType.ToLowerInvariant();
+
+                extensions = mapping.AllKeys.Where(key => mapping[key].Split(',').Contains(mimeType)).ToArray();
+            }
+
+            return extensions;
         }
 
         private static string GetMimeType(string extension, NameValueCollection mapping)
@@ -606,9 +639,7 @@ namespace Micajah.AzureFileService
         /// <returns>The file extension for the MIME type or empty string, if the MIME type is not found.</returns>
         public static string GetExtension(string mimeType)
         {
-            string extension = GetExtension(mimeType, Mapping);
-
-            return extension ?? string.Empty;
+            return GetExtension(mimeType, Mapping);
         }
 
         /// <summary>
@@ -618,16 +649,7 @@ namespace Micajah.AzureFileService
         /// <returns>The array of file extensions for the MIME type or null, if the MIME type is not found.</returns>
         public static string[] GetExtensions(string mimeType)
         {
-            string[] extensions = null;
-
-            if (!string.IsNullOrEmpty(mimeType))
-            {
-                mimeType = mimeType.ToLowerInvariant();
-
-                extensions = Mapping.AllKeys.Where(key => Mapping[key].Split(',').Contains(mimeType)).ToArray();
-            }
-
-            return extensions;
+            return GetExtensions(mimeType, Mapping);
         }
 
         /// <summary>
