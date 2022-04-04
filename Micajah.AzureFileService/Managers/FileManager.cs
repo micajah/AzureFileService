@@ -246,7 +246,10 @@ namespace Micajah.AzureFileService
                 }
                 else
                 {
-                    blob.StartCopyFromUri(tempBlob.Uri);
+                    if (tempBlob.Exists())
+                    {
+                        blob.StartCopyFromUri(tempBlob.Uri);
+                    }
                 }
 
                 if (deleteTemporaryFiles)
@@ -264,17 +267,21 @@ namespace Micajah.AzureFileService
 
             foreach (var blobItem in blobItems)
             {
-                string fileName = GetNameFromFileId(blobItem.Name);
-                string newBlobName = string.Format(CultureInfo.InvariantCulture, newBlobNameFormat, fileName);
-
                 var blob = Container.GetBlobClient(blobItem.Name);
-                var newBlob = Container.GetBlobClient(newBlobName);
 
-                newBlob.StartCopyFromUri(blob.Uri);
-
-                if (delete)
+                if (blob.Exists())
                 {
-                    DeleteFile(blobItem.Name);
+                    string fileName = GetNameFromFileId(blobItem.Name);
+                    string newBlobName = string.Format(CultureInfo.InvariantCulture, newBlobNameFormat, fileName);
+
+                    var newBlob = Container.GetBlobClient(newBlobName);
+
+                    newBlob.StartCopyFromUri(blob.Uri);
+
+                    if (delete)
+                    {
+                        DeleteFile(blobItem.Name);
+                    }
                 }
             }
         }
