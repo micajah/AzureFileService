@@ -347,6 +347,7 @@ namespace Micajah.AzureFileService
                         { ".ics", Calendar },
                         { ".ical", Calendar },
                         { ".ifb", Calendar },
+                        { ".iif", "text/tab-separated-values" },
                         { ".sql", "application/sql" },
                         { ".rtx", "text/richtext" },
                         { ".tsv", "text/tab-separated-values" },
