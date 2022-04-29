@@ -465,8 +465,15 @@ namespace Micajah.AzureFileService.WebControls
 
         private bool ValidateMimeType(string mimeType)
         {
+            if (string.IsNullOrWhiteSpace(mimeType))
+            {
+                return false;
+            }
+
             if (string.IsNullOrWhiteSpace(this.Accept))
+            {
                 return true;
+            }
 
             foreach (string item in this.Accept.Split(','))
             {
