@@ -138,6 +138,12 @@
   <data name="FileList_ViewAllAtOnceLink_Text" xml:space="preserve">
     <value>View all of these images at once</value>
   </data>
+  <data name="FileManager_ContainerNotFound" xml:space="preserve">
+    <value>The container "{0}" does not exist.</value>
+  </data>
+  <data name="FileManager_InvalidContentType" xml:space="preserve">
+    <value>Invalid content type "{0}".</value>
+  </data>
   <data name="FileUpload_CancelText" xml:space="preserve">
     <value>cancel</value>
   </data>
@@ -155,5 +161,8 @@
   </data>
   <data name="ResourceHandler_InvalidRequest" xml:space="preserve">
     <value>This is an invalid resource request.</value>
+  </data>
+  <data name="Thumbnail_CannotCreateThumbnail" xml:space="preserve">
+    <value>Cannot create thumbnail for file "{0}".</value>
   </data>
 </root>

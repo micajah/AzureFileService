@@ -2,6 +2,7 @@
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Sas;
+using Micajah.AzureFileService.Properties;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -478,7 +479,7 @@ namespace Micajah.AzureFileService
                     }
                 }
             }
-            catch (Exception) { }
+            catch { }
             finally
             {
                 output?.Dispose();
@@ -555,9 +556,7 @@ namespace Micajah.AzureFileService
             {
                 if (ex.ErrorCode == BlobErrorCode.ContainerNotFound)
                 {
-                    string errorMessage = $"The container \"{containerClient.Name}\" does not exist.";
-
-                    throw new RequestFailedException(errorMessage, ex);
+                    throw new RequestFailedException(string.Format(CultureInfo.InvariantCulture, Resources.FileManager_ContainerNotFound, containerClient?.Name), ex);
                 }
 
                 throw;
@@ -999,7 +998,7 @@ namespace Micajah.AzureFileService
                     {
                         if (!validator.Invoke(contentType))
                         {
-                            throw new InvalidDataException(string.Format(CultureInfo.InvariantCulture, "Invalid content type \"{0}\".", contentType));
+                            throw new InvalidDataException(string.Format(CultureInfo.InvariantCulture, Resources.FileManager_InvalidContentType, contentType));
                         }
                     }
 

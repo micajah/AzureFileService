@@ -19,7 +19,7 @@ namespace Micajah.AzureFileService.Properties {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -124,6 +124,24 @@ namespace Micajah.AzureFileService.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The container &quot;{0}&quot; does not exist..
+        /// </summary>
+        internal static string FileManager_ContainerNotFound {
+            get {
+                return ResourceManager.GetString("FileManager_ContainerNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid content type &quot;{0}&quot;..
+        /// </summary>
+        internal static string FileManager_InvalidContentType {
+            get {
+                return ResourceManager.GetString("FileManager_InvalidContentType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to cancel.
         /// </summary>
         internal static string FileUpload_CancelText {
@@ -174,6 +192,15 @@ namespace Micajah.AzureFileService.Properties {
         internal static string ResourceHandler_InvalidRequest {
             get {
                 return ResourceManager.GetString("ResourceHandler_InvalidRequest", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot create thumbnail for file &quot;{0}&quot;..
+        /// </summary>
+        internal static string Thumbnail_CannotCreateThumbnail {
+            get {
+                return ResourceManager.GetString("Thumbnail_CannotCreateThumbnail", resourceCulture);
             }
         }
     }

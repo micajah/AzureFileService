@@ -1,4 +1,5 @@
 using ImageMagick;
+using Micajah.AzureFileService.Properties;
 using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -134,9 +135,13 @@ namespace Micajah.AzureFileService
 
             try
             {
-                string contentType = MimeType.GetMimeType(fileName);
+                try
+                {
+                    sourceImage = Image.FromStream(source);
+                }
+                catch (ArgumentException) { }
 
-                if (MimeType.IsHeif(contentType))
+                if (sourceImage == null)
                 {
                     stream = new MemoryStream();
 
@@ -148,9 +153,9 @@ namespace Micajah.AzureFileService
                     }
 
                     source = stream;
-                }
 
-                sourceImage = Image.FromStream(source);
+                    sourceImage = Image.FromStream(source);
+                }
 
                 int sourceWidth = sourceImage.Width;
                 int sourceHeight = sourceImage.Height;
@@ -191,6 +196,10 @@ namespace Micajah.AzureFileService
                     scaledImage.Save(output, System.Drawing.Imaging.ImageFormat.Jpeg);
 
                 output.Position = 0;
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidDataException(string.Format(CultureInfo.InvariantCulture, Resources.Thumbnail_CannotCreateThumbnail, fileName), ex);
             }
             finally
             {
