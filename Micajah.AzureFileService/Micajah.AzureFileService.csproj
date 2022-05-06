@@ -145,6 +145,8 @@
     <Compile Include="Managers\FileManager.cs" />
     <Compile Include="Entities\File.cs" />
     <Compile Include="Handlers\FileHandler.cs" />
+    <Compile Include="Utils\Enums\MimeTypeGroups.cs" />
+    <Compile Include="WebControls\Enums\FileListRenderingMode.cs" />
     <Compile Include="WebControls\FilesListItemTemplate.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Handlers\ResourceHandler.cs" />
@@ -159,7 +161,7 @@
     <Compile Include="Configuration\Settings.cs" />
     <Compile Include="Utils\Thumbnail.cs" />
     <Compile Include="WebControls\ThumbnailsListItemTemplate.cs" />
-    <Compile Include="WebControls\Enums.cs" />
+    <Compile Include="WebControls\Enums\IconSize.cs" />
     <Compile Include="WebControls\FileList.cs" />
     <Compile Include="WebControls\FileUpload.cs" />
   </ItemGroup>
