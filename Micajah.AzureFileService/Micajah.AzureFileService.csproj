@@ -137,13 +137,13 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Entities\FileSearchOptions.cs" />
+    <Compile Include="Models\FileSearchOptions.cs" />
     <Compile Include="Extensions\ControlExtensions.cs" />
     <Compile Include="Extensions\ImageExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Managers\ContainerManager.cs" />
     <Compile Include="Managers\FileManager.cs" />
-    <Compile Include="Entities\File.cs" />
+    <Compile Include="Models\File.cs" />
     <Compile Include="Handlers\FileHandler.cs" />
     <Compile Include="Utils\Enums\MimeTypeGroups.cs" />
     <Compile Include="WebControls\Enums\FileListRenderingMode.cs" />
