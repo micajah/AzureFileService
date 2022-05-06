@@ -446,7 +446,7 @@ namespace Micajah.AzureFileService
                 CacheControl = Settings.ClientCacheControl
             };
 
-            if (MimeType.IsHtml(contentType))
+            if (contentType.In(MimeType.Html))
             {
                 blobHttpHeaders.ContentDisposition = "attachment";
             }

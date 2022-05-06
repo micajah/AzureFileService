@@ -316,6 +316,18 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons48x48\heic.gif" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons128x128\webp.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons16x16\webp.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons32x32\webp.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons48x48\webp.gif" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>

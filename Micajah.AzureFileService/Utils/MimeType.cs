@@ -60,6 +60,11 @@ namespace Micajah.AzureFileService
         public const string Pdf = "application/pdf";
 
         /// <summary>
+        /// image/webp
+        /// </summary>
+        public const string Webp = "image/webp";
+
+        /// <summary>
         /// .swf
         /// </summary>
         public const string SwfExtension = ".swf";
@@ -303,6 +308,7 @@ namespace Micajah.AzureFileService
                         { ".tiff", "image/tiff" },
                         { ".wbmp", "image/vnd.wap.wbmp" },
                         { ".wdp", "image/vnd.ms-photo" },
+                        { ".webp", Webp },
                         { ".xbm", "image/x-xbitmap" },
                         { ".xpm", "image/x-xpixmap" },
                         { ".xwd", "image/x-xwindowdump" }
@@ -713,53 +719,13 @@ namespace Micajah.AzureFileService
         }
 
         /// <summary>
-        /// Determines whether the specified MIME type is flash.
-        /// </summary>
-        /// <param name="mimeType">The string that contains the MIME type to check.</param>
-        /// <returns>true, if the specified MIME type is flash; otherwise, false.</returns>
-        public static bool IsFlash(string mimeType)
-        {
-            return string.Compare(mimeType, Flash, StringComparison.OrdinalIgnoreCase) == 0;
-        }
-
-        /// <summary>
-        /// Determines whether the specified MIME type is HEIF.
-        /// </summary>
-        /// <param name="mimeType">The string that contains the MIME type to check.</param>
-        /// <returns>true, if the specified MIME type is HEIF; otherwise, false.</returns>
-        public static bool IsHeif(string mimeType)
-        {
-            return string.Compare(mimeType, Heif, StringComparison.OrdinalIgnoreCase) == 0;
-        }
-
-        /// <summary>
-        /// Determines whether the specified MIME type is HTML.
-        /// </summary>
-        /// <param name="mimeType">The string that contains the MIME type to check.</param>
-        /// <returns>true, if the specified MIME type is HTML; otherwise, false.</returns>
-        public static bool IsHtml(string mimeType)
-        {
-            return string.Compare(mimeType, Html, StringComparison.OrdinalIgnoreCase) == 0;
-        }
-
-        /// <summary>
         /// Determines whether the specified MIME type is icon image.
         /// </summary>
         /// <param name="mimeType">The string that contains the MIME type to check.</param>
         /// <returns>true, if the specified MIME type is icon image; otherwise, false.</returns>
         public static bool IsIcon(string mimeType)
         {
-            return (string.Compare(mimeType, Icon, StringComparison.OrdinalIgnoreCase) == 0) || (string.Compare(mimeType, Icon2, StringComparison.OrdinalIgnoreCase) == 0);
-        }
-
-        /// <summary>
-        /// Determines whether the specified MIME type is PDF.
-        /// </summary>
-        /// <param name="mimeType">The string that contains the MIME type to check.</param>
-        /// <returns>true, if the specified MIME type is PDF; otherwise, false.</returns>
-        public static bool IsPdf(string mimeType)
-        {
-            return string.Compare(mimeType, Pdf, StringComparison.OrdinalIgnoreCase) == 0;
+            return mimeType.In(Icon, Icon2);
         }
 
         /// <summary>

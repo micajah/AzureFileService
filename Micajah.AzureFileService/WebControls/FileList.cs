@@ -63,7 +63,13 @@ namespace Micajah.AzureFileService.WebControls
             get
             {
                 if (s_KnownFileExtensions == null)
-                    s_KnownFileExtensions = new ReadOnlyCollection<string>(new string[] { "generic", "avi", "bmp", "doc", "docx", "gif", "heic", "heif", "htm", "html", "jpg", "mov", "mp3", "mpg", "ogg", "pdf", "png", "ppt", "pptx", "txt", "xls", "xlsx", "wav", "wma", "wmv", "zip" });
+                {
+                    s_KnownFileExtensions = new ReadOnlyCollection<string>(new string[] {
+                        "generic", "avi", "bmp", "doc", "docx", "gif", "heic", "heif", "htm", "html", "jpg", "mov", "mp3", "mpg", "ogg",
+                        "pdf", "png", "ppt", "pptx", "txt", "xls", "xlsx", "wav", "webp", "wma", "wmv", "zip"
+                    });
+                }
+
                 return s_KnownFileExtensions;
             }
         }
@@ -111,7 +117,7 @@ namespace Micajah.AzureFileService.WebControls
                             {
                                 string mimeType = MimeType.GetMimeType(extension);
 
-                                if (!(MimeType.IsInGroups(mimeType, MimeTypeGroups.Video) || MimeType.IsFlash(mimeType)))
+                                if (!(MimeType.IsInGroups(mimeType, MimeTypeGroups.Video) || mimeType.In(MimeType.Flash)))
                                 {
                                     return m_ShowVideoOnly.Value;
                                 }

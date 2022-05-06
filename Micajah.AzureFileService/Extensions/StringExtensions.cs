@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 
 namespace Micajah.AzureFileService
@@ -58,6 +59,29 @@ namespace Micajah.AzureFileService
             }
 
             return sb.ToString();
+        }
+
+        /// <summary>
+        /// Determines whether the string is in the list of specified values.
+        /// </summary>
+        /// <param name="value">A string.</param>
+        /// <param name="values">The array of strings.</param>
+        /// <returns>true if the string is in the list of specified values; otherwise, false.</returns>
+        public static bool In(this string value, params string[] values)
+        {
+            return In(value, StringComparison.OrdinalIgnoreCase, values);
+        }
+
+        /// <summary>
+        /// Determines whether the string is in the list of specified values.
+        /// </summary>
+        /// <param name="value">A string.</param>
+        /// <param name="comparisonType"></param>
+        /// <param name="values">The array of strings.</param>
+        /// <returns>true if the string is in the list of specified values; otherwise, false.</returns>
+        public static bool In(this string value, StringComparison comparisonType, params string[] values)
+        {
+            return values?.Any(x => string.Compare(value, x, comparisonType) == 0) ?? false;
         }
 
         #endregion
