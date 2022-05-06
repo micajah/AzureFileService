@@ -50,7 +50,7 @@ namespace Micajah.AzureFileService.WebControls
                 {
                     string contentType = MimeType.GetMimeType(file.Extension);
 
-                    url = contentType.In(MimeType.Heif, MimeType.Webp) ? m_FileList.FileManager.GetThumbnailUrl(file.FileId, 0, 0, 0, true) : file.Url;
+                    url = contentType.In(MimeType.Heif) ? m_FileList.FileManager.GetThumbnailUrl(file.FileId, 0, 0, 0, true) : file.Url;
                 }
 
                 img.ImageUrl = url;
@@ -65,7 +65,7 @@ namespace Micajah.AzureFileService.WebControls
 
                 link.Text = file.Name;
                 link.NavigateUrl = file.Url;
-                if ((string.Compare(extension, MimeType.SwfExtension, StringComparison.OrdinalIgnoreCase) == 0) || MimeType.IsInGroups(extension, MimeTypeGroups.Image, true))
+                if (extension.In(MimeType.SwfExtension) || MimeType.IsInGroups(extension, MimeTypeGroups.Image, true))
                 {
                     link.Target = "_blank";
                     link.Attributes["rel"] = "noopener";

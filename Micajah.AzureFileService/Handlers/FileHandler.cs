@@ -39,7 +39,7 @@ namespace Micajah.AzureFileService
 
             string extension = Path.GetExtension(fileName).ToLowerInvariant();
 
-            if (Array.IndexOf(MimeType.JpegExtensions, extension) == -1)
+            if (!extension.In(MimeType.JpegExtensions))
             {
                 fileName += MimeType.JpegExtensions[0];
             }
