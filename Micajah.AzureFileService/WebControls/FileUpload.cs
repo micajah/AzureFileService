@@ -597,12 +597,12 @@ namespace Micajah.AzureFileService.WebControls
                 this.Style[HtmlTextWriterStyle.Display] = "none";
             }
 
-            this.RegisterStyleSheet("Styles.dropzone.css");
+            this.RegisterStyleSheet(ResourceProvider.DropzoneStyleSheet);
 
             Page p = this.Page;
             Type t = p.GetType();
 
-            ScriptManager.RegisterClientScriptInclude(p, t, "Scripts.dropzone.js", ResourceHandler.GetWebResourceUrl("Scripts.dropzone.js", true));
+            ScriptManager.RegisterClientScriptInclude(p, t, "Scripts.dropzone.js", ResourceProvider.GetResourceUrl(ResourceProvider.DropzoneScript, true));
             ScriptManager.RegisterStartupScript(p, t, this.ClientID, this.ClientScript, true);
         }
 
@@ -643,10 +643,7 @@ namespace Micajah.AzureFileService.WebControls
             this.TemporaryDirectoryName = null;
             FilesStateField.Value = string.Empty;
 
-            if (this.AcceptedChanges != null)
-            {
-                this.AcceptedChanges(this, EventArgs.Empty);
-            }
+            this.AcceptedChanges?.Invoke(this, EventArgs.Empty);
         }
 
         /// <summary>

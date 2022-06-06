@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Text;
 using System.Web;
 
 namespace Micajah.AzureFileService
@@ -25,56 +24,36 @@ namespace Micajah.AzureFileService
 
         #endregion
 
-        #region Private Methods
-
-        private static void ConfigureResponse(HttpContext context, string fileName, string contentType)
-        {
-            context.Response.Clear();
-            context.Response.ClearHeaders();
-            context.Response.Charset = Encoding.UTF8.WebName;
-            context.Response.ContentEncoding = Encoding.UTF8;
-            context.Response.Cache.SetCacheability(HttpCacheability.Public);
-            context.Response.Cache.SetExpires(DateTime.UtcNow.AddMinutes(Settings.ClientCacheExpiryTime).ToLocalTime());
-            context.Response.ContentType = contentType;
-
-            string extension = Path.GetExtension(fileName).ToLowerInvariant();
-
-            if (!extension.In(MimeType.JpegExtensions))
-            {
-                fileName += MimeType.JpegExtensions[0];
-            }
-
-            string userAgent = context.Request.UserAgent != null ? context.Request.UserAgent : string.Empty;
-
-            string contentDisposition;
-            if (context.Request.Browser.IsBrowser("IE") || userAgent.Contains("Chrome"))
-                contentDisposition = "filename=\"" + fileName.ToHex() + "\";";
-            else if (userAgent.Contains("Safari"))
-                contentDisposition = "filename=\"" + fileName + "\";";
-            else
-                contentDisposition = "filename*=utf-8''" + HttpUtility.UrlPathEncode(fileName) + ";";
-
-            context.Response.AddHeader("Content-Disposition", contentDisposition);
-        }
-
-        #endregion
-
         #region Public Methods
 
         public void ProcessRequest(HttpContext context)
         {
-            if (context != null)
+            if (context == null)
             {
-                if (context.Request.QueryString["d"] != null)
+                return;
+            }
+
+            string d = context.Request.QueryString["d"];
+
+            if (d == null)
+            {
+                return;
+            }
+
+            byte[] content = FileManager.GetThumbnail(d, out string fileName);
+
+            if (content != null)
+            {
+                string extension = Path.GetExtension(fileName).ToLowerInvariant();
+
+                if (!extension.In(MimeType.JpegExtensions))
                 {
-                    string fileName = null;
-                    byte[] bytes = FileManager.GetThumbnail(context.Request.QueryString["d"], out fileName);
-                    if (bytes != null)
-                    {
-                        ConfigureResponse(context, fileName, MimeType.Jpeg);
-                        context.Response.BinaryWrite(bytes);
-                    }
+                    fileName += MimeType.JpegExtensions[0];
                 }
+
+                ResourceHandler.ConfigureResponse(context, fileName, MimeType.Jpeg, DateTime.UtcNow.AddMinutes(Settings.ClientCacheExpiryTime).ToLocalTime());
+
+                context.Response.BinaryWrite(content);
             }
         }
 

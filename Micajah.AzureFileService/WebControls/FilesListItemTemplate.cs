@@ -1,5 +1,6 @@
 ﻿using Micajah.AzureFileService.Properties;
 using System;
+using System.Globalization;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 
@@ -20,10 +21,12 @@ namespace Micajah.AzureFileService.WebControls
             private readonly ListItemType m_ItemType;
             private readonly FileList m_FileList;
 
-            private LinkButton DeleteLink;
-            private Image Picture;
             private Panel PicturePanel;
+            private Image Picture;
+            private Label IconLabel;
+            private Panel LinksPanel;
             private HyperLink PictureLink;
+            private LinkButton DeleteLink;
 
             #endregion
 
@@ -39,33 +42,50 @@ namespace Micajah.AzureFileService.WebControls
 
             #region Private Methods
 
-            private void Image_DataBinding(object sender, EventArgs e)
+            private void PicturePanel_DataBinding(object sender, EventArgs e)
             {
-                Image img = sender as Image;
-                File file = (File)DataBinder.GetDataItem(img.NamingContainer);
+                Panel panel = (Panel)sender;
 
-                string url = GetNonImageFileTypeIconUrl(file.Name, IconSize.Bigger);
+                File file = (File)DataBinder.GetDataItem(panel.NamingContainer);
 
-                if (url == null)
+                var fileMimeTypeGroups = MimeType.GetGroups(file.Name, true);
+                bool isImage = (fileMimeTypeGroups & MimeTypeGroups.Image) == MimeTypeGroups.Image;
+
+                if (isImage)
                 {
-                    string contentType = MimeType.GetMimeType(file.Extension);
+                    Picture = new Image();
 
-                    url = contentType.In(MimeType.Heif) ? m_FileList.FileManager.GetThumbnailUrl(file.FileId, 0, 0, 0, true) : file.Url;
+                    Picture.ImageUrl = m_FileList.FileManager.GetThumbnailUrl(file.FileId, 0, 0, 0, true);
+
+                    panel.Controls.Add(Picture);
                 }
+                else
+                {
+                    IconLabel = new Label();
 
-                img.ImageUrl = url;
+                    IconLabel.CssClass = GetFileTypeIconCssClass(fileMimeTypeGroups);
+
+                    string fontSize = string.Format(CultureInfo.InvariantCulture, "{0}px", (int)IconSize.Bigger);
+                    IconLabel.Font.Size = FontUnit.Parse(fontSize, CultureInfo.InvariantCulture);
+                    IconLabel.Style["line-height"] = fontSize;
+
+                    panel.Controls.Add(IconLabel);
+                }
             }
 
-            private void HyperLink_DataBinding(object sender, EventArgs e)
+            private void PictureLink_DataBinding(object sender, EventArgs e)
             {
                 HyperLink link = (HyperLink)sender;
+
                 File file = (File)DataBinder.GetDataItem(link.NamingContainer);
 
-                string extension = file.Extension;
+                var fileMimeTypeGroups = MimeType.GetGroups(file.Name, true);
+                bool isImage = (fileMimeTypeGroups & MimeTypeGroups.Image) == MimeTypeGroups.Image;
 
                 link.Text = file.Name;
                 link.NavigateUrl = file.Url;
-                if (extension.In(MimeType.SwfExtension) || MimeType.IsInGroups(extension, MimeTypeGroups.Image, true))
+
+                if (file.Extension.In(MimeType.SwfExtension) || isImage)
                 {
                     link.Target = "_blank";
                     link.Attributes["rel"] = "noopener";
@@ -82,23 +102,28 @@ namespace Micajah.AzureFileService.WebControls
                 {
                     return;
                 }
+
                 if ((m_ItemType != ListItemType.Item) && (m_ItemType != ListItemType.AlternatingItem))
                 {
                     return;
                 }
 
-                Picture = new Image();
-                Picture.DataBinding += new EventHandler(Image_DataBinding);
-
                 PicturePanel = new Panel();
+                PicturePanel.DataBinding += PicturePanel_DataBinding;
+                container.Controls.Add(PicturePanel);
+
+                LinksPanel = new Panel();
+                LinksPanel.CssClass = "flLinks";
+
                 PictureLink = new HyperLink();
-                PictureLink.DataBinding += new EventHandler(HyperLink_DataBinding);
+                PictureLink.DataBinding += new EventHandler(PictureLink_DataBinding);
                 PictureLink.CssClass = "flFileName";
-                PicturePanel.Controls.Add(PictureLink);
+                LinksPanel.Controls.Add(PictureLink);
 
                 if (m_FileList.EnableDeleting)
                 {
-                    PicturePanel.Controls.Add(new LiteralControl(SeparatorHtml));
+                    LinksPanel.Controls.Add(new LiteralControl(SeparatorHtml));
+
                     DeleteLink = new LinkButton();
                     DeleteLink.ID = "DeleteLink";
                     DeleteLink.CommandName = DataList.DeleteCommandName;
@@ -110,20 +135,19 @@ namespace Micajah.AzureFileService.WebControls
                         DeleteLink.OnClientClick = OnDeletingClientScript;
                         DeleteLink.ToolTip = Resources.FileList_DeleteText;
                     }
-                    PicturePanel.Controls.Add(DeleteLink);
+                    LinksPanel.Controls.Add(DeleteLink);
                 }
 
-                container.Controls.Add(Picture);
-                container.Controls.Add(PicturePanel);
+                container.Controls.Add(LinksPanel);
             }
 
             public void Dispose()
             {
                 GC.SuppressFinalize(this);
 
-                if (DeleteLink != null)
+                if (PicturePanel != null)
                 {
-                    DeleteLink.Dispose();
+                    PicturePanel.Dispose();
                 }
 
                 if (Picture != null)
@@ -131,14 +155,24 @@ namespace Micajah.AzureFileService.WebControls
                     Picture.Dispose();
                 }
 
+                if (IconLabel != null)
+                {
+                    IconLabel.Dispose();
+                }
+
+                if (LinksPanel != null)
+                {
+                    LinksPanel.Dispose();
+                }
+
                 if (PictureLink != null)
                 {
                     PictureLink.Dispose();
                 }
 
-                if (PicturePanel != null)
+                if (DeleteLink != null)
                 {
-                    PicturePanel.Dispose();
+                    DeleteLink.Dispose();
                 }
             }
 

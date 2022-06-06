@@ -1,7 +1,7 @@
 .flGrid td, .flGrid a, .flThumbs td, .flThumbs a, .flToolTip, .flToolTip a, .flFiles {
     font-family: Arial;
     font-size: 14px;
-    color: Black;
+    color: black;
 }
 
 .flGrid td {
@@ -16,12 +16,12 @@
         padding-left: 22px;
     }
 
-.flGrid a:hover, .flThumbs a:hover {
-    color: Blue;
+.flGrid a:hover {
+    color: blue;
 }
 
 .flGrid a.flRemove:hover, .flToolTip a.flRemove:hover, .flFiles a.flRemove:hover {
-    color: Red;
+    color: red;
 }
 
 .flGrid tr {
@@ -68,6 +68,10 @@
     display: block;
 }
 
+    .flThumbs a:hover {
+        color: black;
+    }
+
 .flThumbs div {
     border: solid 1px #cccccc !important;
     padding: 1px;
@@ -81,11 +85,11 @@
 
 .flFiles a.flFileName, .flFiles a.flFileName:hover {
     font-weight: bold;
-    color: Black;
+    color: black;
     text-decoration: none;
 }
 
-.flFiles div {
+.flFiles .flLinks {
     padding: 7px 0 35px 0;
 }
 
@@ -129,7 +133,7 @@
 a.flLink {
     font-family: Arial;
     padding: 1px 2px 3px 2px;
-    color: Gray;
+    color: gray;
     display: inline-block;
     font-size: 12px;
 }

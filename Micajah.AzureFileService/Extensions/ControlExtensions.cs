@@ -25,7 +25,7 @@ namespace Micajah.AzureFileService
             {
                 Page page = control.Page;
                 Type pageType = page.GetType();
-                string webResourceUrl = ResourceHandler.GetWebResourceUrl(styleSheetWebResourceName, true);
+                string webResourceUrl = ResourceProvider.GetResourceUrl(styleSheetWebResourceName, true);
 
                 if (!page.ClientScript.IsClientScriptBlockRegistered(pageType, webResourceUrl))
                 {

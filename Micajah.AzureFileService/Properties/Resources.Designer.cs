@@ -19,7 +19,7 @@ namespace Micajah.AzureFileService.Properties {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -183,15 +183,6 @@ namespace Micajah.AzureFileService.Properties {
         internal static string FileUpload_InvalidMimeType {
             get {
                 return ResourceManager.GetString("FileUpload_InvalidMimeType", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to This is an invalid resource request..
-        /// </summary>
-        internal static string ResourceHandler_InvalidRequest {
-            get {
-                return ResourceManager.GetString("ResourceHandler_InvalidRequest", resourceCulture);
             }
         }
         

@@ -1,8 +1,4 @@
-using Micajah.AzureFileService.Properties;
 using System;
-using System.Globalization;
-using System.IO;
-using System.Reflection;
 using System.Text;
 using System.Web;
 
@@ -25,44 +21,35 @@ namespace Micajah.AzureFileService
 
         #endregion
 
-        #region Private Methods
-
-        private static byte[] GetManifestResourceBytes(string resourceName)
-        {
-            byte[] bytes = null;
-            using (Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName))
-            {
-                if (stream != null)
-                {
-                    int count = (int)stream.Length;
-
-                    bytes = new byte[] { };
-                    Array.Resize<byte>(ref bytes, count);
-
-                    BinaryReader reader = new BinaryReader(stream);
-                    reader.Read(bytes, 0, count);
-                }
-            }
-            return bytes;
-        }
-
-        #endregion
-
         #region Internal Methods
 
-        internal static string GetWebResourceName(string resourceName)
+        internal static void ConfigureResponse(HttpContext context, string fileName, string contentType, DateTime? expires)
         {
-            return HttpServerUtility.UrlTokenEncode(Encoding.UTF8.GetBytes(string.Format(CultureInfo.InvariantCulture, "{0}|{1}", resourceName, Assembly.GetExecutingAssembly().GetName().Version)));
-        }
+            context.Response.Clear();
+            context.Response.ClearHeaders();
 
-        internal static string GetWebResourceUrlFormat(bool createApplicationAbsoluteUrl)
-        {
-            return ((createApplicationAbsoluteUrl ? VirtualPathUtility.ToAbsolute(VirtualPath) : VirtualPath) + "?d={0}");
-        }
+            context.Response.Charset = Encoding.UTF8.WebName;
+            context.Response.ContentEncoding = Encoding.UTF8;
 
-        internal static string GetWebResourceUrl(string resourceName, bool createApplicationAbsoluteUrl)
-        {
-            return string.Format(CultureInfo.InvariantCulture, GetWebResourceUrlFormat(createApplicationAbsoluteUrl), GetWebResourceName(resourceName));
+            string userAgent = context.Request.UserAgent ?? string.Empty;
+
+            string contentDisposition;
+            if (context.Request.Browser.IsBrowser("IE") || userAgent.Contains("Chrome"))
+                contentDisposition = "filename=\"" + fileName.ToHex() + "\";";
+            else if (userAgent.Contains("Safari"))
+                contentDisposition = "filename=\"" + fileName + "\";";
+            else
+                contentDisposition = "filename*=utf-8''" + HttpUtility.UrlPathEncode(fileName) + ";";
+
+            context.Response.AddHeader("Content-Disposition", contentDisposition);
+
+            context.Response.ContentType = contentType;
+
+            if (expires.HasValue)
+            {
+                context.Response.Cache.SetCacheability(HttpCacheability.Public);
+                context.Response.Cache.SetExpires(expires.Value);
+            }
         }
 
         #endregion
@@ -71,40 +58,36 @@ namespace Micajah.AzureFileService
 
         public void ProcessRequest(HttpContext context)
         {
-            byte[] bytes = null;
-
-            if (context != null)
+            if (context == null)
             {
-                if (context.Request.QueryString["d"] != null)
-                {
-                    byte[] decodedResourceName = HttpServerUtility.UrlTokenDecode(context.Request.QueryString["d"]);
-
-                    if (decodedResourceName != null)
-                    {
-                        string resourceName = Encoding.UTF8.GetString(decodedResourceName).Split('|')[0];
-                        if (!string.IsNullOrEmpty(resourceName))
-                        {
-                            bytes = GetManifestResourceBytes(ResourceVirtualPathProvider.ManifestResourceNamePrefix + "." + resourceName);
-
-                            if (bytes != null)
-                            {
-                                context.Response.Clear();
-                                context.Response.ContentType = MimeType.GetMimeType(resourceName);
-                                context.Response.Cache.SetExpires(DateTime.UtcNow.AddYears(1));
-                                context.Response.Cache.SetCacheability(HttpCacheability.Public);
-                                if (bytes.Length > 0)
-                                {
-                                    context.Response.OutputStream.Write(bytes, 0, bytes.Length);
-                                }
-                            }
-                        }
-                    }
-                }
+                return;
             }
 
-            if (bytes == null)
+            string d = context.Request.QueryString["d"];
+
+            if (d == null)
             {
-                throw new HttpException(404, Resources.ResourceHandler_InvalidRequest);
+                return;
+            }
+
+            byte[] content = null;
+            string contentType = null;
+            string fileName = null;
+            bool cacheable = true;
+
+            ResourceProvider.GetResource(d, ref content, ref contentType, ref fileName, ref cacheable);
+
+            if (content != null)
+            {
+                DateTime? expires = null;
+                if (cacheable)
+                {
+                    expires = DateTime.UtcNow.AddYears(1);
+                }
+
+                ConfigureResponse(context, fileName, contentType, expires);
+
+                context.Response.BinaryWrite(content);
             }
         }
 

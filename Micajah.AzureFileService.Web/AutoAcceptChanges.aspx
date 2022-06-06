@@ -11,7 +11,7 @@
                 AutoAcceptChanges="true" EnablePreview="false" DropElement="document.getElementById('FileUpload2DropPanel')" />
             <div id="FileUpload2DropPanel" style="width: 500px;">
                 <mafs:FileList ID="FileList2" runat="server" ContainerName="micajahazurefileservice" ObjectType="ticket" ObjectId="12345"
-                    DateTimeToolTipFormatString="{0:g} (UTC-5)" ShowIcons="True" ShowFileToolTip="false" RenderingMode="Grid" Width="100%">
+                    DateTimeToolTipFormatString="{0:g} (UTC-5)" ShowIcons="false" ShowFileToolTip="false" RenderingMode="Grid" Width="100%">
                 </mafs:FileList>
             </div>
         </ContentTemplate>

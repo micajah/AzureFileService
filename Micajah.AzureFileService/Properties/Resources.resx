@@ -159,9 +159,6 @@
   <data name="FileUpload_InvalidMimeType" xml:space="preserve">
     <value>Invalid file type</value>
   </data>
-  <data name="ResourceHandler_InvalidRequest" xml:space="preserve">
-    <value>This is an invalid resource request.</value>
-  </data>
   <data name="Thumbnail_CannotCreateThumbnail" xml:space="preserve">
     <value>Cannot create thumbnail for file "{0}".</value>
   </data>

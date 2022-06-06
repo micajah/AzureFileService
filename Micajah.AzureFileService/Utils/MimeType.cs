@@ -791,6 +791,105 @@ namespace Micajah.AzureFileService
             return IsMapped(mimeType, mapping);
         }
 
+        public static MimeTypeGroups GetGroups(string mimeType, bool isExtension)
+        {
+            if (!string.IsNullOrEmpty(mimeType))
+            {
+                if (isExtension)
+                {
+                    string ext = System.IO.Path.GetExtension(mimeType).ToLowerInvariant();
+
+                    if (ArchiveMapping[ext] != null)
+                    {
+                        return MimeTypeGroups.Archive;
+                    }
+
+                    if (AudioMapping[ext] != null)
+                    {
+                        return MimeTypeGroups.Audio;
+                    }
+
+                    if (DocumentMapping[ext] != null)
+                    {
+                        var mimeTypeGroup = MimeTypeGroups.Document;
+
+                        if (MicrosoftOfficeMapping[ext] != null)
+                        {
+                            mimeTypeGroup |= MimeTypeGroups.MicrosoftOffice;
+                        }
+
+                        return mimeTypeGroup;
+                    }
+
+                    if (ImageMapping[ext] != null)
+                    {
+                        return MimeTypeGroups.Image;
+                    }
+
+                    if (MessageMapping[ext] != null)
+                    {
+                        return MimeTypeGroups.Message;
+                    }
+
+                    if (TextMapping[ext] != null)
+                    {
+                        return MimeTypeGroups.Text;
+                    }
+
+                    if (VideoMapping[ext] != null)
+                    {
+                        return MimeTypeGroups.Video;
+                    }
+                }
+                else
+                {
+                    if (IsMapped(mimeType, ArchiveMapping))
+                    {
+                        return MimeTypeGroups.Archive;
+                    }
+
+                    if (IsMapped(mimeType, AudioMapping))
+                    {
+                        return MimeTypeGroups.Audio;
+                    }
+
+                    if (IsMapped(mimeType, DocumentMapping))
+                    {
+                        var mimeTypeGroup = MimeTypeGroups.Document;
+
+                        if (IsMapped(mimeType, MicrosoftOfficeMapping))
+                        {
+                            mimeTypeGroup |= MimeTypeGroups.MicrosoftOffice;
+                        }
+
+                        return mimeTypeGroup;
+                    }
+
+                    if (IsMapped(mimeType, ImageMapping))
+                    {
+                        return MimeTypeGroups.Image;
+                    }
+
+                    if (IsMapped(mimeType, MessageMapping))
+                    {
+                        return MimeTypeGroups.Message;
+                    }
+
+                    if (IsMapped(mimeType, TextMapping))
+                    {
+                        return MimeTypeGroups.Text;
+                    }
+
+                    if (IsMapped(mimeType, VideoMapping))
+                    {
+                        return MimeTypeGroups.Video;
+                    }
+                }
+            }
+
+            return MimeTypeGroups.None;
+        }
+
         #endregion
     }
 }

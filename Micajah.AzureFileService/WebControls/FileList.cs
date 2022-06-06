@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Web;
@@ -41,9 +40,7 @@ namespace Micajah.AzureFileService.WebControls
 
         private DateTime m_UpdatedDate = DateTime.MinValue;
         private TimeZoneInfo m_TimeZone;
-        private static ReadOnlyCollection<string> s_KnownFileExtensions;
         private FileManager m_FileManager;
-        private bool? m_ShowVideoOnly;
 
         #endregion
 
@@ -57,22 +54,6 @@ namespace Micajah.AzureFileService.WebControls
         #endregion
 
         #region Private Properties
-
-        private static ReadOnlyCollection<string> KnownFileExtensions
-        {
-            get
-            {
-                if (s_KnownFileExtensions == null)
-                {
-                    s_KnownFileExtensions = new ReadOnlyCollection<string>(new string[] {
-                        "generic", "avi", "bmp", "doc", "docx", "gif", "heic", "heif", "htm", "html", "jpg", "mov", "mp3", "mpg", "ogg",
-                        "pdf", "png", "ppt", "pptx", "txt", "xls", "xlsx", "wav", "webp", "wma", "wmv", "zip"
-                    });
-                }
-
-                return s_KnownFileExtensions;
-            }
-        }
 
         private string[] FileExtensionsFilterInternal
         {
@@ -94,41 +75,8 @@ namespace Micajah.AzureFileService.WebControls
             {
                 string str = string.Format(CultureInfo.InvariantCulture, "{0}|{1}|{2}|{3}|{4}", this.ContainerName, this.ContainerPublicAccess, this.ObjectType, this.ObjectId, this.NegateFileExtensionsFilter);
 
-                return ResourceVirtualPathProvider.VirtualPathToAbsolute(ResourceVirtualPathProvider.VirtualRootShortPath + "FileList.aspx")
+                return ResourceVirtualPathProvider.VirtualPathToAbsolute(ResourceProvider.FileListPageVirtualPath)
                     + "?d=" + HttpServerUtility.UrlTokenEncode(Encoding.UTF8.GetBytes(str));
-            }
-        }
-
-        private bool ShowVideoOnly
-        {
-            get
-            {
-                if (!m_ShowVideoOnly.HasValue)
-                {
-                    m_ShowVideoOnly = false;
-
-                    string[] extensions = this.FileExtensionsFilter;
-
-                    if (extensions.Length > 0)
-                    {
-                        foreach (string extension in extensions)
-                        {
-                            if (string.Compare(extension, MimeTypeGroups.Video.ToString(), StringComparison.OrdinalIgnoreCase) != 0)
-                            {
-                                string mimeType = MimeType.GetMimeType(extension);
-
-                                if (!(MimeType.IsInGroups(mimeType, MimeTypeGroups.Video) || mimeType.In(MimeType.Flash)))
-                                {
-                                    return m_ShowVideoOnly.Value;
-                                }
-                            }
-                        }
-
-                        m_ShowVideoOnly = !NegateFileExtensionsFilter;
-                    }
-                }
-
-                return m_ShowVideoOnly.Value;
             }
         }
 
@@ -150,12 +98,7 @@ namespace Micajah.AzureFileService.WebControls
                 object obj = this.ViewState["FileExtensionsFilter"];
                 return (obj == null) ? new string[0] : (string[])obj;
             }
-            set
-            {
-                this.ViewState["FileExtensionsFilter"] = value;
-
-                m_ShowVideoOnly = null;
-            }
+            set { this.ViewState["FileExtensionsFilter"] = value; }
         }
 
         /// <summary>
@@ -578,16 +521,44 @@ namespace Micajah.AzureFileService.WebControls
 
         #region Private Methods
 
-        private static string GetFileTypeIconUrl(string fileName, IconSize iconSize)
+        private static string GetFileTypeIconCssClass(MimeTypeGroups mimeTypeGroups)
         {
-            string extension = Path.GetExtension(fileName).ToLowerInvariant().TrimStart('.');
-            string webResourceNameFormatString = string.Format(CultureInfo.InvariantCulture, "Images.Icons{0}x{0}.{{0}}.gif", (int)iconSize);
-            return ResourceHandler.GetWebResourceUrl(string.Format(CultureInfo.InvariantCulture, webResourceNameFormatString, KnownFileExtensions.Contains(extension) ? extension : KnownFileExtensions[0]), true);
-        }
+            string cssClass;
 
-        private static string GetNonImageFileTypeIconUrl(string fileName, IconSize iconSize)
-        {
-            return MimeType.IsInGroups(fileName, MimeTypeGroups.Image, true) ? null : GetFileTypeIconUrl(fileName, iconSize);
+            if ((mimeTypeGroups & MimeTypeGroups.Archive) == MimeTypeGroups.Archive)
+            {
+                cssClass = "bi bi-file-earmark-zip";
+            }
+            else if ((mimeTypeGroups & MimeTypeGroups.Audio) == MimeTypeGroups.Audio)
+            {
+                cssClass = "bi bi-file-earmark-music";
+            }
+            else if ((mimeTypeGroups & MimeTypeGroups.Document) == MimeTypeGroups.Document)
+            {
+                cssClass = "bi bi-file-earmark-richtext";
+            }
+            else if ((mimeTypeGroups & MimeTypeGroups.Image) == MimeTypeGroups.Image)
+            {
+                cssClass = "bi bi-file-earmark-image";
+            }
+            else if ((mimeTypeGroups & MimeTypeGroups.Message) == MimeTypeGroups.Message)
+            {
+                cssClass = "bi bi-file-earmark-post";
+            }
+            else if ((mimeTypeGroups & MimeTypeGroups.Text) == MimeTypeGroups.Text)
+            {
+                cssClass = "bi bi-file-earmark-text";
+            }
+            else if ((mimeTypeGroups & MimeTypeGroups.Video) == MimeTypeGroups.Video)
+            {
+                cssClass = "bi bi-file-earmark-play";
+            }
+            else
+            {
+                cssClass = "bi bi-file-earmark";
+            }
+
+            return cssClass;
         }
 
         private void ApplyStyle()
@@ -608,7 +579,6 @@ namespace Micajah.AzureFileService.WebControls
                         Grid.CellPadding = 0;
                     else
                         Grid.CellSpacing = -1;
-                    Grid.Columns[0].ControlStyle.Width = Grid.Columns[0].ControlStyle.Height = Unit.Pixel((int)this.IconSize);
                 }
                 else
                     Grid.CellSpacing = -1;
@@ -636,10 +606,8 @@ namespace Micajah.AzureFileService.WebControls
 
             if (this.ShowIcons)
             {
-                ImageField imageField = new ImageField();
-                imageField.DataImageUrlField = FileIdColumnName;
-                imageField.ItemStyle.CssClass = "flFirst";
-                Grid.Columns.Add(imageField);
+                BoundField iconField = new BoundField();
+                Grid.Columns.Add(iconField);
             }
             else
             {
@@ -648,24 +616,24 @@ namespace Micajah.AzureFileService.WebControls
 
             Grid.Columns.Add(linkField);
 
-            BoundField boundField = new BoundField();
-            boundField.DataField = LengthInKBColumnName;
-            boundField.DataFormatString = "{0:N0} KB";
-            boundField.HeaderStyle.Wrap = false;
-            boundField.HeaderText = Resources.FileList_SizeText;
-            boundField.ItemStyle.HorizontalAlign = HorizontalAlign.Right;
-            boundField.ItemStyle.Wrap = false;
-            Grid.Columns.Add(boundField);
+            BoundField lengthField = new BoundField();
+            lengthField.DataField = LengthInKBColumnName;
+            lengthField.DataFormatString = "{0:N0} KB";
+            lengthField.HeaderStyle.Wrap = false;
+            lengthField.HeaderText = Resources.FileList_SizeText;
+            lengthField.ItemStyle.HorizontalAlign = HorizontalAlign.Right;
+            lengthField.ItemStyle.Wrap = false;
+            Grid.Columns.Add(lengthField);
 
             if (this.EnableDeleting)
             {
-                ButtonField buttonField = new ButtonField();
-                buttonField.CausesValidation = false;
-                buttonField.CommandName = DataList.DeleteCommandName;
-                buttonField.Text = this.DeleteButtonText;
-                buttonField.ControlStyle.CssClass = "flRemove";
-                buttonField.ItemStyle.Wrap = false;
-                Grid.Columns.Add(buttonField);
+                ButtonField deleteField = new ButtonField();
+                deleteField.CausesValidation = false;
+                deleteField.CommandName = DataList.DeleteCommandName;
+                deleteField.Text = this.DeleteButtonText;
+                deleteField.ControlStyle.CssClass = "flRemove";
+                deleteField.ItemStyle.Wrap = false;
+                Grid.Columns.Add(deleteField);
             }
         }
 
@@ -771,89 +739,101 @@ namespace Micajah.AzureFileService.WebControls
 
         private void Grid_RowDataBound(object sender, GridViewRowEventArgs e)
         {
-            if (e == null) return;
-            if (e.Row.RowType == DataControlRowType.DataRow)
+            if (e == null)
             {
-                int count = e.Row.Cells.Count;
-                if (count > 0)
+                return;
+            }
+
+            if (e.Row.RowType != DataControlRowType.DataRow)
+            {
+                return;
+            }
+
+            int count = e.Row.Cells.Count;
+            if (count == 0)
+            {
+                return;
+            }
+
+            File file = (File)e.Row.DataItem;
+
+            var fileMimeTypeGroups = MimeType.GetGroups(file.Name, true);
+
+            TableCell fileNameCell;
+            string dateCssClass = "flDate";
+
+            if (this.ShowIcons)
+            {
+                fileNameCell = e.Row.Cells[1];
+
+                dateCssClass += " flIcons";
+
+                e.Row.Cells[0].CssClass = "flFirst " + GetFileTypeIconCssClass(fileMimeTypeGroups);
+
+                string fontSize = string.Format(CultureInfo.InvariantCulture, "{0}px", (int)this.IconSize);
+                e.Row.Cells[0].Font.Size = FontUnit.Parse(fontSize, CultureInfo.InvariantCulture);
+                e.Row.Cells[0].Style["line-height"] = fontSize;
+            }
+            else
+            {
+                fileNameCell = e.Row.Cells[0];
+            }
+
+            HyperLink link = fileNameCell.Controls[0] as HyperLink;
+            if (link == null)
+            {
+                link = fileNameCell.Controls[1] as HyperLink;
+            }
+
+            if (link != null)
+            {
+                link.Attributes["rel"] = "noopener";
+
+                if (this.ShowFileToolTip)
                 {
-                    File file = (File)e.Row.DataItem;
-                    TableCell fileNameCell = null;
-                    string dateCssClass = "flDate";
+                    link.CssClass = "flFileName";
 
-                    if (this.ShowIcons)
+                    if ((fileMimeTypeGroups & MimeTypeGroups.Image) == MimeTypeGroups.Image)
                     {
-                        fileNameCell = e.Row.Cells[1];
-                        dateCssClass += " flIcons";
+                        string thumbUrl = this.EnableThumbnails ? this.FileManager.GetThumbnailUrl(file.FileId, 600, 500, 1, true) : file.Url;
+                        string content = string.Format(CultureInfo.InvariantCulture, ToolTipBigHtml, file.Url, file.Name, thumbUrl);
 
-                        Image img = e.Row.Cells[0].Controls[0] as Image;
-                        if (img != null)
-                        {
-                            img.ImageUrl = GetFileTypeIconUrl(file.Name, this.IconSize);
-                        }
+                        link.Attributes["data-ot"] = content;
                     }
-                    else
+                }
+            }
+
+            DateTime updatedTime = TimeZoneInfo.ConvertTimeFromUtc(file.LastModified, this.TimeZone);
+            DateTime updatedDate = file.LastModified.Date;
+
+            if (m_UpdatedDate != updatedDate)
+            {
+                if (m_UpdatedDate != DateTime.MinValue)
+                {
+                    e.Row.CssClass += " flPt";
+                }
+
+                using (HtmlGenericControl panel = new HtmlGenericControl("div"))
+                {
+                    panel.InnerHtml = string.Format(this.Culture, this.DateTimeFormatString, updatedTime);
+                    panel.Attributes["class"] = dateCssClass;
+
+                    fileNameCell.Controls.AddAt(0, panel);
+                }
+            }
+            m_UpdatedDate = updatedDate;
+
+            if (this.EnableDeleting && this.EnableDeletingConfirmation)
+            {
+                TableCell deleteCell = e.Row.Cells[count - 1];
+
+                if (deleteCell.Controls.Count > 0)
+                {
+                    WebControl control = deleteCell.Controls[0] as WebControl;
+                    if (control != null)
                     {
-                        fileNameCell = e.Row.Cells[0];
-                    }
-
-                    HyperLink link = fileNameCell.Controls[0] as HyperLink;
-                    if (link == null)
-                    {
-                        link = fileNameCell.Controls[1] as HyperLink;
-                    }
-
-                    if (link != null)
-                    {
-                        link.Attributes["rel"] = "noopener";
-
-                        if (this.ShowFileToolTip)
-                        {
-                            link.CssClass = "flFileName";
-
-                            if (MimeType.IsInGroups(file.Name, MimeTypeGroups.Image, true))
-                            {
-                                string thumbUrl = this.EnableThumbnails ? this.FileManager.GetThumbnailUrl(file.FileId, 600, 500, 1, true) : file.Url;
-                                string content = string.Format(CultureInfo.InvariantCulture, ToolTipBigHtml, file.Url, file.Name, thumbUrl);
-
-                                link.Attributes["data-ot"] = content;
-                            }
-                        }
-                    }
-
-                    DateTime updatedTime = TimeZoneInfo.ConvertTimeFromUtc(file.LastModified, this.TimeZone);
-                    DateTime updatedDate = file.LastModified.Date;
-
-                    if (m_UpdatedDate != updatedDate)
-                    {
-                        if (m_UpdatedDate != DateTime.MinValue)
-                        {
-                            e.Row.CssClass += " flPt";
-                        }
-
-                        using (HtmlGenericControl panel = new HtmlGenericControl("div"))
-                        {
-                            panel.InnerHtml = string.Format(this.Culture, this.DateTimeFormatString, updatedTime);
-                            panel.Attributes["class"] = dateCssClass;
-
-                            fileNameCell.Controls.AddAt(0, panel);
-                        }
-                    }
-                    m_UpdatedDate = updatedDate;
-
-                    if (this.EnableDeleting && this.EnableDeletingConfirmation)
-                    {
-                        TableCell deleteCell = e.Row.Cells[count - 1];
-
-                        if (deleteCell.Controls.Count > 0)
-                        {
-                            WebControl control = deleteCell.Controls[0] as WebControl;
-                            if (control != null)
-                            {
-                                control.Attributes.Add("onclick", OnDeletingClientScript);
-                                control.ToolTip = Resources.FileList_DeleteText;
-                            }
-                        }
+                        control.Attributes.Add("onclick", OnDeletingClientScript);
+                        control.ToolTip = Resources.FileList_DeleteText;
                     }
                 }
             }
@@ -927,13 +907,14 @@ namespace Micajah.AzureFileService.WebControls
 
             if (this.ShowFileToolTip)
             {
-                this.RegisterStyleSheet("Styles.opentip.css");
+                this.RegisterStyleSheet(ResourceProvider.OpentipStyleSheet);
 
-                ScriptManager.RegisterClientScriptInclude(p, t, "Scripts.opentip.js", ResourceHandler.GetWebResourceUrl("Scripts.opentip.js", true));
-                ScriptManager.RegisterClientScriptInclude(p, t, "Scripts.FileList.js", ResourceHandler.GetWebResourceUrl("Scripts.FileList.js", true));
+                ScriptManager.RegisterClientScriptInclude(p, t, "Scripts.opentip.js", ResourceProvider.GetResourceUrl(ResourceProvider.OpentipScript, true));
+                ScriptManager.RegisterClientScriptInclude(p, t, "Scripts.FileList.js", ResourceProvider.GetResourceUrl(ResourceProvider.FileListScript, true));
             }
 
-            this.RegisterStyleSheet("Styles.FileList.css");
+            this.RegisterStyleSheet(ResourceProvider.FileListStyleSheet);
+            this.RegisterStyleSheet(ResourceProvider.BootstrapIconsStyleSheet);
 
             string deletingScript = string.Format(CultureInfo.CurrentCulture, DeletingClientScript, Resources.FileList_DeletingConfirmationText);
             ScriptManager.RegisterClientScriptBlock(p, t, "Scripts.FileList.Deleting", deletingScript, true);

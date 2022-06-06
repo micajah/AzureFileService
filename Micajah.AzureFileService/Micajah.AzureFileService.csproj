@@ -145,6 +145,7 @@
     <Compile Include="Managers\FileManager.cs" />
     <Compile Include="Models\File.cs" />
     <Compile Include="Handlers\FileHandler.cs" />
+    <Compile Include="Providers\ResourceProvider.cs" />
     <Compile Include="Utils\Enums\MimeTypeGroups.cs" />
     <Compile Include="WebControls\Enums\FileListRenderingMode.cs" />
     <Compile Include="WebControls\FilesListItemTemplate.cs" />
@@ -169,108 +170,11 @@
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources.Micajah.AzureFileService\Scripts\dropzone.js" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons128x128\avi.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons128x128\bmp.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons128x128\doc.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons128x128\docx.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons128x128\generic.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons128x128\gif.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons128x128\htm.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons128x128\html.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons128x128\jpg.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons128x128\mov.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons128x128\mp3.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons128x128\mpg.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons128x128\ogg.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons128x128\pdf.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons128x128\png.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons128x128\ppt.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons128x128\pptx.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons128x128\txt.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons128x128\wav.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons128x128\wma.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons128x128\wmv.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons128x128\xls.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons128x128\xlsx.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons128x128\zip.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons16x16\avi.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons16x16\bmp.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons16x16\doc.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons16x16\docx.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons16x16\generic.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons16x16\gif.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons16x16\htm.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons16x16\html.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons16x16\jpg.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons16x16\mov.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons16x16\mp3.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons16x16\mpg.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons16x16\ogg.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons16x16\pdf.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons16x16\png.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons16x16\ppt.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons16x16\pptx.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons16x16\txt.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons16x16\wav.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons16x16\wma.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons16x16\wmv.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons16x16\xls.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons16x16\xlsx.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons16x16\zip.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons32x32\avi.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons32x32\bmp.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons32x32\doc.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons32x32\docx.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons32x32\generic.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons32x32\gif.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons32x32\htm.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons32x32\html.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons32x32\jpg.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons32x32\mov.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons32x32\mp3.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons32x32\mpg.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons32x32\ogg.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons32x32\pdf.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons32x32\png.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons32x32\ppt.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons32x32\pptx.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons32x32\txt.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons32x32\wav.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons32x32\wma.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons32x32\wmv.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons32x32\xls.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons32x32\xlsx.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons32x32\zip.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons48x48\avi.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons48x48\bmp.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons48x48\doc.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons48x48\docx.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons48x48\generic.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons48x48\gif.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons48x48\htm.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons48x48\html.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons48x48\jpg.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons48x48\mov.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons48x48\mp3.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons48x48\mpg.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons48x48\ogg.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons48x48\pdf.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons48x48\png.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons48x48\ppt.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons48x48\pptx.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons48x48\txt.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons48x48\wav.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons48x48\wma.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons48x48\wmv.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons48x48\xls.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons48x48\xlsx.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons48x48\zip.gif" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources.Micajah.AzureFileService\Styles\FileList.css" />
@@ -291,44 +195,16 @@
     <EmbeddedResource Include="Resources.Micajah.AzureFileService\Scripts\FileList.js" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Video.gif" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="app.config">
       <SubType>Designer</SubType>
     </None>
     <None Include="CreateAndPublishNugetPackage.ps1" />
     <None Include="packages.config" />
+    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Fonts\bootstrap-icons.woff" />
+    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Fonts\bootstrap-icons.woff2" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons32x32\heif.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons128x128\heif.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons16x16\heif.gif" />
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons48x48\heif.gif" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons128x128\heic.gif" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons16x16\heic.gif" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons32x32\heic.gif" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons48x48\heic.gif" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons128x128\webp.gif" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons16x16\webp.gif" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons32x32\webp.gif" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Images\Icons48x48\webp.gif" />
+    <EmbeddedResource Include="Resources.Micajah.AzureFileService\Styles\bootstrap-icons.css" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

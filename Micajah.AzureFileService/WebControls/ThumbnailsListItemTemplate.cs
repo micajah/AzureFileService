@@ -12,10 +12,8 @@ namespace Micajah.AzureFileService.WebControls
         {
             #region
 
-            private const int ImageThumbnailWidth = 128;
-            private const int ImageThumbnailHeight = 128;
-            private const int VideoThumbnailWidth = 148;
-            private const int VideoThumbnailHeight = 148;
+            private const int ThumbnailWidth = 128;
+            private const int ThumbnailHeight = 128;
             private const int ThumbnailPadding = 4; // 2 borders x 1px + 2 paddings x 1px 
 
             #endregion
@@ -24,8 +22,6 @@ namespace Micajah.AzureFileService.WebControls
 
             private readonly ListItemType m_ItemType;
             private readonly FileList m_FileList;
-            private readonly int m_PictureWidth;
-            private readonly int m_PictureHeight;
 
             private LinkButton DeleteLink;
             private Image Picture;
@@ -40,51 +36,50 @@ namespace Micajah.AzureFileService.WebControls
             {
                 m_ItemType = itemType;
                 m_FileList = fileList;
-
-                m_PictureWidth = ImageThumbnailWidth;
-                m_PictureHeight = ImageThumbnailHeight;
-
-                if (m_FileList.ShowVideoOnly)
-                {
-                    m_PictureWidth = VideoThumbnailWidth;
-                    m_PictureHeight = VideoThumbnailHeight;
-                }
             }
 
             #endregion
 
             #region Private Methods
 
-            private void Image_DataBinding(object sender, EventArgs e)
-            {
-                Image img = (sender as Image);
-                File file = (File)DataBinder.GetDataItem(img.NamingContainer);
-
-                string url = (m_FileList.ShowVideoOnly ? ResourceHandler.GetWebResourceUrl("Images.Video.gif", true) : GetNonImageFileTypeIconUrl(file.Name, IconSize.Bigger));
-                if (url == null)
-                {
-                    url = m_FileList.FileManager.GetThumbnailUrl(file.FileId, m_PictureWidth, m_PictureHeight, 1, false);
-                }
-
-                img.ImageUrl = url;
-            }
-
-            private void HyperLink_DataBinding(object sender, EventArgs e)
+            private void PictureLink_DataBinding(object sender, EventArgs e)
             {
                 HyperLink link = (HyperLink)sender;
+
                 File file = (File)DataBinder.GetDataItem(link.NamingContainer);
 
-                string extension = file.Extension;
+                var fileMimeTypeGroups = MimeType.GetGroups(file.Name, true);
+                bool isImage = (fileMimeTypeGroups & MimeTypeGroups.Image) == MimeTypeGroups.Image;
 
                 link.NavigateUrl = file.Url;
-                if (extension.In(MimeType.SwfExtension) || MimeType.IsInGroups(extension, MimeTypeGroups.Image, true))
+
+                if (file.Extension.In(MimeType.SwfExtension) || isImage)
                 {
                     link.Target = "_blank";
                     link.Attributes["rel"] = "noopener";
                 }
+
+                if (isImage)
+                {
+                    Picture = new Image();
+                    Picture.Width = Unit.Pixel(ThumbnailWidth);
+                    Picture.Height = Unit.Pixel(ThumbnailHeight);
+
+                    Picture.ImageUrl = m_FileList.FileManager.GetThumbnailUrl(file.FileId, ThumbnailWidth, ThumbnailHeight, 1, false);
+
+                    link.Controls.Add(Picture);
+                }
+                else
+                {
+                    link.CssClass = GetFileTypeIconCssClass(fileMimeTypeGroups);
+
+                    string fontSize = string.Format(CultureInfo.InvariantCulture, "{0}px", ThumbnailHeight);
+                    link.Font.Size = FontUnit.Parse(fontSize, CultureInfo.InvariantCulture);
+                    link.Style["line-height"] = fontSize;
+                }
             }
 
-            private void Panel_DataBinding(object sender, EventArgs e)
+            private void PicturePanel_DataBinding(object sender, EventArgs e)
             {
                 Panel panel = (Panel)sender;
                 File file = (File)DataBinder.GetDataItem(panel.NamingContainer);
@@ -126,17 +121,11 @@ namespace Micajah.AzureFileService.WebControls
                     return;
                 }
 
-                Picture = new Image();
-                Picture.DataBinding += new EventHandler(Image_DataBinding);
-                Picture.Width = Unit.Pixel(m_PictureWidth);
-                Picture.Height = Unit.Pixel(m_PictureHeight);
-
                 PictureLink = new HyperLink();
-                PictureLink.DataBinding += new EventHandler(HyperLink_DataBinding);
-                PictureLink.Controls.Add(Picture);
+                PictureLink.DataBinding += new EventHandler(PictureLink_DataBinding);
 
-                int width = m_PictureWidth + ThumbnailPadding;
-                int height = m_PictureHeight + ThumbnailPadding;
+                int width = ThumbnailWidth + ThumbnailPadding;
+                int height = ThumbnailHeight + ThumbnailPadding;
 
                 if (m_FileList.EnableDeleting && (!m_FileList.ShowFileToolTip))
                 {
@@ -151,7 +140,7 @@ namespace Micajah.AzureFileService.WebControls
 
                 if (m_FileList.ShowFileToolTip)
                 {
-                    PicturePanel.DataBinding += new EventHandler(Panel_DataBinding);
+                    PicturePanel.DataBinding += new EventHandler(PicturePanel_DataBinding);
                 }
 
                 PicturePanel.Controls.Add(PictureLink);

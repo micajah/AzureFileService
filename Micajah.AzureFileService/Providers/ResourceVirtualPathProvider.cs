@@ -249,16 +249,6 @@ namespace Micajah.AzureFileService
 
         #endregion
 
-        #region Internal Methods
-
-        internal static string GetResourceFileName(string resourceName)
-        {
-            string[] parts = resourceName.Split('.');
-            return string.Join(".", new string[] { parts[parts.Length - 2], parts[parts.Length - 1] });
-        }
-
-        #endregion
-
         #region Overrriden Methods
 
         /// <summary>
@@ -312,7 +302,7 @@ namespace Micajah.AzureFileService
                             Array.Copy(parts1, parts2, parts1.Length - 2);
 
                             DataRow row = s_ResourceDataTable.NewRow();
-                            row["Path"] = ResourceVirtualPathProvider.ConvertToShortVirtualPath(ResourceVirtualPathProvider.VirtualRootPath + string.Join("/", parts2) + "/" + ResourceVirtualFile.GetResourceFileName(resourceName));
+                            row["Path"] = ResourceVirtualPathProvider.ConvertToShortVirtualPath(ResourceVirtualPathProvider.VirtualRootPath + string.Join("/", parts2) + "/" + ResourceProvider.GetResourceFileName(resourceName));
                             s_ResourceDataTable.Rows.Add(row);
                         }
                     }
