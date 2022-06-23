@@ -712,6 +712,8 @@ namespace Micajah.AzureFileService.WebControls
         {
             this.FilesCount = 0;
 
+            m_UpdatedDate = DateTime.MinValue;
+
             Collection<File> files = this.FileManager.GetFiles(new FileSearchOptions()
             {
                 ExtensionsFilter = this.FileExtensionsFilterInternal,
