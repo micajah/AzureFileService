@@ -304,6 +304,7 @@ namespace Micajah.AzureFileService
                         { ".ras", "image/cmu-raster" },
                         { ".rgb", "image/x-rgb" },
                         { ".rf", "image/vnd.rn-realflash" },
+                        { ".svg", "image/svg+xml" },
                         { ".tif", "image/tiff" },
                         { ".tiff", "image/tiff" },
                         { ".wbmp", "image/vnd.wap.wbmp" },
