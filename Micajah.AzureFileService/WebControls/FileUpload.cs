@@ -294,6 +294,12 @@ namespace Micajah.AzureFileService.WebControls
             }
         }
 
+        public Dictionary<string, string> Metadata
+        {
+            get { return (Dictionary<string, string>)ViewState["Metadata"]; }
+            set { ViewState["Metadata"] = value; }
+        }
+
         [Browsable(false)]
         public FileManager FileManager
         {
@@ -638,7 +644,7 @@ namespace Micajah.AzureFileService.WebControls
                 this.AcceptingChanges(this, EventArgs.Empty);
             }
 
-            this.FileManager.MoveTemporaryFiles(this.TemporaryDirectoryName);
+            this.FileManager.MoveTemporaryFiles(this.TemporaryDirectoryName, Metadata);
 
             this.TemporaryDirectoryName = null;
             FilesStateField.Value = string.Empty;

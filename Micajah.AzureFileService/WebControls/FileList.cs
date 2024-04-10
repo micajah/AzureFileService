@@ -101,6 +101,13 @@ namespace Micajah.AzureFileService.WebControls
             set { this.ViewState["FileExtensionsFilter"] = value; }
         }
 
+        [Browsable(false)]
+        public Dictionary<string, string> MetadataFilter
+        {
+            get { return (Dictionary<string, string>)ViewState["MetadataFilter"]; }
+            set { ViewState["MetadataFilter"] = value; }
+        }
+
         /// <summary>
         /// Gets or sets the culture in which the date and time will be formatted.
         /// </summary>
@@ -717,7 +724,8 @@ namespace Micajah.AzureFileService.WebControls
             Collection<File> files = this.FileManager.GetFiles(new FileSearchOptions()
             {
                 ExtensionsFilter = this.FileExtensionsFilterInternal,
-                NegateExtensionsFilter = this.NegateFileExtensionsFilter
+                NegateExtensionsFilter = this.NegateFileExtensionsFilter,
+                MetadataFilter = this.MetadataFilter
             });
 
             if (Grid != null)

@@ -195,7 +195,7 @@ namespace Micajah.AzureFileService
             return policy;
         }
 
-        private void CopyTemporaryFiles(string directoryName, bool deleteTemporaryFiles)
+        private void CopyTemporaryFiles(string directoryName, Dictionary<string, string> metadata, bool deleteTemporaryFiles)
         {
             var temporaryBlobItems = GetBlockBlobs(TemporaryContainer, directoryName + "/");
 
@@ -232,7 +232,8 @@ namespace Micajah.AzureFileService
                                 {
                                     ContentType = tempBlobItem.Properties.ContentType,
                                     CacheControl = Settings.ClientCacheControl
-                                }
+                                },
+                                Metadata = metadata
                             };
 
                             blob.Upload(new BinaryData(bytes), uploadOptions);
@@ -249,7 +250,7 @@ namespace Micajah.AzureFileService
                 {
                     if (tempBlob.Exists())
                     {
-                        blob.StartCopyFromUri(tempBlob.Uri);
+                        blob.StartCopyFromUri(tempBlob.Uri, new BlobCopyFromUriOptions { Metadata = metadata });
                     }
                 }
 
@@ -405,17 +406,32 @@ namespace Micajah.AzureFileService
             List<string> extensionsList = searchOptions.ExtensionsFilter == null ? new List<string>() : new List<string>(searchOptions.ExtensionsFilter);
             bool extensionsIsNotEmpty = extensionsList.Count > 0;
 
-            var blobItems = GetBlockBlobs(Container, BlobPath, searchOptions.AllFiles);
+            bool filterByMetadata = searchOptions.MetadataFilter?.Any() ?? false;
+
+            var blobItems = GetBlockBlobs(Container, BlobPath, searchOptions.AllFiles, filterByMetadata);
 
             foreach (var blobItem in blobItems)
             {
                 bool add = true;
+
                 if (extensionsIsNotEmpty)
                 {
                     string extension = Path.GetExtension(blobItem.Name).ToLowerInvariant();
                     bool match = extensionsList.Contains(extension);
 
                     add = (((!searchOptions.NegateExtensionsFilter) && match) || (searchOptions.NegateExtensionsFilter && (!match)));
+                }
+
+                if (filterByMetadata)
+                {
+                    foreach (var metadata in searchOptions.MetadataFilter)
+                    {
+                        if (!blobItem.Metadata.TryGetValue(metadata.Key, out string value) || value != metadata.Value)
+                        {
+                            add = false;
+                            break;
+                        }
+                    }
                 }
 
                 if (add)
@@ -517,7 +533,7 @@ namespace Micajah.AzureFileService
 
         #region Internal Methods
 
-        internal static IEnumerable<BlobItem> GetBlockBlobs(BlobContainerClient containerClient, string prefix, bool useFlatBlobListing = false)
+        internal static IEnumerable<BlobItem> GetBlockBlobs(BlobContainerClient containerClient, string prefix, bool useFlatBlobListing = false, bool includeMetadata = false)
         {
             try
             {
@@ -525,7 +541,7 @@ namespace Micajah.AzureFileService
 
                 if (useFlatBlobListing || string.IsNullOrWhiteSpace(prefix))
                 {
-                    var blobPages = containerClient.GetBlobs(prefix: prefix).AsPages();
+                    var blobPages = containerClient.GetBlobs(traits: includeMetadata ? BlobTraits.Metadata : BlobTraits.None, prefix: prefix).AsPages();
 
                     foreach (var blobPage in blobPages)
                     {
@@ -536,7 +552,7 @@ namespace Micajah.AzureFileService
                 }
                 else
                 {
-                    var blobPages = containerClient.GetBlobsByHierarchy(prefix: prefix, delimiter: "/").AsPages();
+                    var blobPages = containerClient.GetBlobsByHierarchy(traits: includeMetadata ? BlobTraits.Metadata : BlobTraits.None, prefix: prefix, delimiter: "/").AsPages();
 
                     foreach (var blobPage in blobPages)
                     {
@@ -857,12 +873,22 @@ namespace Micajah.AzureFileService
 
         public void MoveTemporaryFiles(string directoryName)
         {
-            CopyTemporaryFiles(directoryName, true);
+            MoveTemporaryFiles(directoryName, null);
+        }
+
+        public void MoveTemporaryFiles(string directoryName, Dictionary<string, string> metadata)
+        {
+            CopyTemporaryFiles(directoryName, metadata, true);
         }
 
         public void CopyTemporaryFiles(string directoryName)
         {
-            CopyTemporaryFiles(directoryName, false);
+            CopyTemporaryFiles(directoryName, null);
+        }
+
+        public void CopyTemporaryFiles(string directoryName, Dictionary<string, string> metadata)
+        {
+            CopyTemporaryFiles(directoryName, metadata, false);
         }
 
         public void RenameFile(string fileId, string fileName)
