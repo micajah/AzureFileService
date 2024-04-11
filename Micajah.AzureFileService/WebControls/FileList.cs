@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Web;
+using System.Web.Script.Serialization;
 using System.Web.UI;
 using System.Web.UI.HtmlControls;
 using System.Web.UI.WebControls;
@@ -73,7 +74,15 @@ namespace Micajah.AzureFileService.WebControls
         {
             get
             {
-                string str = string.Format(CultureInfo.InvariantCulture, "{0}|{1}|{2}|{3}|{4}", this.ContainerName, this.ContainerPublicAccess, this.ObjectType, this.ObjectId, this.NegateFileExtensionsFilter);
+                string metadataFilter = new JavaScriptSerializer().Serialize(MetadataFilter);
+
+                string str = string.Format(CultureInfo.InvariantCulture, "{0}|{1}|{2}|{3}|{4}|{5}",
+                    this.ContainerName,
+                    this.ContainerPublicAccess,
+                    this.ObjectType,
+                    this.ObjectId,
+                    this.NegateFileExtensionsFilter,
+                    metadataFilter);
 
                 return ResourceVirtualPathProvider.VirtualPathToAbsolute(ResourceProvider.FileListPageVirtualPath)
                     + "?d=" + HttpServerUtility.UrlTokenEncode(Encoding.UTF8.GetBytes(str));
@@ -1011,6 +1020,11 @@ namespace Micajah.AzureFileService.WebControls
                 this.ObjectType = values[2];
                 this.ObjectId = values[3];
                 this.NegateFileExtensionsFilter = Convert.ToBoolean(values[4], CultureInfo.InvariantCulture);
+
+                if (values.Length > 5 && !string.IsNullOrWhiteSpace(values[5]))
+                {
+                    this.MetadataFilter = new JavaScriptSerializer().Deserialize<Dictionary<string, string>>(values[5]);
+                }
             }
         }
 
