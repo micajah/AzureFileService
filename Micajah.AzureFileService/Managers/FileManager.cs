@@ -424,9 +424,19 @@ namespace Micajah.AzureFileService
 
                 if (filterByMetadata)
                 {
-                    foreach (var metadata in searchOptions.MetadataFilter)
+                    foreach (var filter in searchOptions.MetadataFilter)
                     {
-                        if (!blobItem.Metadata.TryGetValue(metadata.Key, out string value) || value != metadata.Value)
+                        blobItem.Metadata.TryGetValue(filter.Key, out string value);
+
+                        if (bool.TryParse(filter.Value, out _))
+                        {
+                            if (value == null)
+                            {
+                                value = bool.FalseString;
+                            }
+                        }
+
+                        if (value != filter.Value)
                         {
                             add = false;
                             break;
