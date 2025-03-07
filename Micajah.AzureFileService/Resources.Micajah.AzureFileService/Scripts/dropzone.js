@@ -942,7 +942,14 @@
                 Dropzone.prototype.destroy = function (saveFilesState) {
                     var _ref;
                     this.disable();
-                    if (!saveFilesState) {
+                    if (saveFilesState) {
+                        var _files, _i, _len;
+                        _files = this.files.slice();
+                        for (_i = 0, _len = _files.length; _i < _len; _i++) {
+                            this.emit("removedfile", _files[_i]);
+                        }
+                    }
+                    else {
                         this.removeAllFiles(true);
                     }
                     if ((_ref = this.hiddenFileInput) != null ? _ref.parentNode : void 0) {
