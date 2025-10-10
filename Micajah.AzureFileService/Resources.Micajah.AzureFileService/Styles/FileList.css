@@ -1,4 +1,7 @@
-.flGrid td, .flGrid a, .flThumbs td, .flThumbs a, .flToolTip, .flToolTip a, .flFiles {
+.flGrid td, .flGrid a,
+.flThumbs td, .flThumbs a,
+.flToolTip, .flToolTip a,
+.flFiles {
     font-family: Arial;
     font-size: 14px;
     color: black;
@@ -20,8 +23,10 @@
     color: blue;
 }
 
-.flGrid a.flRemove:hover, .flToolTip a.flRemove:hover, .flFiles a.flRemove:hover {
-    color: red;
+.flGrid a.flRemove:hover,
+.flToolTip a.flRemove:hover,
+.flFiles a.flRemove:hover {
+    color: red !important;
 }
 
 .flGrid tr {
@@ -100,6 +105,7 @@
 
     .flToolTip a.flFileName, .flToolTip a.flFileName:hover {
         font-weight: bold;
+        color: black;
     }
 
     .flToolTip .flFileInfo {
@@ -148,3 +154,45 @@ a.flLink {
 .style-mafs.opentip-container .opentip {
     padding: 15px 25px;
 }
+
+/* Dark Theme --------------------------------------------------------------------------------------------------------------------------------- */
+
+.theme-dark .flGrid td, .theme-dark .flGrid a,
+.theme-dark .flThumbs td, .theme-dark .flThumbs a,
+.theme-dark .flToolTip, .theme-dark .flToolTip a,
+.theme-dark .flFiles {
+    color: #FFFFFF99;
+}
+
+    .theme-dark .flGrid a:hover {
+        color: #FFF;
+    }
+
+.theme-dark .flGrid .flDate {
+    color: #FFF;
+}
+
+.theme-dark .flGrid a.flRemove,
+.theme-dark .flToolTip a.flRemove,
+.theme-dark .flFiles a.flRemove {
+    color: #FFF;
+}
+
+.theme-dark .flThumbs div {
+    border-color: #FFFFFF26 !important;
+}
+
+.theme-dark .flToolTip a.flFileName, .theme-dark .flToolTip a.flFileName:hover,
+.theme-dark .flFiles a.flFileName, .theme-dark .flFiles a.flFileName:hover {
+    color: #FFF;
+}
+
+.theme-dark .flToolTip .flFileInfo {
+    color: #FFFFFFAA;
+}
+
+.theme-dark a.flLink {
+    color: #FFFFFFAA;
+}
+
+/* Dark Theme end ----------------------------------------------------------------------------------------------------------------------------- */

@@ -46,12 +46,12 @@ namespace Micajah.AzureFileService
             {
                 string extension = Path.GetExtension(fileName).ToLowerInvariant();
 
-                if (!extension.In(MimeType.JpegExtensions))
+                if (extension != MimeType.PngExtension)
                 {
-                    fileName += MimeType.JpegExtensions[0];
+                    fileName += MimeType.PngExtension;
                 }
 
-                ResourceHandler.ConfigureResponse(context, fileName, MimeType.Jpeg, DateTime.UtcNow.AddMinutes(Settings.ClientCacheExpiryTime).ToLocalTime());
+                ResourceHandler.ConfigureResponse(context, fileName, MimeType.Png, DateTime.UtcNow.AddMinutes(Settings.ClientCacheExpiryTime).ToLocalTime());
 
                 context.Response.BinaryWrite(content);
             }

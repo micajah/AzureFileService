@@ -13,14 +13,12 @@ body {
 
 a {
     color: black;
+    cursor: pointer;
+    text-decoration: underline;
 }
 
-    a:visited {
-        color: black;
-    }
-
     a:hover {
-        color: black;
+        color: blue;
         text-decoration: underline;
     }
 
@@ -32,14 +30,6 @@ p {
     padding: 5px;
     text-align: right;
 }
-
-    .menu a {
-        color: blue;
-    }
-
-        .menu a:visited {
-            color: blue;
-        }
 
 .content {
     padding: 5px;
@@ -73,7 +63,28 @@ p {
     margin-top: 15px;
     font-size: 20px;
     color: lightgray;
-    background-color: white;
+    background-color: #FFFFFF00;
     position: relative;
     z-index: 3012;
 }
+
+/* Dark Theme --------------------------------------------------------------------------------------------------------------------------------- */
+
+.theme-dark body {
+    background-color: #062D4C !important;
+    color: #FFFFFFCC;
+}
+
+.theme-dark a {
+    color: #FFFFFFCC;
+}
+
+    .theme-dark a:hover {
+        color: #FFF;
+    }
+
+.theme-dark hr {
+    border-color: #36556E;
+}
+
+/* Dark Theme end ----------------------------------------------------------------------------------------------------------------------------- */

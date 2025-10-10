@@ -3,6 +3,7 @@ using Micajah.AzureFileService.Properties;
 using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
 
@@ -26,7 +27,7 @@ namespace Micajah.AzureFileService
         {
             using (Graphics graphics = Graphics.FromImage(bitmap))
             {
-                graphics.Clear(Color.White);
+                graphics.Clear(Color.Transparent);
                 graphics.CompositingQuality = CompositingQuality.HighQuality;
                 graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
                 graphics.DrawImage(image, x, y, width, height);
@@ -174,7 +175,7 @@ namespace Micajah.AzureFileService
 
                 GetProportionalSize(sourceWidth, sourceHeight, ref outputWidth, ref outputHeight);
 
-                scaledImage = new Bitmap(outputWidth, outputHeight);
+                scaledImage = new Bitmap(outputWidth, outputHeight, PixelFormat.Format32bppArgb);
                 DrawImage(sourceImage, 0, 0, outputWidth, outputHeight, scaledImage);
 
                 if (align > 0)
@@ -188,12 +189,12 @@ namespace Micajah.AzureFileService
                     int y = 0;
                     GetAlignPosition(align, maxWidth, maxHeight, outputWidth, outputHeight, ref x, ref y);
 
-                    outputImage = new Bitmap(maxWidth, maxHeight);
+                    outputImage = new Bitmap(maxWidth, maxHeight, PixelFormat.Format32bppArgb);
                     DrawImage(scaledImage, x, y, outputWidth, outputHeight, outputImage);
-                    outputImage.Save(output, System.Drawing.Imaging.ImageFormat.Jpeg);
+                    outputImage.Save(output, ImageFormat.Png);
                 }
                 else
-                    scaledImage.Save(output, System.Drawing.Imaging.ImageFormat.Jpeg);
+                    scaledImage.Save(output, ImageFormat.Png);
 
                 output.Position = 0;
             }

@@ -136,7 +136,6 @@ namespace Micajah.AzureFileService.WebControls
                 PicturePanel.ID = "ThumbPanel";
                 PicturePanel.Width = Unit.Pixel(width);
                 PicturePanel.Height = Unit.Pixel(height);
-                PicturePanel.Style[HtmlTextWriterStyle.BackgroundColor] = "White";
 
                 if (m_FileList.ShowFileToolTip)
                 {

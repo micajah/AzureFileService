@@ -1,16 +1,50 @@
-﻿Opentip.styles.mafs = Opentip.styles.glass;
-Opentip.styles.mafs.className = "mafs";
-Opentip.styles.mafs.showOn = "mouseover";
-Opentip.styles.mafs.hideOn = "mouseout";
-Opentip.styles.mafs.hideTrigger = "tip";
-Opentip.styles.mafs.target = true;
-Opentip.styles.mafs.targetJoint = "center center";
-Opentip.styles.mafs.tipJoint = "left top";
-Opentip.styles.mafs.group = "mafs";
-Opentip.styles.mafs.background = "white";
-Opentip.styles.mafs.borderColor = "#cccccc";
-Opentip.styles.mafs.shadowColor = "#cccccc";
-Opentip.styles.mafs.removeElementsOnHide = true;
+﻿Opentip.styles.mafs = {
+    extends: "glass",
+    className: "mafs",
+    group: "mafs",
+    showOn: "mouseover",
+    hideOn: "mouseout",
+    hideTrigger: "tip",
+    target: true,
+    targetJoint: "center center",
+    tipJoint: "left top",
+    removeElementsOnHide: true,
+    borderRadius: 12,
+    shadowColor: "#0000002C",
+    background: "#FFFFFF",
+    borderColor: "#CCCCCC"
+}
 
-Opentip.defaultStyle = "mafs";
+Opentip.styles.mafsDark = {
+    extends: "mafs",
+    background: "#062D4C",
+    borderColor: "#36556E"
+}
+
+Opentip.resetDefaultStyle = function () {
+    var isThemeDark = document.documentElement.classList.contains("theme-dark");
+
+    Opentip.defaultStyle = isThemeDark ? "mafsDark" : "mafs";
+}
+
+Opentip.reset = function () {
+    for (var i = 0; i < Opentip.tips.length; i++) {
+        var tip = Opentip.tips[i];
+        tip.options.hideEffectDuration = 0;
+        tip.options.hideDelay = 0;
+        tip.deactivate();
+    }
+
+    Opentip.resetDefaultStyle();
+
+    Opentip.lastId = 0;
+
+    firstAdapter = true;
+    Opentip.adapters = {};
+    Opentip.adapter = null;
+    Opentip.addAdapter(new Adapter);
+}
+
 Opentip.lastZIndex = 3001;
+
+Opentip.resetDefaultStyle();

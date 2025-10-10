@@ -40,6 +40,11 @@ namespace Micajah.AzureFileService
         public const string Jpeg = "image/jpeg";
 
         /// <summary>
+        /// image/png
+        /// </summary>
+        public const string Png = "image/png";
+
+        /// <summary>
         /// text/html
         /// </summary>
         public const string Html = "text/html";
@@ -65,6 +70,11 @@ namespace Micajah.AzureFileService
         public const string Webp = "image/webp";
 
         /// <summary>
+        /// .png
+        /// </summary>
+        public const string PngExtension = ".png";
+
+        /// <summary>
         /// .swf
         /// </summary>
         public const string SwfExtension = ".swf";
@@ -86,8 +96,6 @@ namespace Micajah.AzureFileService
         private static NameValueCollection s_TextMapping;
         private static NameValueCollection s_VideoMapping;
         private static NameValueCollection s_VariousMapping;
-
-        private static string[] s_JpegExtensions;
 
         #endregion
 
@@ -295,7 +303,7 @@ namespace Micajah.AzureFileService
                         { ".pbm", "image/x-portable-bitmap" },
                         { ".pgm", "image/x-portable-graymap" },
                         { ".pic", "image/pict" },
-                        { ".png", "image/png" },
+                        { PngExtension, Png },
                         { ".pnm", "image/x-portable-anymap" },
                         { ".pnt", "image/x-macpaint" },
                         { ".pntg", "image/x-macpaint" },
@@ -494,23 +502,6 @@ namespace Micajah.AzureFileService
                 }
 
                 return s_VariousMapping;
-            }
-        }
-
-        #endregion
-
-        #region Internal Properties
-
-        internal static string[] JpegExtensions
-        {
-            get
-            {
-                if (s_JpegExtensions == null)
-                {
-                    s_JpegExtensions = GetExtensions(Jpeg, ImageMapping);
-                }
-
-                return s_JpegExtensions;
             }
         }
 

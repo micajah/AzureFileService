@@ -6,12 +6,16 @@
 <head runat="server">
     <title></title>
     <link href="Styles/Site.css" rel="stylesheet" />
+    <script type="text/javascript" src="Scripts/Site.js"></script>
     <asp:ContentPlaceHolder ID="head" runat="server">
     </asp:ContentPlaceHolder>
 </head>
 <body>
     <form id="form1" runat="server">
         <div class="menu">
+            <span>
+                <a onclick="SwitchTheme();" style="margin-right: 50px;">Switch Theme</a>
+            </span>
             <asp:HyperLink ID="HyperLink1" runat="server" NavigateUrl="~/Default.aspx">File Upload</asp:HyperLink>&nbsp;|&nbsp;<asp:HyperLink
                 ID="HyperLink2" runat="server" NavigateUrl="~/FileList.aspx">File List</asp:HyperLink>&nbsp;|&nbsp;<asp:HyperLink
                     ID="HyperLink3" runat="server" NavigateUrl="~/SimpleUpload.aspx">Simple Upload</asp:HyperLink>&nbsp;|&nbsp;<asp:HyperLink

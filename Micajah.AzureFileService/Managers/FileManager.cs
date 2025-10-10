@@ -643,11 +643,17 @@ namespace Micajah.AzureFileService
 
             if (thumbBlob.Exists())
             {
-                var downloadResult = thumbBlob.DownloadContent().Value;
+                var thumbFileInfo = GetFileInfo(thumbBlob, ReadPermissions);
 
-                bytes = downloadResult.Content.ToArray();
+                if (thumbFileInfo.ContentType == MimeType.Png)
+                {
+                    var downloadResult = thumbBlob.DownloadContent().Value;
+
+                    bytes = downloadResult.Content.ToArray();
+                }
             }
-            else
+
+            if (bytes == null)
             {
                 var imageBlob = Container.GetBlobClient(fileId);
 
@@ -668,7 +674,7 @@ namespace Micajah.AzureFileService
                         {
                             HttpHeaders = new BlobHttpHeaders
                             {
-                                ContentType = MimeType.Jpeg,
+                                ContentType = MimeType.Png,
                                 CacheControl = Settings.ClientCacheControl
                             }
                         };
@@ -866,7 +872,7 @@ namespace Micajah.AzureFileService
             string url = createApplicationAbsoluteUrl
                 ? VirtualPathUtility.ToAbsolute(FileHandler.VirtualPath)
                 : FileHandler.VirtualPath;
-            string d = HttpServerUtility.UrlTokenEncode(Encoding.UTF8.GetBytes($"{fileId}|{width}|{height}|{align}|{ContainerName}"));
+            string d = HttpServerUtility.UrlTokenEncode(Encoding.UTF8.GetBytes($"{fileId}|{width}|{height}|{align}|{ContainerName}|v1"));
 
             return $"{url}?d={d}";
         }
