@@ -13,6 +13,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading;
 using System.Web;
 
 namespace Micajah.AzureFileService
@@ -551,7 +552,8 @@ namespace Micajah.AzureFileService
 
                 if (useFlatBlobListing || string.IsNullOrWhiteSpace(prefix))
                 {
-                    var blobPages = containerClient.GetBlobs(traits: includeMetadata ? BlobTraits.Metadata : BlobTraits.None, prefix: prefix).AsPages();
+                    var blobPages = containerClient.GetBlobs(includeMetadata ? BlobTraits.Metadata : BlobTraits.None, BlobStates.None,
+                        prefix, CancellationToken.None).AsPages();
 
                     foreach (var blobPage in blobPages)
                     {
@@ -562,7 +564,8 @@ namespace Micajah.AzureFileService
                 }
                 else
                 {
-                    var blobPages = containerClient.GetBlobsByHierarchy(traits: includeMetadata ? BlobTraits.Metadata : BlobTraits.None, prefix: prefix, delimiter: "/").AsPages();
+                    var blobPages = containerClient.GetBlobsByHierarchy(includeMetadata ? BlobTraits.Metadata : BlobTraits.None, BlobStates.None,
+                        "/", prefix, CancellationToken.None).AsPages();
 
                     foreach (var blobPage in blobPages)
                     {
