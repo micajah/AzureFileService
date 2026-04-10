@@ -6,8 +6,6 @@ namespace Micajah.AzureFileService.Web
     {
         protected void Application_Start(object sender, EventArgs e)
         {
-            ResourceVirtualPathProvider.Register();
-
             ContainerManager.CreateContainer("micajahazurefileservice", false);
         }
 

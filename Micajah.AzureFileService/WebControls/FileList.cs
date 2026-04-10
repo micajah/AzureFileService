@@ -83,7 +83,7 @@ namespace Micajah.AzureFileService.WebControls
                     this.NegateFileExtensionsFilter,
                     metadataFilter);
 
-                return ResourceVirtualPathProvider.VirtualPathToAbsolute(ResourceProvider.FileListPageVirtualPath)
+                return ResourceProvider.VirtualPathToAbsolute(ResourceProvider.FileListPageVirtualPath)
                     + "?d=" + HttpServerUtility.UrlTokenEncode(Encoding.UTF8.GetBytes(str));
             }
         }

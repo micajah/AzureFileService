@@ -14,7 +14,10 @@ namespace Micajah.AzureFileService
     {
         #region Constants
 
-        internal const string FileListPageVirtualPath = ResourceVirtualPathProvider.VirtualRootShortPath + "FileList.aspx";
+        internal const string ManifestResourceNamePrefix = "Micajah.AzureFileService.Resources.Micajah.AzureFileService";
+        internal const string VirtualRootShortPath = "~/mafs/";
+
+        internal const string FileListPageVirtualPath = VirtualRootShortPath + "FileList.aspx";
 
         internal const string BootstrapIconsStyleSheet = "Styles.bootstrap-icons.css";
         internal const string DropzoneStyleSheet = "Styles.dropzone.css";
@@ -40,7 +43,7 @@ namespace Micajah.AzureFileService
             contentType = MimeType.GetMimeType(resourceName);
             cacheable = true;
 
-            resourceName = ResourceVirtualPathProvider.ManifestResourceNamePrefix + "." + resourceName;
+            resourceName = ManifestResourceNamePrefix + "." + resourceName;
 
             if (resourceName.EndsWith(BootstrapIconsStyleSheet, StringComparison.OrdinalIgnoreCase))
             {
@@ -114,6 +117,21 @@ namespace Micajah.AzureFileService
                 , "Fonts.{0}");
         }
 
+        private static string ProcessVirtualPath(string virtualPath)
+        {
+            string url = virtualPath;
+            if ((!string.IsNullOrEmpty(url)) && (HttpContext.Current != null))
+            {
+                if (!(url.StartsWith(Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase) || url.StartsWith(Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase)))
+                {
+                    if (url.StartsWith("~", StringComparison.OrdinalIgnoreCase)) url = url.Remove(0, 1);
+                    if (!url.StartsWith("/", StringComparison.OrdinalIgnoreCase)) url = "/" + url;
+                    return url;
+                }
+            }
+            return null;
+        }
+
         #endregion
 
         #region Internal Methods
@@ -148,6 +166,26 @@ namespace Micajah.AzureFileService
 
                 GetEmbeddedResource(decodedResourceName, ref content, ref contentType, ref name, ref cacheable);
             }
+        }
+
+        /// <summary>
+        /// Converts a virtual path to an application absolute path.
+        /// </summary>
+        /// <param name="virtualPath">The virtual path to convert to an application-relative path.</param>
+        /// <returns>The absolute path representation of the specified virtual path or original string, if the conversion is not possible.</returns>
+        internal static string VirtualPathToAbsolute(string virtualPath)
+        {
+            string url = ProcessVirtualPath(virtualPath);
+            if (url != null)
+            {
+                string applicationPath = HttpContext.Current.Request.ApplicationPath;
+                if (!applicationPath.Equals("/", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (!url.Contains(applicationPath + "/")) url = applicationPath + url;
+                }
+                return url;
+            }
+            return virtualPath;
         }
 
         #endregion

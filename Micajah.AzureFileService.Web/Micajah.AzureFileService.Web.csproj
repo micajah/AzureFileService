@@ -185,6 +185,7 @@
     <Content Include="Default.aspx" />
     <Content Include="FileList.aspx" />
     <Content Include="Global.asax" />
+    <Content Include="mafs\FileList.aspx" />
     <Content Include="robots.txt" />
     <Content Include="Scripts\Site.js" />
     <Content Include="SimpleUpload.aspx" />
